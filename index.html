@@ -15,15 +15,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: var(--fg); font-family: 'Cormorant Garamond', serif; overscroll-behavior: none; }
 
-        /* Animations */
-        @keyframes highlightPulse {
-            0% { background: var(--card); }
-            50% { background: rgba(201, 169, 110, 0.2); border-color: var(--accent); }
-            100% { background: var(--card); }
-        }
-        .highlight-active { animation: highlightPulse 2s ease-in-out 2; border-color: var(--accent) !important; }
-
-        /* Layout */
         .page { display: none; flex-direction: column; min-height: 100dvh; padding-bottom: calc(var(--nav-h) + 40px); opacity: 0; transition: opacity 0.3s; }
         .page.active { display: flex; }
         .page.shown { opacity: 1; }
@@ -32,55 +23,50 @@
         .page-header h1 { font-size: 13px; letter-spacing: 0.5em; text-transform: uppercase; color: var(--accent); font-weight: 300; }
         .section-label { font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--dim2); text-align: center; padding: 30px 20px 15px; }
 
-        /* Mode Toggle */
+        /* Navigation Highlighting */
+        #nav { position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-h); display: flex; justify-content: center; align-items: center; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
+        .nav-pill { background: rgba(21, 21, 30, 0.9); backdrop-filter: blur(20px); border: 1px solid rgba(201,169,110,0.2); border-radius: 40px; display: flex; padding: 5px; }
+        .nav-btn { width: 68px; height: 52px; background: none; border: none; color: var(--dim2); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
+        .nav-btn.active { color: var(--accent); }
+        .nav-btn .icon { font-size: 20px; }
+        .nav-btn .txt { font-size: 8px; text-transform: uppercase; letter-spacing: 0.15em; }
+
+        /* Mode Selector */
         .mode-toggle { display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
-        .mode-btn { background: none; border: 1px solid var(--dim); color: var(--dim2); padding: 8px 20px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer; border-radius: 4px; }
+        .mode-btn { background: none; border: 1px solid var(--dim); color: var(--dim2); padding: 8px 20px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; border-radius: 4px; }
         .mode-btn.active { border-color: var(--accent); color: var(--accent); }
 
-        /* Slot Machine */
+        /* Slots */
         .reel-container { display: flex; justify-content: center; gap: 12px; margin: 40px 0; }
         .slot { width: 85px; height: 115px; background: var(--card); border: 1px solid var(--dim); border-radius: 6px; overflow: hidden; }
-        .reel { display: flex; flex-direction: column; align-items: center; }
-        .reel-unit { height: 115px; display: flex; align-items: center; justify-content: center; font-size: 44px; flex-shrink: 0; }
+        .reel-unit { height: 115px; display: flex; align-items: center; justify-content: center; font-size: 44px; }
 
         /* Manual Grid */
         .rune-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 20px; max-width: 400px; margin: 0 auto; }
-        .rune-btn { background: var(--card); border: 1px solid var(--dim); border-radius: 6px; padding: 15px 5px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .rune-btn { background: var(--card); border: 1px solid var(--dim); border-radius: 6px; padding: 15px 5px; text-align: center; cursor: pointer; }
         .rune-btn.selected { border-color: var(--accent); background: rgba(201,169,110,0.1); }
         .rune-btn span { display: block; font-size: 24px; margin-bottom: 5px; }
-        .rune-btn label { font-size: 9px; text-transform: uppercase; color: var(--dim2); letter-spacing: 1px; }
+        .rune-btn label { font-size: 9px; text-transform: uppercase; color: var(--dim2); }
 
-        /* History & Stats */
-        .insights-grid { display: flex; flex-direction: column; gap: 12px; padding: 0 16px; }
-        .top-card { background: var(--card); border: 1px solid var(--dim); border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 20px; cursor: pointer; }
-        .top-glyph { font-size: 40px; width: 45px; text-align: center; }
-        .top-info { flex: 1; }
-        .top-name { font-size: 14px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; }
-        .top-meta { font-size: 11px; color: var(--dim2); font-style: italic; }
+        /* Results Display */
+        .result-runes { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; }
+        .result-rune-card { background: var(--card); border: 1px solid var(--dim); width: 80px; padding: 20px 0; border-radius: 8px; text-align: center; }
+        .result-rune-card .glyph { font-size: 32px; display: block; }
+        .result-rune-card .name { font-size: 10px; text-transform: uppercase; color: var(--accent); letter-spacing: 1px; margin-top: 8px; }
 
-        .stats-table { padding: 0 16px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-        .stat-row { background: var(--card); padding: 10px 14px; border-radius: 6px; display: flex; justify-content: space-between; font-size: 12px; color: var(--fg2); }
+        /* Stats & History */
+        .top-card { background: var(--card); border: 1px solid var(--dim); border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 20px; margin: 0 16px 12px; }
+        .stat-table { padding: 0 16px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .stat-row { background: var(--card); padding: 10px; border-radius: 6px; display: flex; justify-content: space-between; font-size: 12px; }
 
-        /* Swipe Deletion */
         .history-item { position: relative; background: var(--delete); overflow: hidden; border-bottom: 1px solid var(--dim); }
-        .history-content { background: var(--bg); padding: 24px; position: relative; z-index: 2; transition: transform 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.1); }
-        .delete-reveal { position: absolute; right: 0; top: 0; bottom: 0; width: 85px; background: var(--delete); color: #ff8888; border: none; font-size: 10px; text-transform: uppercase; z-index: 1; letter-spacing: 1px; }
-
-        /* Guide */
-        .guide-entry { border-bottom: 1px solid var(--dim); padding: 20px 0; cursor: pointer; transition: background 0.2s; }
-        .lore-box { display: none; padding: 15px 0 5px; font-size: 15px; line-height: 1.7; color: var(--fg2); font-style: italic; }
-        .lore-box.open { display: block; }
-
-        /* Nav */
-        #nav { position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-h); display: flex; justify-content: center; align-items: center; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
-        .nav-pill { background: rgba(21, 21, 30, 0.85); backdrop-filter: blur(25px); border: 1px solid rgba(201,169,110,0.2); border-radius: 40px; display: flex; padding: 5px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .nav-btn { width: 68px; height: 52px; background: none; border: none; color: var(--dim2); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; }
-        .nav-btn.active { color: var(--accent); }
-        .nav-btn .icon { font-size: 20px; margin-bottom: 2px; }
-        .nav-btn .txt { font-size: 8px; text-transform: uppercase; letter-spacing: 0.15em; }
+        .history-content { background: var(--bg); padding: 24px; position: relative; z-index: 2; transition: transform 0.4s; }
+        .delete-reveal { position: absolute; right: 0; top: 0; bottom: 0; width: 85px; background: var(--delete); color: #ff8888; border: none; font-size: 10px; text-transform: uppercase; z-index: 1; }
 
         .action-btn { width: 100%; background: none; border: 1px solid var(--accent); color: var(--accent); padding: 18px; text-transform: uppercase; letter-spacing: 0.3em; font-size: 12px; margin-top: 20px; cursor: pointer; }
-        canvas { display: none; }
+        .guide-entry { border-bottom: 1px solid var(--dim); padding: 20px 0; cursor: pointer; }
+        .lore-box { display: none; padding-top: 10px; font-size: 15px; color: var(--fg2); font-style: italic; }
+        .lore-box.open { display: block; }
     </style>
 </head>
 <body>
@@ -88,26 +74,24 @@
 <div class="page" id="page-home">
     <div class="page-header"><h1 id="home-date"></h1></div>
     <div style="text-align: center; padding: 50px 24px;">
-        <div id="rotd-g" style="font-size: 100px; margin-bottom: 15px; color: var(--fg);"></div>
-        <div id="rotd-n" style="font-size: 18px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4em; margin-bottom: 10px;"></div>
-        <div id="rotd-m" style="font-style: italic; color: var(--dim2); font-size: 16px;"></div>
+        <div id="rotd-g" style="font-size: 100px; margin-bottom: 10px;"></div>
+        <div id="rotd-n" style="font-size: 18px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4em;"></div>
+        <div id="rotd-m" style="font-style: italic; color: var(--dim2); margin-top: 10px;"></div>
     </div>
     <div class="section-label">Consult the Oracle</div>
-    <div style="padding: 0 16px; display: flex; flex-direction: column; gap: 12px;">
-        <div class="top-card" onclick="navTo('reading'); switchMode('draw')">
-            <div class="top-glyph">ᚱ</div>
-            <div class="top-info"><div class="top-name">Draw Staves</div><div class="top-meta">Guided Selection</div></div>
-        </div>
-        <div class="top-card" onclick="navTo('reading'); switchMode('manual')">
-            <div class="top-glyph">ᚦ</div>
-            <div class="top-info"><div class="top-name">Manual Selection</div><div class="top-meta">Intentional Choice</div></div>
-        </div>
+    <div class="top-card" onclick="navTo('reading'); switchMode('draw')">
+        <div style="font-size: 30px;">ᚱ</div>
+        <div><div style="text-transform: uppercase; color: var(--accent); font-size: 14px;">Draw Staves</div><div style="font-size: 11px; color: var(--dim2);">Guided by the Norns</div></div>
+    </div>
+    <div class="top-card" onclick="navTo('reading'); switchMode('manual')">
+        <div style="font-size: 30px;">ᚦ</div>
+        <div><div style="text-transform: uppercase; color: var(--accent); font-size: 14px;">Manual Selection</div><div style="font-size: 11px; color: var(--dim2);">Chosen with intent</div></div>
     </div>
 </div>
 
 <div class="page" id="page-reading">
     <div class="page-header"><h1>The Reading</h1></div>
-    <div class="mode-toggle">
+    <div class="mode-toggle" id="read-modes">
         <button class="mode-btn active" id="m-draw" onclick="switchMode('draw')">Draw</button>
         <button class="mode-btn" id="m-manual" onclick="switchMode('manual')">Manual</button>
     </div>
@@ -118,30 +102,28 @@
             <div class="slot"><div class="reel" id="r1"></div></div>
             <div class="slot"><div class="reel" id="r2"></div></div>
         </div>
-        <button class="action-btn" id="spin-btn" onclick="startCast()">Cast the Runes</button>
+        <button class="action-btn" onclick="startCast()">Cast the Runes</button>
     </div>
 
     <div id="area-manual" style="display:none;">
         <div class="rune-grid" id="manual-grid"></div>
-        <div style="padding: 0 20px;"><button class="action-btn" id="manual-submit" onclick="submitManual()" style="opacity:0.3; pointer-events:none;">Interpret 0/3</button></div>
+        <div style="padding: 0 20px;"><button class="action-btn" id="manual-submit" onclick="submitManual()" style="opacity:0.3; pointer-events:none;">Select 3 Runes</button></div>
     </div>
 
     <div id="reading-reveal" style="display:none; padding: 40px 24px; text-align: center;">
-        <div id="read-text" style="font-size: 20px; line-height: 1.8; font-style: italic; margin-bottom: 40px; color: var(--fg2);"></div>
-        <button class="mode-btn" onclick="genWall()">Save Wallpaper</button>
-        <button class="mode-btn" onclick="location.reload()" style="margin-top: 15px; border:none; opacity:0.5;">Reset</button>
+        <div id="reveal-visuals" class="result-runes"></div>
+        <div id="read-text" style="font-size: 20px; line-height: 1.8; font-style: italic; color: var(--fg2); margin-bottom: 30px;"></div>
+        <button class="mode-btn" onclick="location.reload()">New Reading</button>
     </div>
 </div>
 
 <div class="page" id="page-history">
     <div class="page-header"><h1>Insights</h1></div>
-    <div class="section-label">Frequent Guides</div>
-    <div id="top-insights" class="insights-grid"></div>
-    
-    <div class="section-label">Full Frequency</div>
-    <div id="full-stats" class="stats-table"></div>
-
-    <div class="section-label">Journal</div>
+    <div class="section-label">Most Frequent</div>
+    <div id="top-insights"></div>
+    <div class="section-label">Full Stave Count</div>
+    <div id="full-stats" class="stat-table"></div>
+    <div class="section-label">Past Readings</div>
     <div id="journal-list"></div>
 </div>
 
@@ -152,61 +134,41 @@
 
 <div id="nav">
     <div class="nav-pill">
-        <button class="nav-btn active" onclick="navTo('home')"><span class="icon">ᚹ</span><span class="txt">Home</span></button>
-        <button class="nav-btn" onclick="navTo('reading')"><span class="icon">ᚠ</span><span class="txt">Read</span></button>
-        <button class="nav-btn" onclick="navTo('history')"><span class="icon">ᚻ</span><span class="txt">Stats</span></button>
-        <button class="nav-btn" onclick="navTo('library')"><span class="icon">ᛉ</span><span class="txt">Guide</span></button>
+        <button class="nav-btn active" data-id="home" onclick="navTo('home')"><span class="icon">ᚹ</span><span class="txt">Home</span></button>
+        <button class="nav-btn" data-id="reading" onclick="navTo('reading')"><span class="icon">ᚠ</span><span class="txt">Read</span></button>
+        <button class="nav-btn" data-id="history" onclick="navTo('history')"><span class="icon">ᚻ</span><span class="txt">Stats</span></button>
+        <button class="nav-btn" data-id="library" onclick="navTo('library')"><span class="icon">ᛉ</span><span class="txt">Guide</span></button>
     </div>
 </div>
 
-<canvas id="wall-cv"></canvas>
-
 <script>
     const RUNES = [
-        {g:'ᚠ',n:'Fehu',m:'Wealth, abundance, new beginnings', l:'Represents movable wealth and the responsibility of abundance. It is the creative fire that sparks action.'},
-        {g:'ᚢ',n:'Uruz',m:'Strength, vitality, primal power', l:'The wild ox. Primal strength, health, and the raw energy of the earth before it is tamed.'},
-        {g:'ᚦ',n:'Thurisaz',m:'Force, challenge, protection', l:'The thorn or the giant. A reactive force of defense and the necessary conflict before growth.'},
-        {g:'ᚨ',n:'Ansuz',m:'Wisdom, communication, divine breath', l:'The mouth of the divine. Represents signals, messages, and the power of the spoken word.'},
-        {g:'ᚱ',n:'Raidho',m:'Journey, movement, right action', l:'The wheel. Rationality, justice, and the rhythm of the journey through life and travel.'},
-        {g:'ᚲ',n:'Kenaz',m:'Torch, knowledge, creative fire', l:'The beacon. Enlightenment, skill, and the controlled fire of the artist or craftsperson.'},
-        {g:'ᚷ',n:'Gebo',m:'Gift, generosity, partnership', l:'A connection between people. Honor, exchange, and the balance of giving and receiving.'},
-        {g:'ᚹ',n:'Wunjo',m:'Joy, harmony, fulfilment', l:'The banner of victory. Contentment, fellowship, and the removal of sorrows through alignment.'},
-        {g:'ᚺ',n:'Hagalaz',m:'Hail, disruption, transformation', l:'Destructive weather. Forces outside your control that clear the way for a new structure.'},
-        {g:'ᚾ',n:'Naudhiz',m:'Need, constraint, endurance', l:'The friction of necessity. Hardship that provides the spark for innovation and survival.'},
-        {g:'ᛁ',n:'Isa',m:'Ice, stillness, patience', l:'Freezing. A period of stasis where nothing seems to move, requiring inner focus and wait.'},
-        {g:'ᛃ',n:'Jera',m:'Harvest, cycles, reward', l:'The year. The natural outcome of effort over time and the beauty of seasonal cycles.'},
-        {g:'ᛇ',n:'Eihwaz',m:'Endurance, continuity', l:'The Yew tree. Connection between life and death, longevity, and the vertical axis of the soul.'},
-        {g:'ᛈ',n:'Perthro',m:'Fate, mystery, hidden laws', l:'The dice cup. Chance, hidden knowledge, and the laws of probability that govern fate.'},
-        {g:'ᛉ',n:'Algiz',m:'Protection, instinct, guidance', l:'The elk or swan. Higher spiritual protection and following the instinct of the soul.'},
-        {g:'ᛊ',n:'Sowilo',m:'Sun, victory, clarity', l:'Solar power. Vitality, success, and the clear light that reveals the path forward.'},
-        {g:'ᛏ',n:'Tiwaz',m:'Justice, courage, sacrifice', l:'The spiritual warrior. Integrity, self-sacrifice for the greater good, and victory through law.'},
-        {g:'ᛒ',n:'Berkano',m:'Growth, nurturing, new life', l:'The Birch tree. Rebirth, fertility, and the nurturing energy of a mother or a garden.'},
-        {g:'ᛖ',n:'Ehwaz',m:'Trust, partnership, progress', l:'The horse. The harmonious relationship between two entities that creates rapid movement.'},
-        {g:'ᛗ',n:'Mannaz',m:'Humanity, self, community', l:'The individual within the collective. Self-realization and our connection to the human race.'},
-        {g:'ᛚ',n:'Laguz',m:'Water, flow, intuition', l:'The deep ocean. Emotions, the collective unconscious, and the fluid nature of reality.'},
-        {g:'ᛜ',n:'Ingwaz',m:'Fertility, potential, inner rest', l:'The seed. Internalized energy that is stored up before a massive release of growth.'},
-        {g:'ᛞ',n:'Dagaz',m:'Dawn, breakthrough, transformation', l:'Daylight. A radical change of perspective and the moment of absolute awakening.'},
-        {g:'ᛟ',n:'Othala',m:'Heritage, home, protection', l:'Ancestral land. What we inherit and what we build to leave behind for others.'}
+        {g:'ᚠ',n:'Fehu',m:'Wealth, abundance', l:'Mobile wealth and creative fire.'}, {g:'ᚢ',n:'Uruz',m:'Strength, vitality', l:'Primal power and physical health.'},
+        {g:'ᚦ',n:'Thurisaz',m:'Force, protection', l:'Defense and necessary conflict.'}, {g:'ᚨ',n:'Ansuz',m:'Wisdom, signals', l:'Divine messages and communication.'},
+        {g:'ᚱ',n:'Raidho',m:'Journey, rhythm', l:'Movement and right action.'}, {g:'ᚲ',n:'Kenaz',m:'Vision, creativity', l:'Enlightenment and technical skill.'},
+        {g:'ᚷ',n:'Gebo',m:'Gift, balance', l:'Exchange and partnership.'}, {g:'ᚹ',n:'Wunjo',m:'Joy, harmony', l:'Fulfilment and fellowship.'},
+        {g:'ᚺ',n:'Hagalaz',m:'Crisis, change', l:'Disruption clearing the way.'}, {g:'ᚾ',n:'Naudhiz',m:'Need, endurance', l:'Innovation born of necessity.'},
+        {g:'ᛁ',n:'Isa',m:'Stillness, clarity', l:'A period of waiting and focus.'}, {g:'ᛃ',n:'Jera',m:'Harvest, cycles', l:'Reward for effort over time.'},
+        {g:'ᛇ',n:'Eihwaz',m:'Endurance, death', l:'Continuity and the vertical axis.'}, {g:'ᛈ',n:'Perthro',m:'Fate, mystery', l:'Probability and hidden laws.'},
+        {g:'ᛉ',n:'Algiz',m:'Protection, instinct', l:'Higher spiritual guidance.'}, {g:'ᛊ',n:'Sowilo',m:'Success, energy', l:'Vitality and clear path forward.'},
+        {g:'ᛏ',n:'Tiwaz',m:'Justice, sacrifice', l:'Spiritual will and integrity.'}, {g:'ᛒ',n:'Berkano',m:'Growth, rebirth', l:'Nurturing and new beginnings.'},
+        {g:'ᛖ',n:'Ehwaz',m:'Trust, progress', l:'Trust between two entities.'}, {g:'ᛗ',n:'Mannaz',m:'Humanity, self', l:'Self-realization in community.'},
+        {g:'ᛚ',n:'Laguz',m:'Flow, intuition', l:'The unconscious and emotions.'}, {g:'ᛜ',n:'Ingwaz',m:'Potential, rest', l:'Energy stored for future growth.'},
+        {g:'ᛞ',n:'Dagaz',m:'Dawn, awakening', l:'Radical change of perspective.'}, {g:'ᛟ',n:'Othala',m:'Heritage, home', l:'What we inherit and build.'},
+        {g:' ',n:'Wyrd',m:'The Unknown', l:'The Blank Rune. Fate yet to be written.'}
     ];
 
     let manualSelected = [];
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-
-    function playTick() {
-        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-        osc.type = 'sine'; osc.frequency.setValueAtTime(160, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.04, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.08);
-    }
 
     function navTo(id) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active', 'shown'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('page-' + id).classList.add('active');
-        document.querySelector(`[onclick="navTo('${id}')"]`).classList.add('active');
-        setTimeout(() => document.getElementById('page-' + id).classList.add('shown'), 50);
+        
+        const target = document.getElementById('page-' + id);
+        target.classList.add('active');
+        document.querySelector(`.nav-btn[data-id="${id}"]`).classList.add('active');
+        
+        setTimeout(() => target.classList.add('shown'), 50);
         if(id === 'history') renderHistory();
         if(id === 'library') buildLibrary();
     }
@@ -219,44 +181,31 @@
         if(mode === 'manual') buildManualGrid();
     }
 
-    // Drawing Logic
     function startCast() {
         const picks = [];
         for(let i=0; i<3; i++) {
             const r = document.getElementById('r'+i);
             r.innerHTML = '';
-            for(let j=0; j<25; j++) {
+            for(let j=0; j<20; j++) {
                 const d = document.createElement('div'); d.className = 'reel-unit';
-                d.textContent = RUNES[Math.floor(Math.random()*24)].g; r.appendChild(d);
+                d.textContent = RUNES[Math.floor(Math.random()*25)].g; r.appendChild(d);
             }
-            const win = RUNES[Math.floor(Math.random()*24)]; picks.push(win);
+            const win = RUNES[Math.floor(Math.random()*25)]; picks.push(win);
             const last = document.createElement('div'); last.className = 'reel-unit';
             last.textContent = win.g; r.appendChild(last);
-            
             r.style.transition = 'none'; r.style.transform = 'translateY(0)';
             setTimeout(() => {
-                r.style.transition = `transform ${2 + (i*0.5)}s cubic-bezier(0.15, 0, 0.15, 1)`;
-                r.style.transform = `translateY(-${25 * 115}px)`;
+                r.style.transition = `transform ${2 + (i*0.5)}s cubic-bezier(0.1, 0, 0.1, 1)`;
+                r.style.transform = `translateY(-${20 * 115}px)`;
             }, 50);
         }
-        
-        // Sync Ticks
-        let ticks = 0;
-        const tickInt = setInterval(() => {
-            playTick(); ticks++;
-            if(ticks > 25) clearInterval(tickInt);
-        }, 120);
-
         setTimeout(() => {
-            const text = `${picks[0].m}, through ${picks[1].m.toLowerCase()}, leads to ${picks[2].m.toLowerCase()}.`;
-            finishReading(picks, text);
+            finishReading(picks, `${picks[0].m}, through ${picks[1].m.toLowerCase()}, leads to ${picks[2].m.toLowerCase()}.`);
         }, 3500);
     }
 
-    // Manual Logic
     function buildManualGrid() {
-        const grid = document.getElementById('manual-grid');
-        grid.innerHTML = ''; manualSelected = [];
+        const grid = document.getElementById('manual-grid'); grid.innerHTML = ''; manualSelected = [];
         RUNES.forEach(r => {
             const btn = document.createElement('div'); btn.className = 'rune-btn';
             btn.innerHTML = `<span>${r.g}</span><label>${r.n}</label>`;
@@ -265,37 +214,37 @@
                     btn.classList.remove('selected');
                     manualSelected = manualSelected.filter(x => x.n !== r.n);
                 } else if(manualSelected.length < 3) {
-                    btn.classList.add('selected');
-                    manualSelected.push(r);
+                    btn.classList.add('selected'); manualSelected.push(r);
                 }
-                updateManualBtn();
+                const b = document.getElementById('manual-submit');
+                b.textContent = manualSelected.length === 3 ? 'Interpret' : `${manualSelected.length}/3 Selected`;
+                b.style.opacity = manualSelected.length === 3 ? '1' : '0.3';
+                b.style.pointerEvents = manualSelected.length === 3 ? 'all' : 'none';
             };
             grid.appendChild(btn);
         });
     }
 
-    function updateManualBtn() {
-        const b = document.getElementById('manual-submit');
-        b.textContent = `Interpret ${manualSelected.length}/3`;
-        b.style.opacity = manualSelected.length === 3 ? '1' : '0.3';
-        b.style.pointerEvents = manualSelected.length === 3 ? 'all' : 'none';
-    }
-
     function submitManual() {
-        const text = `${manualSelected[0].m}, paired with ${manualSelected[1].m.toLowerCase()}, culminates in ${manualSelected[2].m.toLowerCase()}.`;
-        finishReading(manualSelected, text);
+        finishReading(manualSelected, `${manualSelected[0].m}, paired with ${manualSelected[1].m.toLowerCase()}, culminates in ${manualSelected[2].m.toLowerCase()}.`);
     }
 
     function finishReading(runes, text) {
         document.getElementById('area-draw').style.display = 'none';
         document.getElementById('area-manual').style.display = 'none';
-        document.querySelector('.mode-toggle').style.display = 'none';
+        document.getElementById('read-modes').style.display = 'none';
+        
+        const visualCont = document.getElementById('reveal-visuals');
+        visualCont.innerHTML = '';
+        runes.forEach(r => {
+            const div = document.createElement('div'); div.className = 'result-rune-card';
+            div.innerHTML = `<span class="glyph">${r.g}</span><span class="name">${r.n}</span>`;
+            visualCont.appendChild(div);
+        });
+
         document.getElementById('read-text').textContent = text;
         document.getElementById('reading-reveal').style.display = 'block';
-        saveHistory(runes, text);
-    }
-
-    function saveHistory(runes, text) {
+        
         let h = JSON.parse(localStorage.getItem('rune_history') || '[]');
         h.unshift({ id: Date.now(), runes, text, date: new Date().toLocaleDateString('en-GB', {day:'numeric', month:'short'}) });
         localStorage.setItem('rune_history', JSON.stringify(h.slice(0, 50)));
@@ -306,24 +255,22 @@
         const counts = {};
         h.forEach(x => x.runes.forEach(r => counts[r.n] = (counts[r.n] || 0) + 1));
         
-        // Stats Logic
         const sorted = Object.entries(counts).sort((a,b) => b[1] - a[1]).slice(0, 3);
         const topCont = document.getElementById('top-insights');
-        topCont.innerHTML = sorted.length ? '' : '<div class="section-label">Frequent guides will appear here</div>';
+        topCont.innerHTML = '';
         sorted.forEach(([name, count]) => {
             const r = RUNES.find(x => x.n === name);
             const div = document.createElement('div'); div.className = 'top-card';
-            div.onclick = () => jumpToRune(name);
-            div.innerHTML = `<div class="top-glyph">${r.g}</div><div class="top-info"><div class="top-name">${r.n}</div><div class="top-meta">${count} Draws · ${r.m}</div></div>`;
+            div.innerHTML = `<div style="font-size:30px; width:40px;">${r.g}</div><div><div style="text-transform: uppercase; color: var(--accent); font-size: 14px;">${r.n}</div><div style="font-size:11px; color: var(--dim2);">${count} Draws · ${r.m}</div></div>`;
             topCont.appendChild(div);
         });
 
-        const statCont = document.getElementById('full-stats');
-        statCont.innerHTML = '';
+        const fullCont = document.getElementById('full-stats');
+        fullCont.innerHTML = '';
         RUNES.forEach(r => {
-            const d = document.createElement('div'); d.className = 'stat-row';
-            d.innerHTML = `<span>${r.g} ${r.n}</span><span>${counts[r.n] || 0}</span>`;
-            statCont.appendChild(d);
+            const div = document.createElement('div'); div.className = 'stat-row';
+            div.innerHTML = `<span>${r.g} ${r.n}</span><span>${counts[r.n] || 0}</span>`;
+            fullCont.appendChild(div);
         });
 
         const jCont = document.getElementById('journal-list');
@@ -331,12 +278,10 @@
         h.forEach(item => {
             const wrap = document.createElement('div'); wrap.className = 'history-item';
             wrap.innerHTML = `
-                <button class="delete-reveal" onclick="deleteHistory(${item.id})">Delete</button>
+                <button class="delete-reveal" onclick="deleteItem(${item.id})">Delete</button>
                 <div class="history-content">
                     <div style="font-size: 10px; color: var(--dim2); margin-bottom: 8px;">${item.date}</div>
-                    <div style="font-size: 20px; letter-spacing: 12px; margin-bottom: 12px;">
-                        ${item.runes.map(r => `<span onclick="event.stopPropagation(); jumpToRune('${r.n}')" style="cursor:pointer">${r.g}</span>`).join('')}
-                    </div>
+                    <div style="font-size: 20px; letter-spacing: 12px; margin-bottom: 12px;">${item.runes.map(r => r.g).join('')}</div>
                     <div style="color: var(--fg2); font-size: 15px;">${item.text}</div>
                 </div>`;
             
@@ -348,7 +293,7 @@
                 if(diff > 0) content.style.transform = `translateX(-${Math.min(diff, 90)}px)`;
             }, {passive:true});
             wrap.addEventListener('touchend', e => {
-                content.style.transition = 'transform 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.1)';
+                content.style.transition = 'transform 0.4s';
                 if(startX - e.changedTouches[0].clientX > 45) content.style.transform = 'translateX(-85px)';
                 else content.style.transform = 'translateX(0)';
             });
@@ -356,7 +301,7 @@
         });
     }
 
-    function deleteHistory(id) {
+    function deleteItem(id) {
         let h = JSON.parse(localStorage.getItem('rune_history') || '[]');
         h = h.filter(x => x.id !== id);
         localStorage.setItem('rune_history', JSON.stringify(h));
@@ -366,36 +311,14 @@
     function buildLibrary() {
         const cont = document.getElementById('lib-list'); if(cont.innerHTML) return;
         RUNES.forEach(r => {
-            const div = document.createElement('div'); div.className = 'guide-entry'; div.id = 'lib-' + r.n;
-            div.innerHTML = `
-                <div style="display:flex; align-items:center; gap:20px;">
-                    <div style="font-size:36px; width:40px; text-align:center;">${r.g}</div>
-                    <div>
-                        <div class="top-name">${r.n}</div>
-                        <div class="top-meta">${r.m}</div>
-                    </div>
-                </div>
-                <div class="lore-box" id="lore-${r.n}">${r.l}</div>
-            `;
+            const div = document.createElement('div'); div.className = 'guide-entry';
+            div.innerHTML = `<div style="display:flex; align-items:center; gap:20px;"><div style="font-size:36px; width:40px;">${r.g}</div><div><div style="color:var(--accent); text-transform:uppercase; font-size:14px;">${r.n}</div><div style="font-size:11px; color:var(--dim2);">${r.m}</div></div></div><div class="lore-box" id="lore-${r.n}">${r.l}</div>`;
             div.onclick = () => document.getElementById('lore-'+r.n).classList.toggle('open');
             cont.appendChild(div);
         });
     }
 
-    function jumpToRune(name) {
-        navTo('library');
-        setTimeout(() => {
-            const el = document.getElementById('lib-' + name);
-            if(el) {
-                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                el.classList.add('highlight-active');
-                document.getElementById('lore-'+name).classList.add('open');
-                setTimeout(() => el.classList.remove('highlight-active'), 4000);
-            }
-        }, 350);
-    }
-
-    // Init Home
+    // Init
     const rotd = RUNES[Math.floor(Math.random()*24)];
     document.getElementById('rotd-g').textContent = rotd.g;
     document.getElementById('rotd-n').textContent = rotd.n;
