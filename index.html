@@ -1,21 +1,13 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- iOS polish -->
-<meta name="theme-color" content="#0d0d12">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
 <title>Daily Rune Reading</title>
-
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
-
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-
 :root {
   --bg:#0d0d12;
   --fg:#ede9e0;
@@ -27,229 +19,1016 @@
   --nav-h:80px;
 }
 
-/* LIGHT MODE */
-body.light {
-  --bg:#f6f4ef;
-  --fg:#1a1a1a;
-  --card:#ffffff;
-  --dim:#d6d1c7;
-  --dim2:#6b665c;
-  --accent:#8c6a2f;
+/* ── iOS/Safari global resets ── */
+button, a {
+-webkit-appearance:none; appearance:none;
+color:inherit; -webkit-text-fill-color:inherit;
+font-family:‘Cormorant Garamond’,Georgia,serif;
+}
+a { text-decoration:none; }
+
+html,body {
+background:var(–bg); color:var(–fg);
+font-family:‘Cormorant Garamond’,Georgia,serif;
+min-height:100dvh; overscroll-behavior:none;
 }
 
-html {
-  -webkit-text-size-adjust:100%;
-  color-scheme:dark light;
-}
-
-body {
-  background:var(--bg);
-  color:var(--fg);
-  font-family:'Cormorant Garamond', Georgia, serif;
-  min-height:100dvh;
-}
-
-/* THEME BUTTON */
-#theme-toggle {
-  position:fixed;
-  top:16px;
-  right:16px;
-  z-index:200;
-  background:var(--card);
-  border:1px solid var(--dim);
-  border-radius:50%;
-  width:42px;
-  height:42px;
-  font-size:18px;
-  cursor:pointer;
-}
-
-/* VERSION LABEL */
-#version {
-  position:fixed;
-  bottom:6px;
-  left:50%;
-  transform:translateX(-50%);
-  font-size:10px;
-  letter-spacing:0.2em;
-  color:var(--dim2);
-  opacity:0.6;
-  pointer-events:none;
-}
-
-/* PAGE FIX (important for iPhone overlap) */
+/* ══════════════════════════════════════════════════════
+PAGES — all share the same scroll container approach
+══════════════════════════════════════════════════════ */
 .page {
-  display:none;
-  flex-direction:column;
-  min-height:100dvh;
-  padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 40px);
-  opacity:0;
-  transition:opacity 0.25s;
+display:none; flex-direction:column;
+min-height:100dvh; padding-bottom:calc(var(–nav-h) + 20px);
+opacity:0; transition:opacity 0.25s;
 }
 .page.active { display:flex; }
-.page.shown { opacity:1; }
+.page.shown  { opacity:1; }
 
-/* NAV */
-#nav {
-  position:fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  height:var(--nav-h);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  z-index:100;
-}
-
-/* SIMPLE NAV STYLE */
-.nav-pill {
-  display:flex;
-  background:var(--card);
-  border-radius:40px;
-  padding:6px;
-  border:1px solid var(--dim);
-}
-
-.nav-btn {
-  padding:10px 14px;
-  border:none;
-  background:none;
-  cursor:pointer;
-  color:var(--dim2);
-}
-
-.nav-btn.nav-active {
-  color:var(--accent);
-}
-
-/* BASIC PAGE CONTENT */
+/* ══════════════════════════════════════════════════════
+PAGE HEADERS
+══════════════════════════════════════════════════════ */
 .page-header {
-  text-align:center;
-  padding:40px 20px;
+text-align:center; padding:48px 24px 28px;
+border-bottom:1px solid var(–dim);
+}
+.page-header h1 {
+font-size:13px; letter-spacing:0.45em; text-transform:uppercase;
+color:var(–accent); -webkit-text-fill-color:var(–accent); font-weight:300; margin-bottom:8px;
+}
+.page-header .sub {
+font-size:12px; letter-spacing:0.3em; text-transform:uppercase; color:var(–dim2); -webkit-text-fill-color:var(–dim2);
+}
+.section-label {
+font-size:11px; letter-spacing:0.4em; text-transform:uppercase;
+color:var(–dim2); -webkit-text-fill-color:var(–dim2); text-align:center; padding:24px 24px 14px;
 }
 
-/* ADD EXTRA SCROLL SPACE */
-.page::after {
-  content:'';
-  display:block;
-  height:120px;
+/* ══════════════════════════════════════════════════════
+BOTTOM NAV — liquid glass runic style
+══════════════════════════════════════════════════════ */
+#nav {
+position:fixed; bottom:0; left:0; right:0;
+height:var(–nav-h); z-index:100;
+display:flex; align-items:center; justify-content:center;
+padding-bottom:env(safe-area-inset-bottom);
+}
+.nav-pill {
+display:flex; align-items:center;
+background:rgba(21,21,30,0.72);
+backdrop-filter:blur(24px) saturate(1.4);
+-webkit-backdrop-filter:blur(24px) saturate(1.4);
+border:1px solid rgba(201,169,110,0.18);
+border-radius:40px;
+padding:6px 8px;
+gap:4px;
+box-shadow:0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+.nav-btn {
+display:flex; flex-direction:column; align-items:center; justify-content:center;
+gap:3px; width:76px; height:54px; border:none; background:none;
+cursor:pointer; border-radius:32px; position:relative;
+transition:background 0.2s;
+}
+.nav-btn:active { background:rgba(201,169,110,0.1); }
+.nav-btn.nav-active {
+background:rgba(201,169,110,0.14);
+box-shadow:inset 0 1px 0 rgba(201,169,110,0.2);
+}
+.nav-rune {
+font-size:22px; line-height:1; color:var(–dim2);
+-webkit-text-fill-color:var(–dim2);
+transition:color 0.2s, transform 0.2s;
+}
+.nav-btn.nav-active .nav-rune { color:var(–accent); -webkit-text-fill-color:var(–accent); transform:scale(1.1); }
+.nav-label {
+font-size:9px; letter-spacing:0.25em; text-transform:uppercase;
+color:var(–dim2); -webkit-text-fill-color:var(–dim2); transition:color 0.2s;
+}
+.nav-btn.nav-active .nav-label { color:var(–accent); -webkit-text-fill-color:var(–accent); }
+
+/* Reading sub-picker inside nav (slides up) */
+.nav-reading-picker {
+position:fixed; bottom:calc(var(–nav-h) + 10px); left:50%;
+transform:translateX(-50%) translateY(10px);
+background:rgba(21,21,30,0.88);
+backdrop-filter:blur(24px) saturate(1.4);
+-webkit-backdrop-filter:blur(24px) saturate(1.4);
+border:1px solid rgba(201,169,110,0.2);
+border-radius:20px; padding:10px 8px;
+display:flex; gap:6px;
+opacity:0; pointer-events:none;
+transition:opacity 0.2s, transform 0.2s;
+z-index:99;
+box-shadow:0 8px 32px rgba(0,0,0,0.5);
+white-space:nowrap;
+}
+.nav-reading-picker.open {
+opacity:1; pointer-events:all;
+transform:translateX(-50%) translateY(0);
+}
+.picker-btn {
+display:flex; flex-direction:column; align-items:center; gap:4px;
+padding:10px 16px; border:none; border-radius:14px;
+background:rgba(255,255,255,0.04); cursor:pointer;
+transition:background 0.15s;
+}
+.picker-btn:active, .picker-btn:hover { background:rgba(201,169,110,0.12); }
+.picker-rune { font-size:24px; line-height:1; color:var(–fg); -webkit-text-fill-color:var(–fg); }
+.picker-label {
+font-size:10px; letter-spacing:0.25em; text-transform:uppercase; color:var(–dim2); -webkit-text-fill-color:var(–dim2);
 }
 
+/* ══════════════════════════════════════════════════════
+HOME PAGE
+══════════════════════════════════════════════════════ */
+#page-home { padding-top:0; }
+
+.home-hero {
+display:flex; flex-direction:column; align-items:center;
+padding:52px 24px 36px; text-align:center;
+border-bottom:1px solid var(–dim); position:relative;
+}
+.home-date {
+font-size:12px; letter-spacing:0.35em; text-transform:uppercase;
+color:var(–dim2); margin-bottom:36px;
+}
+.rotd-eyebrow {
+font-size:10px; letter-spacing:0.45em; text-transform:uppercase;
+color:var(–dim2); -webkit-text-fill-color:var(–dim2); margin-bottom:18px;
+}
+.rotd-glyph {
+font-size:96px; line-height:1; color:var(–fg); -webkit-text-fill-color:var(–fg);
+margin-bottom:16px; opacity:0.92;
+}
+.rotd-name {
+font-size:22px; letter-spacing:0.3em; text-transform:uppercase;
+color:var(–accent); -webkit-text-fill-color:var(–accent); margin-bottom:10px; font-weight:300;
+}
+.rotd-keywords {
+font-size:15px; color:var(–dim2); -webkit-text-fill-color:var(–dim2);
+font-style:italic; margin-bottom:22px; line-height:1.5;
+}
+.rotd-link {
+font-size:10px; letter-spacing:0.3em; text-transform:uppercase;
+color:var(–dim2); -webkit-text-fill-color:var(–dim2);
+background:none; border:1px solid var(–dim);
+font-family:‘Cormorant Garamond’,serif;
+padding:7px 18px; cursor:pointer;
+transition:color 0.2s, border-color 0.2s, -webkit-text-fill-color 0.2s;
+}
+.rotd-link:hover { color:var(–accent); -webkit-text-fill-color:var(–accent); border-color:var(–accent); }
+
+.home-section-title {
+font-size:11px; letter-spacing:0.4em; text-transform:uppercase;
+color:var(–dim2); -webkit-text-fill-color:var(–dim2);
+text-align:center; padding:28px 24px 16px;
+}
+.home-cards {
+display:flex; flex-direction:column; gap:12px;
+padding:0 16px; max-width:420px; margin:0 auto; width:100%;
+}
+.home-card {
+background:var(–card); border:1px solid var(–dim);
+padding:22px 20px; cursor:pointer; position:relative; overflow:hidden;
+transition:border-color 0.2s, background 0.2s;
+display:flex; align-items:center; gap:18px;
+}
+.home-card:hover, .home-card:active { border-color:var(–accent); background:#1c1c14; }
+.home-card::before {
+content:’’; position:absolute; inset:0;
+background:radial-gradient(ellipse at 30% 50%, rgba(201,169,110,0.05) 0%, transparent 65%);
+pointer-events:none;
+}
+.home-card-glyph { font-size:34px; line-height:1; opacity:0.88; flex-shrink:0; color:var(–fg); -webkit-text-fill-color:var(–fg); }
+.home-card-body  { flex:1; }
+.home-card-name  {
+font-size:13px; letter-spacing:0.35em; text-transform:uppercase;
+color:var(–accent); -webkit-text-fill-color:var(–accent); margin-bottom:5px;
+}
+.home-card-desc  { font-size:14px; color:var(–dim2); -webkit-text-fill-color:var(–dim2); font-style:italic; line-height:1.5; }
+
+/* ══════════════════════════════════════════════════════
+READING PAGE
+══════════════════════════════════════════════════════ */
+/* Mode toggle at top */
+.mode-toggle {
+display:flex; max-width:420px; margin:20px auto 0; padding:0 16px; gap:0; width:100%;
+}
+.mode-toggle-btn {
+flex:1; background:none; border:1px solid var(–dim);
+font-family:‘Cormorant Garamond’,serif; font-size:11px;
+letter-spacing:0.3em; text-transform:uppercase;
+color:var(–dim2); -webkit-text-fill-color:var(–dim2);
+padding:10px 8px; cursor:pointer; transition:all 0.2s;
+}
+.mode-toggle-btn:first-child { border-radius:4px 0 0 4px; }
+.mode-toggle-btn:last-child  { border-radius:0 4px 4px 0; border-left:none; }
+.mode-toggle-btn.active { background:var(–card); color:var(–accent); -webkit-text-fill-color:var(–accent); border-color:var(–accent); z-index:1; }
+
+/* Draw mode */
+#draw-mode { display:none; flex-direction:column; align-items:center; padding:0 24px 10px; }
+#draw-mode.visible { display:flex; }
+.draw-slots { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:28px; }
+.draw-slot  { width:86px; display:flex; flex-direction:column; align-items:center; gap:8px; }
+.draw-slot-window {
+width:80px; height:90px; overflow:hidden; position:relative;
+border:1px solid var(–dim); border-radius:4px; background:var(–card);
+}
+.draw-slot-window::before,.draw-slot-window::after {
+content:’’; position:absolute; left:0; right:0; z-index:2; pointer-events:none; height:24px;
+}
+.draw-slot-window::before { top:0;    background:linear-gradient(to bottom,var(–card),transparent); }
+.draw-slot-window::after  { bottom:0; background:linear-gradient(to top,  var(–card),transparent); }
+.draw-slot-reel { display:flex; flex-direction:column; align-items:center; will-change:transform; }
+.draw-slot-reel .reel-item {
+width:80px; height:90px; display:flex; align-items:center; justify-content:center;
+font-size:40px; line-height:1; color:var(–fg); -webkit-text-fill-color:var(–fg); opacity:0.7; flex-shrink:0;
+}
+.draw-slot-reel .reel-item.center { opacity:1; }
+.draw-slot-name {
+font-size:10px; letter-spacing:0.22em; text-transform:uppercase;
+color:var(–accent); -webkit-text-fill-color:var(–accent); min-height:14px; text-align:center;
+opacity:0; transition:opacity 0.4s;
+}
+.draw-slot-name.visible { opacity:1; }
+.draw-slot-sep { width:3px; height:3px; border-radius:50%; background:var(–dim2); margin-bottom:10px; }
+.draw-btn {
+width:100%; max-width:340px; background:none;
+border:1px solid var(–accent); color:var(–accent); -webkit-text-fill-color:var(–accent);
+font-family:‘Cormorant Garamond’,serif; font-size:12px;
+letter-spacing:0.4em; text-transform:uppercase; padding:16px; cursor:pointer;
+transition:background 0.2s, color 0.2s, -webkit-text-fill-color 0.2s;
+}
+.draw-btn:hover,.draw-btn:active { background:var(–accent); color:var(–bg); -webkit-text-fill-color:var(–bg); }
+.draw-btn:disabled { border-color:var(–dim); color:var(–dim2); -webkit-text-fill-color:var(–dim2); cursor:default; background:none; }
+
+/* Manual mode */
+#manual-mode { display:none; flex-direction:column; }
+#manual-mode.visible { display:flex; }
+.selected-row { display:flex; align-items:center; justify-content:center; padding:4px 24px 8px; min-height:82px; }
+.slot { display:flex; flex-direction:column; align-items:center; gap:5px; width:86px; }
+.slot-glyph {
+font-size:44px; line-height:1; color:var(–fg); -webkit-text-fill-color:var(–fg); min-height:52px;
+display:flex; align-items:center; justify-content:center;
+opacity:0; transform:translateY(5px); transition:opacity 0.3s,transform 0.3s;
+}
+.slot-glyph.filled { opacity:1; transform:translateY(0); }
+.slot-name { font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:var(–accent); -webkit-text-fill-color:var(–accent); min-height:14px; text-align:center; }
+.slot-sep  { width:3px; height:3px; border-radius:50%; background:var(–dim2); margin:0 6px 22px; }
+.clear-btn {
+display:block; margin:10px auto 0; background:none;
+border:1px solid var(–dim); color:var(–dim2); -webkit-text-fill-color:var(–dim2);
+font-family:‘Cormorant Garamond’,serif; font-size:11px;
+letter-spacing:0.3em; text-transform:uppercase; padding:8px 20px; cursor:pointer;
+transition:color 0.2s, border-color 0.2s, -webkit-text-fill-color 0.2s;
+}
+.clear-btn:hover,.clear-btn:active { color:var(–fg); -webkit-text-fill-color:var(–fg); border-color:var(–dim2); }
+.rune-grid {
+display:grid; grid-template-columns:repeat(5,1fr);
+gap:8px; padding:6px 14px 14px; max-width:460px; margin:0 auto;
+}
+.rune-btn {
+background:var(–card); border:1px solid var(–dim); border-radius:5px;
+padding:11px 4px 8px; cursor:pointer; display:flex; flex-direction:column;
+align-items:center; gap:5px; transition:border-color 0.15s,background 0.15s; position:relative;
+}
+.rune-btn:active { background:#1e1e28; }
+.rune-btn.selected { border-color:var(–accent); background:#1e1c10; }
+.rune-btn.selected::after {
+content:’’; position:absolute; top:5px; right:5px;
+width:5px; height:5px; border-radius:50%; background:var(–accent);
+}
+.rune-btn .glyph { font-size:26px; line-height:1; color:var(–fg); -webkit-text-fill-color:var(–fg); }
+.rune-btn .name  { font-size:9px; letter-spacing:0.12em; text-transform:uppercase; color:var(–dim2); -webkit-text-fill-color:var(–dim2); text-align:center; }
+
+/* Reading card */
+.reading-wrap {
+display:none; flex-direction:column; align-items:center;
+gap:0; padding:0 14px; max-width:460px; margin:0 auto; width:100%;
+}
+.reading-wrap.visible { display:flex; }
+.reading-card {
+width:100%; border:1px solid var(–dim); background:var(–card);
+padding:28px 24px 24px;
+}
+.reading-rune-row {
+display:flex; justify-content:center; align-items:baseline;
+gap:6px; margin-bottom:18px; flex-wrap:wrap;
+}
+.reading-rune-glyph { font-size:30px; color:var(–fg); -webkit-text-fill-color:var(–fg); line-height:1; }
+.reading-rune-sep   { font-size:12px; color:var(–dim2); -webkit-text-fill-color:var(–dim2); margin:0 2px; }
+.reading-rune-name  { font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color:var(–accent); -webkit-text-fill-color:var(–accent); }
+.reading-divider    { width:40px; height:1px; background:var(–dim); margin:0 auto 20px; }
+.reading-text {
+font-size:19px; font-style:italic; font-weight:300; line-height:1.75;
+color:var(–fg2); -webkit-text-fill-color:var(–fg2); text-align:center;
+user-select:text; -webkit-user-select:text;
+}
+.reading-position-labels { display:flex; justify-content:space-between; padding:10px 2px 0; width:100%; }
+.reading-position-label  { font-size:10px; letter-spacing:0.25em; text-transform:uppercase; color:var(–dim2); -webkit-text-fill-color:var(–dim2); text-align:center; flex:1; }
+
+/* Generate / result */
+.gen-wrap { padding:6px 14px 0; max-width:460px; margin:0 auto; width:100%; }
+.gen-btn {
+width:100%; background:none; border:1px solid var(–accent);
+color:var(–accent); -webkit-text-fill-color:var(–accent);
+font-family:‘Cormorant Garamond’,serif; font-size:12px;
+letter-spacing:0.4em; text-transform:uppercase; padding:16px; cursor:pointer;
+transition:background 0.2s, color 0.2s, -webkit-text-fill-color 0.2s;
+}
+.gen-btn:hover,.gen-btn:active { background:var(–accent); color:var(–bg); -webkit-text-fill-color:var(–bg); }
+.gen-btn:disabled { border-color:var(–dim); color:var(–dim2); -webkit-text-fill-color:var(–dim2); cursor:default; background:none; }
+.status {
+text-align:center; font-size:12px; letter-spacing:0.25em; text-transform:uppercase;
+color:var(–dim2); -webkit-text-fill-color:var(–dim2); padding:16px; min-height:42px; font-style:italic;
+}
+.result-wrap {
+display:none; flex-direction:column; align-items:center;
+gap:16px; padding:0 14px; max-width:460px; margin:0 auto;
+}
+.result-wrap.visible { display:flex; }
+.result-wrap img { width:100%; border-radius:4px; border:1px solid var(–dim); display:block; }
+.save-hint { font-size:11px; letter-spacing:0.3em; text-transform:uppercase; color:var(–dim2); -webkit-text-fill-color:var(–dim2); text-align:center; }
+.save-btn {
+width:100%; background:none; border:1px solid var(–accent);
+color:var(–accent); -webkit-text-fill-color:var(–accent);
+font-family:‘Cormorant Garamond’,serif; font-size:12px;
+letter-spacing:0.3em; text-transform:uppercase; padding:15px; cursor:pointer;
+text-decoration:none; display:block; text-align:center;
+transition:background 0.2s,color 0.2s;
+}
+.save-btn:hover,.save-btn:active { background:var(–accent); color:var(–bg); -webkit-text-fill-color:var(–bg); }
+
+/* ══════════════════════════════════════════════════════
+STAVE GUIDE PAGE
+══════════════════════════════════════════════════════ */
+.aett-label {
+font-size:11px; letter-spacing:0.45em; text-transform:uppercase;
+color:var(–dim2); -webkit-text-fill-color:var(–dim2);
+text-align:center; padding:28px 24px 12px; position:relative;
+}
+.aett-label::before,.aett-label::after {
+content:’’; position:absolute; top:50%; width:calc(50% - 90px); height:1px; background:var(–dim);
+}
+.aett-label::before { left:14px; margin-top:5px; }
+.aett-label::after  { right:14px; margin-top:5px; }
+.stave-list { display:flex; flex-direction:column; padding:0 16px; max-width:460px; margin:0 auto; width:100%; }
+.stave-entry {
+display:flex; align-items:flex-start; gap:18px;
+padding:18px 0; border-bottom:1px solid var(–dim); cursor:pointer;
+}
+.stave-entry:last-child { border-bottom:none; }
+.stave-glyph-col { width:50px; flex-shrink:0; display:flex; flex-direction:column; align-items:center; gap:5px; padding-top:2px; }
+.stave-glyph         { font-size:38px; line-height:1; color:var(–fg); -webkit-text-fill-color:var(–fg); }
+.stave-transliteration { font-size:10px; letter-spacing:0.15em; text-transform:uppercase; color:var(–dim2); -webkit-text-fill-color:var(–dim2); text-align:center; }
+.stave-body  { flex:1; }
+.stave-name  { font-size:15px; letter-spacing:0.2em; text-transform:uppercase; color:var(–accent); -webkit-text-fill-color:var(–accent); margin-bottom:5px; }
+.stave-keywords { font-size:13px; color:var(–dim2); -webkit-text-fill-color:var(–dim2); font-style:italic; margin-bottom:6px; line-height:1.45; }
+.stave-meaning  { font-size:15px; color:var(–fg2); -webkit-text-fill-color:var(–fg2); line-height:1.7; display:none; }
+.stave-meaning.open { display:block; }
+.stave-expand {
+font-size:10px; letter-spacing:0.2em; text-transform:uppercase;
+color:var(–dim2); -webkit-text-fill-color:var(–dim2);
+margin-top:8px; display:inline-block; transition:color 0.2s, -webkit-text-fill-color 0.2s;
+}
+.stave-entry:hover .stave-expand { color:var(–accent); -webkit-text-fill-color:var(–accent); }
+
+/* ══════════════════════════════════════════════════════
+MISC
+══════════════════════════════════════════════════════ */
+#cv { display:none; }
+@keyframes slotBlur {
+0%   { filter:blur(0px); }
+30%  { filter:blur(2px); }
+70%  { filter:blur(2px); }
+100% { filter:blur(0px); }
+}
+.draw-slot-window.spinning .draw-slot-reel { animation:slotBlur 0.1s linear infinite; }
 </style>
-</head>
 
+</head>
 <body>
 
-<!-- THEME TOGGLE -->
-<button id="theme-toggle" onclick="toggleTheme()">🌙</button>
+<!-- ══════════════════════════════════════════════════════
+     PAGE: HOME
+══════════════════════════════════════════════════════ -->
 
-<!-- VERSION -->
-<div id="version"></div>
-
-<!-- HOME -->
-<div class="page active shown" id="page-home">
-  <div class="page-header">
-    <h1>Daily Rune Reading</h1>
-    <p id="home-date"></p>
+<div class="page" id="page-home">
+  <div class="home-hero">
+    <div class="home-date" id="home-date"></div>
+    <div class="rotd-eyebrow">Rune of the Day</div>
+    <div class="rotd-glyph"  id="rotd-glyph"></div>
+    <div class="rotd-name"   id="rotd-name"></div>
+    <div class="rotd-keywords" id="rotd-keywords"></div>
+    <button class="rotd-link" onclick="goToLibraryRune()">View in Stave Guide →</button>
   </div>
-
-  <div style="text-align:center; padding:20px;">
-    <div id="rotd-glyph" style="font-size:80px;"></div>
-    <div id="rotd-name"></div>
-    <div id="rotd-keywords"></div>
-  </div>
-
-  <div style="text-align:center;">
-    <button onclick="navTo('reading')">Start Reading</button>
+  <div class="home-section-title">Begin a Reading</div>
+  <div class="home-cards">
+    <div class="home-card" onclick="navTo('reading','draw')">
+      <div class="home-card-glyph">ᚠ ᚢ ᚦ</div>
+      <div class="home-card-body">
+        <div class="home-card-name">Draw Runes</div>
+        <div class="home-card-desc">Let fate decide — three runes drawn at random</div>
+      </div>
+    </div>
+    <div class="home-card" onclick="navTo('reading','manual')">
+      <div class="home-card-glyph">ᛟ</div>
+      <div class="home-card-body">
+        <div class="home-card-name">Manual Select</div>
+        <div class="home-card-desc">Choose your own three from the Elder Futhark</div>
+      </div>
+    </div>
   </div>
 </div>
 
-<!-- READING -->
+<!-- ══════════════════════════════════════════════════════
+     PAGE: READING
+══════════════════════════════════════════════════════ -->
+
 <div class="page" id="page-reading">
   <div class="page-header">
-    <h1>Your Reading</h1>
-    <div id="reading-date"></div>
+    <h1>Daily Rune Reading</h1>
+    <div class="sub" id="reading-date"></div>
   </div>
 
-  <div style="text-align:center;">
-    <button onclick="drawRunes()">Draw Runes</button>
-    <div id="reading-output" style="margin-top:20px;"></div>
+  <div class="mode-toggle">
+    <button class="mode-toggle-btn active" id="toggle-draw"   onclick="switchMode('draw')">ᚠ Draw</button>
+    <button class="mode-toggle-btn"        id="toggle-manual" onclick="switchMode('manual')">ᛟ Select</button>
+  </div>
+
+  <!-- Draw mode -->
+
+  <div id="draw-mode">
+    <div class="section-label">Your Draw</div>
+    <div class="draw-slots">
+      <div class="draw-slot">
+        <div class="draw-slot-window" id="dw0"><div class="draw-slot-reel" id="dr0"></div></div>
+        <div class="draw-slot-name" id="dn0"></div>
+      </div>
+      <div class="draw-slot-sep"></div>
+      <div class="draw-slot">
+        <div class="draw-slot-window" id="dw1"><div class="draw-slot-reel" id="dr1"></div></div>
+        <div class="draw-slot-name" id="dn1"></div>
+      </div>
+      <div class="draw-slot-sep"></div>
+      <div class="draw-slot">
+        <div class="draw-slot-window" id="dw2"><div class="draw-slot-reel" id="dr2"></div></div>
+        <div class="draw-slot-name" id="dn2"></div>
+      </div>
+    </div>
+    <button class="draw-btn" id="spin-btn" onclick="spinSlots()">Draw Three Runes</button>
+  </div>
+
+  <!-- Manual mode -->
+
+  <div id="manual-mode">
+    <div class="section-label">Your Draw — Select Three</div>
+    <div class="selected-row">
+      <div class="slot"><div class="slot-glyph" id="sg0"></div><div class="slot-name" id="sn0"></div></div>
+      <div class="slot-sep"></div>
+      <div class="slot"><div class="slot-glyph" id="sg1"></div><div class="slot-name" id="sn1"></div></div>
+      <div class="slot-sep"></div>
+      <div class="slot"><div class="slot-glyph" id="sg2"></div><div class="slot-name" id="sn2"></div></div>
+    </div>
+    <button class="clear-btn" onclick="clearAll()">Clear Selection</button>
+    <div class="section-label">Elder Futhark</div>
+    <div class="rune-grid" id="grid"></div>
+  </div>
+
+  <!-- Reading card (shared) -->
+
+  <div class="reading-wrap" id="reading-wrap">
+    <div class="section-label">Today's Reading</div>
+    <div class="reading-card">
+      <div class="reading-rune-row" id="reading-rune-row"></div>
+      <div class="reading-divider"></div>
+      <div class="reading-text" id="reading-text"></div>
+    </div>
+    <div class="reading-position-labels">
+      <div class="reading-position-label">Past</div>
+      <div class="reading-position-label">Present</div>
+      <div class="reading-position-label">Future</div>
+    </div>
+  </div>
+
+  <div class="gen-wrap" style="margin-top:18px;">
+    <button class="gen-btn" id="gen-btn" disabled onclick="generate()">Generate Wallpaper</button>
+  </div>
+  <div class="status" id="status"></div>
+  <div class="result-wrap" id="result">
+    <div class="save-hint">Tap and hold image to save · or use button below</div>
+    <img id="out-img" src="" alt="Your rune wallpaper">
+    <a class="save-btn" id="dl-btn" download="rune-reading.jpg">Save Wallpaper</a>
   </div>
 </div>
 
-<!-- NAV -->
+<!-- ══════════════════════════════════════════════════════
+     PAGE: STAVE GUIDE
+══════════════════════════════════════════════════════ -->
+
+<div class="page" id="page-library">
+  <div class="page-header">
+    <h1>The Stave Guide</h1>
+    <div class="sub">Elder Futhark · 25 Runes</div>
+  </div>
+  <div id="stave-guide-body"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     BOTTOM NAV
+══════════════════════════════════════════════════════ -->
+
 <div id="nav">
   <div class="nav-pill">
-    <button class="nav-btn nav-active" onclick="navTo('home')">Home</button>
-    <button class="nav-btn" onclick="navTo('reading')">Reading</button>
+    <button class="nav-btn nav-active" id="nav-home" onclick="navTo('home')">
+      <span class="nav-rune">ᚹ</span>
+      <span class="nav-label">Home</span>
+    </button>
+    <button class="nav-btn" id="nav-reading" onclick="onNavReading()">
+      <span class="nav-rune">ᚠ</span>
+      <span class="nav-label">Reading</span>
+    </button>
+    <button class="nav-btn" id="nav-library" onclick="navTo('library')">
+      <span class="nav-rune">ᛉ</span>
+      <span class="nav-label">Staves</span>
+    </button>
   </div>
 </div>
 
+<!-- Reading mode sub-picker -->
+
+<div class="nav-reading-picker" id="reading-picker">
+  <button class="picker-btn" onclick="navTo('reading','draw')">
+    <span class="picker-rune">ᚠ ᚢ ᚦ</span>
+    <span class="picker-label">Draw</span>
+  </button>
+  <button class="picker-btn" onclick="navTo('reading','manual')">
+    <span class="picker-rune">ᛟ</span>
+    <span class="picker-label">Select</span>
+  </button>
+</div>
+
+<canvas id="cv"></canvas>
+
 <script>
-
-/* VERSION */
-const VERSION = "0.1.0";
-document.getElementById('version').textContent = "v" + VERSION;
-
-/* THEME */
-function toggleTheme() {
-  const body = document.body;
-  const isLight = body.classList.toggle('light');
-  localStorage.setItem('theme', isLight ? 'light' : 'dark');
-  document.getElementById('theme-toggle').textContent = isLight ? '☀️' : '🌙';
-}
-
-(function(){
-  const saved = localStorage.getItem('theme');
-  if (saved === 'light') {
-    document.body.classList.add('light');
-    document.getElementById('theme-toggle').textContent = '☀️';
-  }
-})();
-
-/* DATE */
-const now = new Date();
-const dateStr = now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
-document.getElementById('home-date').textContent = dateStr;
-document.getElementById('reading-date').textContent = dateStr;
-
-/* RUNES */
+// ── Data ──────────────────────────────────────────────────────────────────────
 const RUNES = [
-  {g:'ᚠ',n:'Fehu',m:'Wealth'},
-  {g:'ᚢ',n:'Uruz',m:'Strength'},
-  {g:'ᚦ',n:'Thurisaz',m:'Challenge'},
-  {g:'ᚨ',n:'Ansuz',m:'Wisdom'},
-  {g:'ᚱ',n:'Raidho',m:'Journey'}
+  {g:'ᚠ',n:'Fehu',    m:'Wealth, abundance, new beginnings'},
+  {g:'ᚢ',n:'Uruz',    m:'Strength, vitality, primal power'},
+  {g:'ᚦ',n:'Thurisaz',m:"Force, challenge, Thor's protection"},
+  {g:'ᚨ',n:'Ansuz',   m:'Wisdom, communication, divine breath'},
+  {g:'ᚱ',n:'Raidho',  m:'Journey, movement, right action'},
+  {g:'ᚲ',n:'Kenaz',   m:'Torch, knowledge, creative fire'},
+  {g:'ᚷ',n:'Gebo',    m:'Gift, generosity, partnership'},
+  {g:'ᚹ',n:'Wunjo',   m:'Joy, harmony, fulfilment'},
+  {g:'ᚺ',n:'Hagalaz', m:'Hail, disruption, transformation'},
+  {g:'ᚾ',n:'Naudhiz', m:'Need, constraint, endurance'},
+  {g:'ᛁ',n:'Isa',     m:'Ice, stillness, patience'},
+  {g:'ᛃ',n:'Jera',    m:'Harvest, cycles, reward in time'},
+  {g:'ᛇ',n:'Eihwaz',  m:'Yew tree, endurance, continuity'},
+  {g:'ᛈ',n:'Perthro', m:'Fate, mystery, hidden things'},
+  {g:'ᛉ',n:'Algiz',   m:'Protection, instinct, higher guidance'},
+  {g:'ᛊ',n:'Sowilo',  m:'Sun, victory, clarity, vital energy'},
+  {g:'ᛏ',n:'Tiwaz',   m:'Justice, courage, sacrifice'},
+  {g:'ᛒ',n:'Berkano', m:'Birch, growth, nurturing, new life'},
+  {g:'ᛖ',n:'Ehwaz',   m:'Horse, partnership, trust, progress'},
+  {g:'ᛗ',n:'Mannaz',  m:'Humanity, self, community'},
+  {g:'ᛚ',n:'Laguz',   m:'Water, flow, intuition, the deep'},
+  {g:'ᛜ',n:'Ingwaz',  m:'Fertility, potential, inner work'},
+  {g:'ᛞ',n:'Dagaz',   m:'Dawn, breakthrough, transformation'},
+  {g:'ᛟ',n:'Othala',  m:'Heritage, home, what you protect'},
+  {g:'○',n:'Blank',   m:'The unknowable, pure potential, fate'},
 ];
 
-/* RUNE OF DAY */
-const rotd = RUNES[Math.floor(Math.random()*RUNES.length)];
-document.getElementById('rotd-glyph').textContent = rotd.g;
-document.getElementById('rotd-name').textContent = rotd.n;
+// ── Init ──────────────────────────────────────────────────────────────────────
+const now     = new Date();
+const dateStr = now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+document.getElementById('home-date').textContent    = dateStr;
+document.getElementById('reading-date').textContent = dateStr;
+
+// Rune of the Day — deterministic by date (won't change mid-day)
+const rotdIndex = (now.getFullYear()*10000 + (now.getMonth()+1)*100 + now.getDate()) % (RUNES.length - 1); // exclude Blank
+const rotd = RUNES[rotdIndex];
+document.getElementById('rotd-glyph').textContent    = rotd.g;
+document.getElementById('rotd-name').textContent     = rotd.n;
 document.getElementById('rotd-keywords').textContent = rotd.m;
 
-/* NAV */
-function navTo(page){
-  document.querySelectorAll('.page').forEach(p=>{
-    p.classList.remove('active','shown');
-  });
-  const target=document.getElementById('page-'+page);
-  target.classList.add('active');
-  setTimeout(()=>target.classList.add('shown'),50);
-}
+// ── Navigation ────────────────────────────────────────────────────────────────
+let currentPage = 'home';
+let currentMode = 'draw';
+let pickerOpen  = false;
 
-/* DRAW */
-function drawRunes(){
-  const picks = [];
-  for(let i=0;i<3;i++){
-    picks.push(RUNES[Math.floor(Math.random()*RUNES.length)]);
+function navTo(page, mode) {
+  closePicker();
+
+  // Hide all pages
+  document.querySelectorAll('.page').forEach(p => {
+    p.classList.remove('shown');
+    setTimeout(() => { if (!p.classList.contains('active')) {}; }, 250);
+  });
+
+  // Small delay then switch
+  setTimeout(() => {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const target = document.getElementById('page-' + page);
+    target.classList.add('active');
+    requestAnimationFrame(() => requestAnimationFrame(() => target.classList.add('shown')));
+  }, 80);
+
+  currentPage = page;
+
+  // Update nav active states
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('nav-active'));
+  const navBtn = document.getElementById('nav-' + page);
+  if (navBtn) navBtn.classList.add('nav-active');
+  if (page === 'reading') {
+    document.getElementById('nav-reading').classList.add('nav-active');
   }
 
-  document.getElementById('reading-output').innerHTML =
-    picks.map(r=>`<div style="font-size:40px;">${r.g} - ${r.n}</div>`).join('');
+  // If going to reading, set mode
+  if (page === 'reading' && mode) {
+    switchMode(mode);
+  }
+
+  // Build stave guide on first visit
+  if (page === 'library') buildStaveGuide();
 }
 
+function onNavReading() {
+  if (currentPage === 'reading') {
+    // Already on reading — toggle the sub-picker
+    togglePicker();
+  } else {
+    // Go to reading with last used mode (no picker needed)
+    navTo('reading', currentMode);
+  }
+}
+
+function togglePicker() {
+  pickerOpen = !pickerOpen;
+  document.getElementById('reading-picker').classList.toggle('open', pickerOpen);
+}
+function closePicker() {
+  pickerOpen = false;
+  document.getElementById('reading-picker').classList.remove('open');
+}
+
+// Close picker on tap outside
+document.addEventListener('click', e => {
+  if (pickerOpen && !e.target.closest('#nav-reading') && !e.target.closest('#reading-picker')) {
+    closePicker();
+  }
+});
+
+// Jump from rune-of-the-day to library
+let rotdTargetName = rotd.n;
+function goToLibraryRune() {
+  navTo('library');
+  // After build, scroll to that rune
+  setTimeout(() => {
+    const el = document.getElementById('lore-' + rotdTargetName);
+    if (el) {
+      el.closest('.stave-entry').scrollIntoView({behavior:'smooth', block:'center'});
+      // Auto-open lore
+      if (!el.classList.contains('open')) toggleLore(rotdTargetName);
+    }
+  }, 300);
+}
+
+// ── Mode switching (within reading page) ─────────────────────────────────────
+function switchMode(mode) {
+  currentMode = mode;
+  closePicker();
+
+  document.getElementById('draw-mode').style.display   = mode === 'draw'   ? 'flex' : 'none';
+  document.getElementById('manual-mode').style.display = mode === 'manual' ? 'flex' : 'none';
+  document.getElementById('toggle-draw').classList.toggle('active',   mode === 'draw');
+  document.getElementById('toggle-manual').classList.toggle('active', mode === 'manual');
+
+  if (mode === 'draw') initDrawSlots();
+
+  // Reset reading/result when switching
+  document.getElementById('reading-wrap').classList.remove('visible');
+  document.getElementById('result').classList.remove('visible');
+  document.getElementById('gen-btn').disabled = true;
+  document.getElementById('status').textContent = '';
+  currentSummary = '';
+  selected = [];
+  if (mode === 'manual') {
+    document.querySelectorAll('.rune-btn.selected').forEach(b => b.classList.remove('selected'));
+    for (let i=0;i<3;i++){
+      const ge=document.getElementById('sg'+i), ne=document.getElementById('sn'+i);
+      if(ge){ge.textContent='';ge.classList.remove('filled');}
+      if(ne)ne.textContent='';
+    }
+  }
+}
+
+// Show reading page in draw mode by default on first load
+navTo('home');
+
+// ── Manual mode ───────────────────────────────────────────────────────────────
+let selected = [];
+const grid = document.getElementById('grid');
+RUNES.forEach(r => {
+  const b = document.createElement('button');
+  b.className = 'rune-btn';
+  b.innerHTML = `<span class="glyph">${r.g}</span><span class="name">${r.n}</span>`;
+  b.addEventListener('click', () => toggle(r, b));
+  grid.appendChild(b);
+});
+
+function toggle(r, btn) {
+  const i = selected.findIndex(s => s.g === r.g);
+  if (i > -1) { selected.splice(i,1); btn.classList.remove('selected'); }
+  else {
+    if (selected.length >= 3) return;
+    selected.push(r); btn.classList.add('selected');
+  }
+  updateManualSlots();
+}
+
+function updateManualSlots() {
+  for (let i=0;i<3;i++){
+    const ge=document.getElementById('sg'+i), ne=document.getElementById('sn'+i);
+    if(selected[i]){ ge.textContent=selected[i].g; ge.classList.add('filled'); ne.textContent=selected[i].n; }
+    else { ge.textContent=''; ge.classList.remove('filled'); ne.textContent=''; }
+  }
+  if (selected.length===3) { showReading(); }
+  else {
+    document.getElementById('reading-wrap').classList.remove('visible');
+    document.getElementById('gen-btn').disabled=true;
+    document.getElementById('result').classList.remove('visible');
+    document.getElementById('status').textContent='';
+    currentSummary='';
+  }
+}
+
+function clearAll() {
+  selected=[];
+  document.querySelectorAll('.rune-btn.selected').forEach(b=>b.classList.remove('selected'));
+  updateManualSlots();
+}
+
+// ── Draw mode (slot machine) ──────────────────────────────────────────────────
+function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function initDrawSlots(){
+  for(let i=0;i<3;i++){
+    const reel=document.getElementById('dr'+i);
+    reel.innerHTML='';
+    const ph=document.createElement('div');
+    ph.className='reel-item center';
+    ph.style.color='var(--dim2)'; ph.style.fontSize='28px'; ph.style.letterSpacing='0.1em';
+    ph.textContent='–';
+    reel.appendChild(ph);
+    reel.style.transition='none'; reel.style.transform='translateY(0)';
+    document.getElementById('dn'+i).textContent='';
+    document.getElementById('dn'+i).classList.remove('visible');
+    document.getElementById('dw'+i).classList.remove('spinning');
+  }
+}
+
+let spinning=false;
+function spinSlots(){
+  if(spinning) return;
+  spinning=true; selected=[];
+  const btn=document.getElementById('spin-btn');
+  btn.disabled=true;
+  document.getElementById('gen-btn').disabled=true;
+  document.getElementById('reading-wrap').classList.remove('visible');
+  document.getElementById('result').classList.remove('visible');
+  document.getElementById('status').textContent='';
+  currentSummary='';
+
+  const picks=shuffle([...RUNES]).slice(0,3);
+  const landTimes=[1600,2500,3400];
+
+  for(let i=0;i<3;i++){
+    const win=document.getElementById('dw'+i), reel=document.getElementById('dr'+i);
+    reel.innerHTML='';
+    const ITEM_H=90, spinCount=18+i*6;
+    const pool=shuffle([...RUNES,...RUNES]);
+    const items=[];
+    for(let j=0;j<spinCount;j++) items.push(pool[j%pool.length]);
+    items.push(picks[i]);
+    items.forEach((r,idx)=>{
+      const el=document.createElement('div');
+      el.className='reel-item'+(idx===items.length-1?' center':'');
+      el.textContent=r.g; reel.appendChild(el);
+    });
+    const targetY=-((items.length-1)*ITEM_H);
+    reel.style.transition='none'; reel.style.transform='translateY(0)';
+    win.classList.add('spinning');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      reel.style.transition=`transform ${landTimes[i]/1000}s cubic-bezier(0.25,0.1,0.1,1)`;
+      reel.style.transform=`translateY(${targetY}px)`;
+    }));
+    setTimeout(()=>{
+      win.classList.remove('spinning');
+      selected[i]=picks[i];
+      const nameEl=document.getElementById('dn'+i);
+      nameEl.textContent=picks[i].n; nameEl.classList.add('visible');
+      if(i===2){ spinning=false; btn.disabled=false; btn.textContent='Draw Again'; showReading(); }
+    }, landTimes[i]);
+  }
+}
+
+// ── Phrase engine ─────────────────────────────────────────────────────────────
+const PHRASES = {
+  Fehu:[['What you have built is the ground beneath your feet.','A foundation of effort and abundance has been laid.','Past prosperity has shaped the ground you stand on.'],['Wealth — of spirit or of means — is within reach today.','Today calls you to tend what you have cultivated.','The energy of abundance moves through your hands right now.'],['What you nurture now will return to you in full.','Generosity given freely will find its way back.','The seeds of effort sown today bear fruit ahead.']],
+  Uruz:[['A time of raw strength has forged who you are.','You have already moved through something that demanded everything.','The effort behind you was real, and it has not been wasted.'],['Your body and will are resources — draw on them.','Today asks for vigour; trust the strength that lives in you.','Primal energy is available to you in this moment.'],['Vitality is returning, or will be needed soon.','Something ahead will ask for your full force — you have it.','A deep resilience is growing that will carry you forward.']],
+  Thurisaz:[['A difficulty you met has left its mark, and rightly so.','A trial already faced has sharpened your edge.','The force of a past challenge has not been without purpose.'],['There is friction here; meet it directly rather than around it.','Today holds a point of resistance — it is not without meaning.','Something is pushing back; that push is asking you to be clear.'],['What feels like an obstacle ahead may be a threshold.','A challenge coming will ask for courage, not cleverness.','The thorns ahead guard something worth reaching.']],
+  Ansuz:[['A truth spoken or received has set something in motion.','Words once shared have carried further than you knew.','Wisdom passed to you — or through you — has taken root.'],['Listen as much as you speak today.','The right word, offered or received, can open a door.','Communication is the work of this moment — be precise and open.'],['Understanding is coming; give it space to arrive.','A message, or a realisation, will find you.','The voice you trust — inner or outer — will speak when needed.']],
+  Raidho:[['A journey undertaken has changed your sense of direction.','Movement already made has brought you to exactly this place.','The road behind you was not walked in vain.'],['The path is yours to set today — take the next step.','Movement matters more than arrival right now.','Consider the direction you are moving in, and whether it is right.'],['The road ahead opens when you choose to walk it.','A journey — inward or outward — is drawing near.','What you head toward is more fitting than you yet know.']],
+  Kenaz:[['A spark of understanding has already changed something in you.','A past illumination — a moment of knowing — guides you still.','Knowledge once gained continues to light the way.'],['Turn your attention to what needs to be understood today.','Creative fire is available — do not let it sit unlit.','There is craft or clarity to be found in today\'s work.'],['A new understanding is beginning to take form.','The torch will be passed, or kindled within you.','Light is coming — an insight, an opening, a way through.']],
+  Gebo:[['An exchange made in good faith has left a balance in your favour.','Something freely given in the past continues to return to you.','A gift — of time, trust, or care — has not gone unmarked.'],['Give and receive in equal measure today.','A partnership or exchange is at the heart of this day.','What you offer, and what you ask for, both deserve honesty.'],['A generous act or agreement will prove its worth.','Something freely shared ahead will bring unexpected return.','Balance between giving and receiving will find its right form.']],
+  Wunjo:[['A moment of joy or belonging has stayed with you.','Something harmonious in the past has left a quiet warmth.','Fulfilment was found before, and its memory is a resource.'],['Today holds the possibility of genuine contentment.','Look for the small harmonies in this day — they are there.','Joy is not far; it may already be present if you are still enough.'],['A period of ease and belonging is on its way.','Harmony ahead is not wishful thinking — it is earned.','What you have worked toward will settle into something good.']],
+  Hagalaz:[['A disruption already endured has cleared ground you needed cleared.','What once fell apart was already outgrown.','The storm behind you has made the air cleaner.'],['Something is shifting under you — let it, rather than resist.','Today may bring disruption; it is doing necessary work.','What is breaking down today was never meant to hold indefinitely.'],['A disruption ahead is a passage, not a conclusion.','The hail that falls clears the field for what must grow.','Something will change — and what follows will be more honest.']],
+  Naudhiz:[['A period of constraint has taught you what is truly necessary.','You have met scarcity before and found your own resourcefulness.','Hardship in the past has made your priorities clear.'],['Today calls for patience and economy — not everything at once.','Work with what you have; constraint is itself a teacher.','The need you feel right now is pointing at something real.'],['What feels lacking will in time show itself as sufficient.','The pressure ahead will reveal a strength not yet called upon.','Endurance is being asked of you — and you are more capable than you know.']],
+  Isa:[['A stillness — or a stalling — was exactly what that time required.','A period of waiting has, in its way, done its work.','The pause in the past was a gathering, not a loss.'],['This is a day for stillness rather than force.','Do not push. Let things be as they are for now.','Today is better served by patience than by action.'],['A period of waiting lies ahead — use it.','What appears frozen will move again, at its own time.','Stillness ahead is not stagnation; it is preparation.']],
+  Jera:[['The effort you put in has quietly been accumulating.','What you tended with care is now in the process of ripening.','A cycle you committed to has not finished working yet.'],['Trust the pace of things today — cycles cannot be hurried.','The work is in the tending, not the harvest.','What you do with patience today is planting for a season ahead.'],['A reward is coming — in proportion to what was given.','The harvest you have been moving toward is closer than it seems.','What you have worked for will arrive in its proper season.']],
+  Eihwaz:[['You have already survived something that asked for deep endurance.','A passage between what was and what is has already been made.','The roots you grew in difficulty are holding you now.'],['Stand firm today; the pressure is not permanent.','You are the axis between what was and what will be.','Today asks for steadiness — neither retreat nor recklessness.'],['You will find you have more staying power than you anticipated.','Continuity is being woven — what you protect now will last.','The endurance asked of you ahead is of the quiet, rooted kind.']],
+  Perthro:[['Something hidden was at work beneath what you could see.','A mystery once turned over has left its quiet influence.','The unseen forces of the past have shaped this moment.'],['Not everything needs to be understood today — sit with the unknown.','Something is working beneath the surface; trust the process.','The day holds depths; you do not have to solve them all.'],['Something concealed will come to light in its own time.','Fate is doing work you cannot yet see.','What is hidden ahead is not hostile — only unready to be known.']],
+  Algiz:[['You were protected — by circumstance, by instinct, or by others.','A boundary or guardian in the past has served you well.','Something held you safe when you most needed it.'],['Trust your instincts today; they are working even when quiet.','Set the boundaries that need setting — this is the time.','Higher guidance is available; you only have to stop and listen.'],['Protection is available to you in what lies ahead.','Trust that what watches over you is still watching.','An instinct or boundary set now will prove its worth.']],
+  Sowilo:[['A moment of clarity or victory has already shifted your course.','The energy you brought to a past effort has not been forgotten.','Light and momentum were with you before, and their effect remains.'],['This is a day for clarity — say what you mean, do what matters.','Vital energy is with you; move with it rather than against it.','The sun is out, metaphorically speaking — use the light.'],['Clarity is coming, cutting cleanly through what confused you.','A victory — quiet or loud — is being prepared.','The energy you put out now returns to you amplified.']],
+  Tiwaz:[['A sacrifice made honestly has set something right.','You have already stood for something when it cost you.','A past act of courage or integrity continues to matter.'],['Act with honour today, even when it is the harder path.','Justice — to yourself or others — is the work of this moment.','What is right and what is easy may not be the same thing today.'],['What you do with integrity now will stand.','A just outcome is being shaped by the choices made now.','The courage asked of you ahead is of the steady, quiet kind.']],
+  Berkano:[['Something tender was nurtured in the past and has taken root.','A new beginning once made has grown further than it first appeared.','What was once fragile has quietly become strong.'],['Tend what is new and vulnerable today — it needs care, not force.','Growth is happening; it only asks to be protected, not pushed.','Today is a day for nurturing — of others, or of yourself.'],['Something new is preparing to emerge.','A beginning is ahead — small, but real, and worth tending.','What you are growing will find its form in the season ahead.']],
+  Ehwaz:[['A partnership or collaboration has carried you further than you went alone.','Trust placed in another — or in yourself — has made the journey possible.','Movement made in partnership has left you somewhere good.'],['Work in tandem today — with another, or with your own deeper self.','Trust is the engine of progress right now.','The path moves more easily when you stop trying to do it alone.'],['A partnership or alliance ahead will prove its value.','Progress comes through trust, not through force.','The road ahead is smoother when it is shared.']],
+  Mannaz:[['The people around you have shaped more of who you are than you realise.','Community — however small — has been your ground.','What you have given to others has come back to you in form.'],['Reflect honestly on yourself today — without harshness, without flattery.','You are both individual and part of something larger; hold both.','Today asks for self-knowledge as much as outward action.'],['Your relationship with others — and with yourself — is deepening.','Something about how you see yourself will become clearer.','The community or the self you are building will take on new meaning.']],
+  Laguz:[['Something felt, more than understood, has guided you well.','A current you trusted has carried you to this point.','What moved beneath the surface in the past is now beginning to show.'],['Follow feeling over logic today — your intuition is sharp.','Let things flow; forcing clarity will only muddy the water.','The deeper current of this day is worth attending to.'],['Something is flowing toward you — let it come.','Intuition will guide you to what analysis cannot find.','What is beneath the surface will surface, in its own time and way.']],
+  Ingwaz:[['A quiet period of inner work has prepared more than you know.','Something has been growing in the background, slowly and surely.','The potential held privately has not been idle.'],['This is inner work — what you tend within will shape what emerges.','Rest is not absence of effort; what gestates needs quiet.','Do not rush what is preparing itself inside you.'],['Something is almost ready to emerge.','A potential long held will find its moment.','What has been incubating in you is closer to form than it seems.']],
+  Dagaz:[['A breakthrough already reached has changed the light you see by.','Something once transformed cannot become what it was.','A threshold crossed in the past has opened the present.'],['Today stands at a turning point — be present for it.','Something is completing and something is beginning; they are the same moment.','The light available today is clear and honest — use it well.'],['A breakthrough is coming — not a distant hope, but a real arrival.','What felt stuck is about to shift, and the shift will be lasting.','The dawn ahead is closer than the dark suggests.']],
+  Othala:[['What was passed to you — skill, memory, place — is a living inheritance.','The roots of where you come from are more nourishing than you give them credit for.','What your past has handed you is worth holding.'],['Return today to what truly belongs to you — your values, your home, your people.','What do you protect, and what protects you? That is the question of this day.','Heritage is not a weight — it is a foundation you can build from.'],['What you are building now will become something worth inheriting.','Home — in its deepest sense — is being established.','What you protect and tend will endure beyond this season.']],
+  Blank:[['What you could not name or see has nonetheless been at work.','The unknowable has been present all along, beneath every certainty.','Something beyond understanding has shaped the path here.'],['Release the need to know; not everything can be mapped.','Today holds something that will not be explained — only lived.','The blank rune asks nothing of you but openness.'],['What lies ahead is genuinely open — shaped by nothing yet.','Fate is uncommitted; that is freedom, not uncertainty.','The future, for now, belongs entirely to possibility.']]
+};
+
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+let currentSummary='';
+
+function showReading(){
+  currentSummary=`${pick(PHRASES[selected[0].n][0])} ${pick(PHRASES[selected[1].n][1])} ${pick(PHRASES[selected[2].n][2])}`;
+  const row=document.getElementById('reading-rune-row');
+  row.innerHTML='';
+  selected.forEach((r,i)=>{
+    const g=document.createElement('span'); g.className='reading-rune-glyph'; g.textContent=r.g;
+    const n=document.createElement('span'); n.className='reading-rune-name';  n.textContent=r.n;
+    row.appendChild(g); row.appendChild(n);
+    if(i<2){ const s=document.createElement('span'); s.className='reading-rune-sep'; s.textContent='·'; row.appendChild(s); }
+  });
+  document.getElementById('reading-text').textContent=currentSummary;
+  const wrap=document.getElementById('reading-wrap');
+  wrap.classList.add('visible');
+  wrap.scrollIntoView({behavior:'smooth',block:'nearest'});
+  document.getElementById('gen-btn').disabled=false;
+  document.getElementById('result').classList.remove('visible');
+  document.getElementById('status').textContent='';
+}
+
+// ── Generate wallpaper ────────────────────────────────────────────────────────
+function generate(){
+  if(!currentSummary) return;
+  const btn=document.getElementById('gen-btn'), status=document.getElementById('status');
+  btn.disabled=true;
+  document.getElementById('result').classList.remove('visible');
+  status.textContent='Drawing your wallpaper…';
+  renderToCanvas(currentSummary).then(()=>{
+    status.textContent='';
+    document.getElementById('result').classList.add('visible');
+    document.getElementById('result').scrollIntoView({behavior:'smooth'});
+    btn.disabled=false;
+  }).catch(e=>{ status.textContent='Something went wrong — '+e.message; btn.disabled=false; });
+}
+
+function renderToCanvas(summary){
+  return new Promise((resolve,reject)=>{
+    const W=585,H=1266,cv=document.getElementById('cv');
+    cv.width=W; cv.height=H;
+    const ctx=cv.getContext('2d');
+    document.fonts.ready.then(()=>{
+      drawCanvas(ctx,W,H,summary);
+      try{
+        const dataUrl=cv.toDataURL('image/jpeg',0.93);
+        document.getElementById('out-img').src=dataUrl;
+        const dl=document.getElementById('dl-btn');
+        dl.href=dataUrl; dl.download='rune-reading.jpg';
+        resolve();
+      }catch(e){reject(e);}
+    }).catch(reject);
+  });
+}
+
+function drawCanvas(ctx,W,H,summary){
+  const cx=W/2;
+  ctx.fillStyle='#0a0a0f'; ctx.fillRect(0,0,W,H);
+  const grd=ctx.createRadialGradient(cx,H*0.44,0,cx,H*0.44,W*0.75);
+  grd.addColorStop(0,'rgba(201,169,110,0.06)'); grd.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=grd; ctx.fillRect(0,0,W,H);
+  ctx.save(); ctx.fillStyle='#4a4640'; ctx.font='300 22px "Cormorant Garamond",Georgia,serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(dateStr.toUpperCase(),cx,88); ctx.restore();
+  vertRule(ctx,cx,110,60);
+  const runeY=H*0.435, sp=120, pos=[cx-sp,cx,cx+sp];
+  ctx.save(); ctx.font='300 100px "Cormorant Garamond",Georgia,serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='rgba(237,233,224,0.92)';
+  selected.forEach((r,i)=>ctx.fillText(r.g,pos[i],runeY)); ctx.restore();
+  ctx.save(); ctx.fillStyle='#4a4640';
+  dot(ctx,cx-sp/2,runeY-28,4); dot(ctx,cx+sp/2,runeY-28,4); ctx.restore();
+  const nameY=runeY+70;
+  ctx.save(); ctx.font='300 18px "Cormorant Garamond",Georgia,serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#c9a96e';
+  selected.forEach((r,i)=>ctx.fillText(r.n.toUpperCase(),pos[i],nameY)); ctx.restore();
+  const divY=nameY+36;
+  ctx.save(); ctx.strokeStyle='#3a3830'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(cx-50,divY); ctx.lineTo(cx+50,divY); ctx.stroke(); ctx.restore();
+  ctx.save(); ctx.font='italic 300 22px "Cormorant Garamond",Georgia,serif';
+  ctx.textAlign='center'; ctx.textBaseline='top'; ctx.fillStyle='rgba(184,180,170,0.7)';
+  wrapText(ctx,summary,cx,divY+30,W-110,36); ctx.restore();
+  vertRule(ctx,cx,H*0.695,60);
+  ctx.save(); ctx.fillStyle='#302e2a'; ctx.font='300 16px "Cormorant Garamond",Georgia,serif';
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('ᚠᚢᚦᚨᚱᚲ',cx,H-70); ctx.restore();
+}
+function vertRule(ctx,cx,y,halfLen){
+  const grad=ctx.createLinearGradient(cx,y,cx,y+halfLen*2);
+  grad.addColorStop(0,'rgba(74,70,64,0)'); grad.addColorStop(0.5,'rgba(74,70,64,0.8)'); grad.addColorStop(1,'rgba(74,70,64,0)');
+  ctx.save(); ctx.strokeStyle=grad; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(cx,y); ctx.lineTo(cx,y+halfLen*2); ctx.stroke(); ctx.restore();
+}
+function dot(ctx,x,y,r){ ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill(); }
+function wrapText(ctx,text,x,y,maxWidth,lineH){
+  const words=text.split(' '); let line='',ty=y;
+  for(let i=0;i<words.length;i++){
+    const test=line?line+' '+words[i]:words[i];
+    if(ctx.measureText(test).width>maxWidth&&line){ ctx.fillText(line,x,ty); line=words[i]; ty+=lineH; }
+    else line=test;
+  }
+  if(line) ctx.fillText(line,x,ty);
+}
+
+// ── Stave Guide ───────────────────────────────────────────────────────────────
+const AETTS=[
+  {name:"Freyr's Ætt",runes:[
+    {g:'ᚠ',n:'Fehu',    t:'F',  k:'Wealth · Cattle · Abundance',      lore:'The first rune, Fehu speaks of mobile wealth — not land or stone, but cattle, gold, energy in motion. It is the rune of prosperity earned and shared, of new beginnings that carry momentum. Fehu reminds us that what flows freely returns; what is hoarded stagnates.'},
+    {g:'ᚢ',n:'Uruz',    t:'U',  k:'Aurochs · Strength · Vitality',    lore:'Named for the aurochs — the great wild ox — Uruz is primal, untamed force. It speaks of physical endurance, raw health, and the power that lives beneath conscious effort. When Uruz appears, it points to a deep well of strength available to you, or to the need to let something wild and vital back into your life.'},
+    {g:'ᚦ',n:'Thurisaz',t:'Th', k:'Thorn · Force · Threshold',        lore:'Thurisaz is the thorn, the giant, the hammer of Thor. It is neither wholly destructive nor protective — it is potent and double-edged. As a thorn guards the rose, this rune marks thresholds that must be approached with awareness. It can signal conflict, but also the force needed to break through what has resisted.'},
+    {g:'ᚨ',n:'Ansuz',   t:'A',  k:'Mouth · Wisdom · Divine Breath',   lore:'The rune of Odin and of speech itself. Ansuz governs communication, inspiration, and the wisdom that arrives unbidden. It is the breath behind words, the signal in the noise. In a reading it often points to a message worth heeding, a teacher worth listening to, or the value of speaking — and listening — with care.'},
+    {g:'ᚱ',n:'Raidho',  t:'R',  k:'Wagon · Journey · Right Action',   lore:'Raidho is the wheel in motion, the long road, the rhythm of a purposeful journey. It is not mere travel — it is movement aligned with right action and natural order. This rune asks: are you moving in the right direction, at the right pace? It is also a rune of justice, of things proceeding as they should.'},
+    {g:'ᚲ',n:'Kenaz',   t:'K',  k:'Torch · Craft · Creative Fire',    lore:'The torch held in the dark. Kenaz is the rune of controlled, applied fire — the flame of the craftsman, the artist, the healer. Where Sowilo is the sun, Kenaz is the candle: intimate, focused, made by human hands. It speaks of knowledge gained through skill, of illuminating what was hidden, of creative work done with care.'},
+    {g:'ᚷ',n:'Gebo',    t:'G',  k:'Gift · Exchange · Partnership',    lore:'Gebo is the rune of the gift — and of the sacred obligation that comes with giving and receiving. In the old understanding, a gift demands a gift; exchange creates bonds. This rune speaks of balanced partnerships, of generosity offered and returned, and of the invisible threads that connect us to those we share with.'},
+    {g:'ᚹ',n:'Wunjo',   t:'W',  k:'Joy · Harmony · Belonging',        lore:"The last rune of Freyr's ætt, Wunjo is the rune of joy — not the ecstasy of adventure, but the quieter, deeper contentment of being in the right place, with the right people, doing the right work. It speaks of clan, of fellowship, of things finally falling into their proper harmony."},
+  ]},
+  {name:"Hagal's Ætt",runes:[
+    {g:'ᚺ',n:'Hagalaz', t:'H',  k:'Hail · Disruption · Transformation',lore:'Hailstones fall without warning and cannot be argued with. Hagalaz is the rune of sudden disruption — weather, fate, the unexpected blow. Yet hail melts into water, and what it destroys often needed clearing. This is transformation through forces beyond your control. The invitation is not to prevent it, but to find what survives.'},
+    {g:'ᚾ',n:'Naudhiz', t:'N',  k:'Need · Constraint · Endurance',    lore:'The need-fire, kindled by friction when all other fires had gone out. Naudhiz is the rune of necessity — of constraint that forges character, of scarcity that reveals what is truly essential. It is not comfortable, but it is honest. What you truly need, as opposed to what you want, often becomes clear only under pressure.'},
+    {g:'ᛁ',n:'Isa',     t:'I',  k:'Ice · Stillness · Suspension',     lore:'Ice: beautiful, immovable, concealing what lies beneath. Isa is the rune of stillness, of a world held in suspension. It can feel like stagnation, but it is often simply the pause before spring. In its stillness there is also clarity — the frozen surface reflects. Isa asks you to wait, to observe, and to resist forcing movement.'},
+    {g:'ᛃ',n:'Jera',    t:'J/Y',k:'Year · Harvest · Right Timing',    lore:'Jera is the wheel of the year, the turning of seasons, the law of cause and effect made visible in the harvest. You cannot rush it. What was planted in effort and tended in patience will arrive in its proper season — and not before. Jera is one of the most hopeful runes precisely because it affirms that what is worked for will come.'},
+    {g:'ᛇ',n:'Eihwaz',  t:'Ei', k:'Yew · Endurance · Continuity',     lore:'The yew tree lives for thousands of years, its roots and branches forming a cycle of their own. Eihwaz is the rune of deep endurance — not brute force, but the patient, rooted persistence of the yew. It stands at the axis between worlds, between death and renewal. It speaks of what genuinely lasts.'},
+    {g:'ᛈ',n:'Perthro', t:'P',  k:'Fate · Mystery · Hidden Things',   lore:'Perthro is among the most debated runes — its name may relate to a dice cup, a womb, or a well. All of these suggest something that holds hidden potential until the moment of release. It is the rune of fate, chance, and the things not yet ready to be known. Sometimes it simply asks: can you be comfortable with not knowing?'},
+    {g:'ᛉ',n:'Algiz',   t:'Z/R',k:'Elk · Protection · Higher Guidance',lore:'The shape of Algiz — arms raised to the sky — is the posture of invocation and protection. It is the rune of the elk, the sentinel, the guardian at the edge. Algiz speaks of instinctive protection: the prickling awareness before danger arrives, the boundary held without aggression. It also points toward connection with something larger than the self.'},
+    {g:'ᛊ',n:'Sowilo',  t:'S',  k:'Sun · Victory · Vital Energy',     lore:'The sun wheel, the lightning bolt, the rune of solar force. Sowilo is one of the most straightforwardly powerful runes — clarity, energy, success, the illumination that makes right action possible. It is the rune that cuts through confusion. When Sowilo appears, it is rarely a warning; it is permission and momentum combined.'},
+  ]},
+  {name:"Tyr's Ætt",runes:[
+    {g:'ᛏ',n:'Tiwaz',   t:'T',  k:'Justice · Sacrifice · Honour',     lore:'Tiwaz is the rune of Tyr, the sky-god who sacrificed his hand to bind the wolf Fenrir — an act of courage in service of the greater good. It is the rune of justice, of integrity under pressure, of the willingness to give something up for what is right. Where law and fairness are needed, Tiwaz provides both the standard and the courage to uphold it.'},
+    {g:'ᛒ',n:'Berkano', t:'B',  k:'Birch · Nurturing · New Life',     lore:'The birch is the first tree to return after a fire, pushing green shoots through scorched earth. Berkano is the rune of gentle beginnings, of nurturing — the careful tending of what is new and fragile. It speaks of growth that needs protection, of healing that needs patience, of the sacred in the domestic and everyday.'},
+    {g:'ᛖ',n:'Ehwaz',   t:'E',  k:'Horse · Partnership · Trust',      lore:'The rune of the horse — and specifically of the bond between horse and rider. Ehwaz is about trust in motion: two working as one, the dissolution of separation in the service of a shared direction. It speaks of partnerships that genuinely function, of progress made possible by cooperation, of the loyalty that enables speed.'},
+    {g:'ᛗ',n:'Mannaz',  t:'M',  k:'Humanity · Self · Community',      lore:'Mannaz is the human being in full — neither god nor animal, but the thinking, social, self-aware creature. It speaks of the self in relationship: how you see yourself, how others see you, how you exist within community. It is a rune of self-knowledge, of humility, of recognising that to be human is to be interdependent.'},
+    {g:'ᛚ',n:'Laguz',   t:'L',  k:'Water · Flow · Intuition',         lore:'Laguz is the lake, the river, the sea — water in all its forms. It is the rune of what flows, of what cannot be held or forced. It speaks of intuition over logic, of the unconscious over the deliberate, of the deep currents that move beneath the surface of things. Laguz invites trust in feeling, and in the wisdom that arrives quietly.'},
+    {g:'ᛜ',n:'Ingwaz',  t:'Ng', k:'Fertility · Potential · Inner Work',lore:'Ingwaz is the seed in winter — enclosed, potential-rich, not yet visible. Named for Ing, a god of fertility and the inner hearth, it speaks of gestation: the quiet work that happens before emergence. It is not a rune of action but of preparation, of the peace that comes when effort is complete and outcome is trusted.'},
+    {g:'ᛞ',n:'Dagaz',   t:'D',  k:'Dawn · Breakthrough · Awakening',  lore:'Dagaz is the moment of dawn — the liminal threshold between dark and light where transformation happens. It is a rune of breakthrough and awakening, of the realisation that changes everything. Where Jera turns the wheel gradually, Dagaz marks the moment the season tips. It is sudden clarity, the shift that cannot be undone.'},
+    {g:'ᛟ',n:'Othala',  t:'O',  k:'Inheritance · Home · What Endures',lore:'The last rune of the Elder Futhark. Othala is the ancestral enclosure — the land, the home, the lineage, the values passed down. It is what cannot be bought or sold but is held in trust. This rune speaks of heritage: what has been given to you, what you are responsible for protecting, and what you in turn will pass on.'},
+    {g:'○',n:'Blank',   t:'—',  k:'The Unknowable · Pure Potential',  lore:'The blank rune has no historical precedent in the Elder Futhark — it was introduced in modern practice, most notably by Ralph Blum. Its meaning is the void before form, fate uncommitted, the question without an answer. Some readers reject it entirely; others find it the most honest rune of all: an acknowledgement that not everything can be named.'},
+  ]}
+];
+
+let staveBuilt=false;
+function buildStaveGuide(){
+  if(staveBuilt) return;
+  staveBuilt=true;
+  const body=document.getElementById('stave-guide-body');
+  AETTS.forEach(aett=>{
+    const label=document.createElement('div');
+    label.className='aett-label'; label.textContent=aett.name;
+    body.appendChild(label);
+    const list=document.createElement('div'); list.className='stave-list';
+    aett.runes.forEach(r=>{
+      const entry=document.createElement('div'); entry.className='stave-entry';
+      entry.innerHTML=`<div class="stave-glyph-col"><div class="stave-glyph">${r.g}</div><div class="stave-transliteration">${r.t}</div></div><div class="stave-body"><div class="stave-name">${r.n}</div><div class="stave-keywords">${r.k}</div><div class="stave-meaning" id="lore-${r.n}">${r.lore}</div><div class="stave-expand" id="exp-${r.n}">Read more ↓</div></div>`;
+      entry.addEventListener('click',()=>toggleLore(r.n));
+      list.appendChild(entry);
+    });
+    body.appendChild(list);
+  });
+}
+
+function toggleLore(name){
+  const lore=document.getElementById('lore-'+name), exp=document.getElementById('exp-'+name);
+  const open=lore.classList.toggle('open');
+  exp.textContent=open?'Close ↑':'Read more ↓';
+}
+
+// initialise draw mode on reading page
+switchMode('draw');
 </script>
 
 </body>
