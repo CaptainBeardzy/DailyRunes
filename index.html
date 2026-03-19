@@ -40,7 +40,7 @@
         .action-title { text-transform: uppercase; letter-spacing: 3px; font-size: 14px; color: var(--accent); margin-bottom: 4px; }
         .action-sub { font-size: 11px; color: var(--dim2); font-style: italic; }
 
-        /* Reader Roulette - Enhanced Randomness Styles */
+        /* Reader Roulette */
         .reel-container { display: flex; justify-content: center; gap: 15px; margin: 40px 0; height: 130px; }
         .slot { width: 95px; height: 130px; background: var(--dim); border: 1px solid rgba(201,169,110,0.1); border-radius: 12px; overflow: hidden; position: relative; }
         .reel { transition-property: transform; transition-timing-function: cubic-bezier(0.15, 0, 0.05, 1); }
@@ -51,14 +51,16 @@
         .manual-item { background: var(--dim); border: 1px solid transparent; border-radius: 10px; padding: 18px 5px; text-align: center; transition: 0.3s; }
         .manual-item.selected { border-color: var(--accent); background: rgba(201,169,110,0.15); }
 
-        /* Forge */
+        /* Forge & Talisman Library */
         .forge-container { position: relative; width: 320px; height: 320px; margin: 20px auto; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #1a1a24 0%, #0d0d12 100%); border-radius: 50%; border: 1px solid var(--dim); }
         .forge-rune { position: absolute; font-size: 160px; color: var(--accent); opacity: 0.6; mix-blend-mode: screen; transition: 0.5s; pointer-events: none; }
+        
+        .talisman-item { position: relative; width: 100%; overflow: hidden; background: var(--bg); border-bottom: 1px solid var(--dim); }
+        .talisman-content { position: relative; z-index: 10; background: var(--dim); padding: 30px 25px; border-radius: 15px; margin: 10px 20px; transition: transform 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); border: 1px solid rgba(201,169,110,0.1); }
+        .talisman-delete { position: absolute; right: 20px; top: 10px; bottom: 10px; width: 80px; background: var(--red-dim); color: #ff9999; border-radius: 0 15px 15px 0; display: flex; align-items: center; justify-content: center; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; z-index: 1; }
 
-        /* Library (Bindrunes) */
-        .talisman-card { background: var(--dim); border: 1px solid rgba(201,169,110,0.1); border-radius: 15px; padding: 25px; margin-bottom: 20px; }
-        .talisman-glyph { font-size: 40px; color: var(--accent); letter-spacing: -12px; margin-bottom: 10px; }
-        .talisman-power { font-size: 14px; font-style: italic; line-height: 1.6; color: var(--fg2); }
+        .saved-bind-visual { position: relative; height: 60px; width: 60px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px; }
+        .saved-glyph { position: absolute; font-size: 44px; color: var(--accent); mix-blend-mode: screen; }
 
         /* Stats & History */
         .stats-section { padding: 0 20px; margin-bottom: 30px; }
@@ -131,8 +133,8 @@
         <button class="btn-main" id="bind-btn" onclick="bindTalisman()">Bind to Library</button>
         <button class="btn-main" style="margin-top:-10px; border:none; color:var(--dim2); text-decoration:underline; font-size:9px;" onclick="forgeSet = []; updateForge();">Clear Forge</button>
         
-        <div style="padding:40px 20px; text-align:left;">
-            <span class="stat-label">Talisman Library</span>
+        <div style="padding:40px 0; text-align:left;">
+            <span class="stat-label" style="padding-left:20px;">Talisman Library (Swipe to Delete)</span>
             <div id="talisman-list"></div>
         </div>
     </div>
@@ -187,7 +189,7 @@
         {g:'ᛏ',n:'Tiwaz',m:'Honor',l:'The warrior\'s spear. It represents sacrifice for the greater good, leadership, integrity, and the courage to act with justice.'},
         {g:'ᛒ',n:'Berkano',m:'Growth',l:'The birch tree. The energy of the womb—nurturing, healing, and bringing new life or creative ideas into physical bloom.'},
         {g:'ᛖ',n:'Ehwaz',m:'Synergy',l:'The horse and rider. Progress achieved through mutual trust, partnership, and the harmonious movement of two distinct forces.'},
-        {g:'ᛗ',n:'Identity',m:'Mannaz',l:'The individual within the tribe. It represents human consciousness, social bonds, and the realization of one\'s true self.'},
+        {g:'ᛗ',n:'Mannaz',m:'Identity',l:'The individual within the tribe. It represents human consciousness, social bonds, and the realization of one\'s true self.'},
         {g:'ᛚ',n:'Laguz',m:'Intuition',l:'The flow of water. Rules the deep emotions, the subconscious mind, and the fluid, ever-changing nature of our perceived reality.'},
         {g:'ᛜ',n:'Ingwaz',m:'Potential',l:'The seed. Represents stored potential and the need for a period of rest and protection before an idea can burst into life.'},
         {g:'ᛞ',n:'Dagaz',m:'Awakening',l:'The light of dawn. A radical breakthrough where a total transformation of perspective leads to absolute clarity.'},
@@ -197,6 +199,7 @@
 
     let forgeSet = [];
     let manualSet = [];
+    let readingActive = false;
     let stats = JSON.parse(localStorage.getItem('rune_stats') || '{}');
     let history = JSON.parse(localStorage.getItem('rune_hist') || '[]');
     let talismans = JSON.parse(localStorage.getItem('rune_tali') || '[]');
@@ -206,23 +209,26 @@
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('page-' + id).classList.add('active');
         document.querySelector(`[data-id="${id}"]`).classList.add('active');
-        if(id === 'reading') setReadMode('draw');
+        
+        // BUG FIX: Prevent resetting reading tab when just navigating back to it
+        if(id === 'reading' && !readingActive && !document.getElementById('reveal-ui').style.display.includes('block')) {
+            setReadMode('draw'); 
+        }
         if(id === 'forge') initForge();
         if(id === 'history') renderStats();
         if(id === 'library') renderGuide();
     }
 
-    /* READER ENGINE: UNIQUE TIMINGS ADDED */
     function setReadMode(mode) {
         document.getElementById('draw-ui').style.display = mode === 'draw' ? 'block' : 'none';
         document.getElementById('manual-ui').style.display = mode === 'manual' ? 'block' : 'none';
         document.getElementById('reveal-ui').style.display = 'none';
+        readingActive = false;
         if(mode === 'draw') {
             const wrap = document.getElementById('reel-wrap'); wrap.innerHTML = '';
             for(let i=0; i<3; i++) {
                 const slot = document.createElement('div'); slot.className = 'slot';
                 const reel = document.createElement('div'); reel.className = 'reel'; reel.id = `r${i}`;
-                // Different spin times for higher randomness feel
                 reel.style.transitionDuration = (3.2 + (i * 0.6)) + "s";
                 reel.style.transitionDelay = (i * 0.15) + "s";
                 for(let j=0; j<45; j++) {
@@ -256,13 +262,13 @@
             r.lastChild.textContent = win.g; 
             r.style.transform = `translateY(-${44 * 130}px)`;
         }
-        // Wait for the longest reel to finish (3.2 + 1.2 + offset)
         setTimeout(() => processReading(picks), 4600);
     }
 
     function submitManual() { processReading(manualSet); }
 
     function processReading(runes) {
+        readingActive = true;
         document.getElementById('draw-ui').style.display = 'none';
         document.getElementById('manual-ui').style.display = 'none';
         const container = document.getElementById('reveal-glyphs'); container.innerHTML = '';
@@ -282,11 +288,15 @@
         document.getElementById('reveal-ui').style.display = 'block';
     }
 
-    function resetReader() { setReadMode('draw'); document.getElementById('cast-btn').disabled = false; }
+    function resetReader() { 
+        readingActive = false;
+        setReadMode('draw'); 
+        document.getElementById('cast-btn').disabled = false; 
+    }
 
-    /* FORGE & TALISMAN LIBRARY */
+    /* FORGE & SWIPE DELETE TALISMANS */
     function initForge() {
-        const p = document.getElementById('forge-picker'); if(p.children.length > 0) return;
+        const p = document.getElementById('forge-picker'); if(p.children.length > 0) { renderTalismans(); return; }
         RUNES.forEach(r => {
             const b = document.createElement('div'); b.style.cssText = "background:var(--dim); padding:10px; border-radius:8px; text-align:center; font-size:20px; cursor:pointer;";
             b.textContent = r.g;
@@ -312,7 +322,7 @@
     }
 
     function bindTalisman() {
-        const glyphs = forgeSet.map(r => r.g).join('');
+        const glyphs = forgeSet.map(r => r.g);
         const names = forgeSet.map(r => r.n);
         const incantation = `By the binding of ${names[0]} and ${names[1]}${names[2] ? ' and ' + names[2] : ''}, this talisman shall provide the wearer with the ${forgeSet[0].m.toLowerCase()} to conquer their shadows and the ${forgeSet[1].m.toLowerCase()} to shield their spirit from the chaos of the world.`;
         
@@ -326,14 +336,34 @@
     function renderTalismans() {
         const list = document.getElementById('talisman-list'); list.innerHTML = '';
         talismans.forEach((t, idx) => {
-            const card = document.createElement('div'); card.className = 'talisman-card';
-            card.innerHTML = `
-                <div class="talisman-glyph">${t.glyphs}</div>
-                <div class="talisman-power">${t.incantation}</div>
-                <div style="text-align:right; margin-top:15px;">
-                    <span style="font-size:9px; color:var(--red-dim); cursor:pointer;" onclick="deleteTalisman(${idx})">UNBIND</span>
+            const item = document.createElement('div'); item.className = 'talisman-item';
+            
+            // Visual Overlap logic for library
+            let visualHTML = '<div class="saved-bind-visual">';
+            t.glyphs.forEach((g, i) => {
+                visualHTML += `<span class="saved-glyph" style="transform: scale(${1-(i*0.1)}); opacity: ${0.5+(i*0.15)};">${g}</span>`;
+            });
+            visualHTML += '</div>';
+
+            item.innerHTML = `<div class="talisman-delete" onclick="deleteTalisman(${idx})">UNBIND</div>
+                <div class="talisman-content">
+                    ${visualHTML}
+                    <div class="talisman-power">${t.incantation}</div>
                 </div>`;
-            list.appendChild(card);
+            
+            // Adding sticky swipe to talismans
+            let startX = 0; const content = item.querySelector('.talisman-content');
+            content.addEventListener('touchstart', e => startX = e.touches[0].clientX);
+            content.addEventListener('touchmove', e => {
+                let diff = e.touches[0].clientX - startX;
+                if(diff < 0 && diff > -100) content.style.transform = `translateX(${diff}px)`;
+            });
+            content.addEventListener('touchend', e => {
+                let diff = e.touches[0].clientX - startX;
+                content.style.transform = diff < -50 ? 'translateX(-100px)' : 'translateX(0)';
+            });
+
+            list.appendChild(item);
         });
     }
 
