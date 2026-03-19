@@ -15,123 +15,318 @@
 html,body {
   background:var(--bg); color:var(--fg);
   font-family:'Cormorant Garamond',Georgia,serif;
-  min-height:100dvh; padding-bottom:60px;
+  min-height:100dvh;
 }
+
+/* ── START SCREEN ── */
+#start-screen {
+display:flex; flex-direction:column;
+align-items:center; justify-content:center;
+min-height:100dvh; padding:40px 24px;
+opacity:1; transition:opacity 0.4s;
+}
+#start-screen.hidden { opacity:0; pointer-events:none; }
+.start-title {
+font-size:11px; letter-spacing:0.45em; text-transform:uppercase;
+color:var(–accent); font-weight:300; text-align:center; margin-bottom:6px;
+}
+.start-date {
+font-size:10px; letter-spacing:0.3em; text-transform:uppercase;
+color:var(–dim2); text-align:center; margin-bottom:60px;
+}
+.start-sep {
+width:1px; height:48px; background:linear-gradient(to bottom, transparent, var(–dim), transparent);
+margin-bottom:48px;
+}
+.start-label {
+font-size:9px; letter-spacing:0.4em; text-transform:uppercase;
+color:var(–dim2); text-align:center; margin-bottom:22px;
+}
+.mode-cards {
+display:flex; flex-direction:column; gap:14px; width:100%; max-width:340px;
+}
+.mode-card {
+background:var(–card); border:1px solid var(–dim); padding:28px 24px;
+cursor:pointer; text-align:center; position:relative; overflow:hidden;
+transition:border-color 0.2s, background 0.2s;
+}
+.mode-card:hover, .mode-card:active {
+border-color:var(–accent); background:#14140e;
+}
+.mode-card::before {
+content:’’; position:absolute; inset:0;
+background:radial-gradient(ellipse at center, rgba(184,168,130,0.04) 0%, transparent 70%);
+pointer-events:none;
+}
+.mode-glyph {
+font-size:36px; line-height:1; margin-bottom:14px; opacity:0.85;
+}
+.mode-name {
+font-size:11px; letter-spacing:0.4em; text-transform:uppercase;
+color:var(–accent); margin-bottom:8px;
+}
+.mode-desc {
+font-size:13px; color:var(–dim2); font-style:italic; line-height:1.5;
+}
+
+/* ── SHARED APP CHROME ── */
+#app { display:none; flex-direction:column; padding-bottom:60px; }
+#app.visible { display:flex; }
 header {
-  text-align:center; padding:44px 24px 28px;
-  border-bottom:1px solid var(--dim);
+text-align:center; padding:44px 24px 28px;
+border-bottom:1px solid var(–dim); position:relative;
 }
+.back-btn {
+position:absolute; left:18px; top:50%;
+transform:translateY(-50%);
+background:none; border:none; color:var(–dim2);
+font-family:‘Cormorant Garamond’,serif;
+font-size:9px; letter-spacing:0.3em; text-transform:uppercase;
+cursor:pointer; padding:6px 4px;
+transition:color 0.2s;
+}
+.back-btn:hover { color:var(–accent); }
 header h1 {
-  font-size:11px; letter-spacing:0.45em; text-transform:uppercase;
-  color:var(--accent); font-weight:300; margin-bottom:8px;
+font-size:11px; letter-spacing:0.45em; text-transform:uppercase;
+color:var(–accent); font-weight:300; margin-bottom:8px;
 }
 header .date-str {
-  font-size:10px; letter-spacing:0.3em; text-transform:uppercase; color:var(--dim2);
+font-size:10px; letter-spacing:0.3em; text-transform:uppercase; color:var(–dim2);
 }
 .section-label {
-  font-size:9px; letter-spacing:0.4em; text-transform:uppercase;
-  color:var(--dim2); text-align:center; padding:24px 24px 14px;
+font-size:9px; letter-spacing:0.4em; text-transform:uppercase;
+color:var(–dim2); text-align:center; padding:24px 24px 14px;
 }
+
+/* ── SELECTED ROW (shared) ── */
 .selected-row {
-  display:flex; align-items:center; justify-content:center;
-  padding:4px 24px 8px; min-height:82px;
+display:flex; align-items:center; justify-content:center;
+padding:4px 24px 8px; min-height:82px;
 }
 .slot { display:flex; flex-direction:column; align-items:center; gap:5px; width:86px; }
 .slot-glyph {
-  font-size:42px; line-height:1; color:var(--fg); min-height:50px;
-  display:flex; align-items:center; justify-content:center;
-  opacity:0; transform:translateY(5px); transition:opacity 0.3s,transform 0.3s;
+font-size:42px; line-height:1; color:var(–fg); min-height:50px;
+display:flex; align-items:center; justify-content:center;
+opacity:0; transform:translateY(5px); transition:opacity 0.3s,transform 0.3s;
 }
 .slot-glyph.filled { opacity:0.9; transform:translateY(0); }
-.slot-name { font-size:8px; letter-spacing:0.22em; text-transform:uppercase; color:var(--accent); min-height:12px; text-align:center; }
-.slot-sep { width:3px; height:3px; border-radius:50%; background:var(--dim2); margin:0 6px 22px; }
+.slot-name { font-size:8px; letter-spacing:0.22em; text-transform:uppercase; color:var(–accent); min-height:12px; text-align:center; }
+.slot-sep { width:3px; height:3px; border-radius:50%; background:var(–dim2); margin:0 6px 22px; }
 .clear-btn {
-  display:block; margin:10px auto 0; background:none;
-  border:1px solid var(--dim); color:var(--dim2);
-  font-family:'Cormorant Garamond',serif; font-size:9px;
-  letter-spacing:0.3em; text-transform:uppercase; padding:7px 18px; cursor:pointer;
+display:block; margin:10px auto 0; background:none;
+border:1px solid var(–dim); color:var(–dim2);
+font-family:‘Cormorant Garamond’,serif; font-size:9px;
+letter-spacing:0.3em; text-transform:uppercase; padding:7px 18px; cursor:pointer;
 }
-.clear-btn:active { color:var(--fg); border-color:var(--dim2); }
+.clear-btn:active { color:var(–fg); border-color:var(–dim2); }
+
+/* ── MANUAL MODE ── */
+#manual-mode { display:none; flex-direction:column; }
+#manual-mode.visible { display:flex; }
 .rune-grid {
-  display:grid; grid-template-columns:repeat(5,1fr);
-  gap:7px; padding:6px 14px 14px; max-width:460px; margin:0 auto;
+display:grid; grid-template-columns:repeat(5,1fr);
+gap:7px; padding:6px 14px 14px; max-width:460px; margin:0 auto;
 }
 .rune-btn {
-  background:var(--card); border:1px solid var(--dim); border-radius:5px;
-  padding:10px 4px 7px; cursor:pointer; display:flex; flex-direction:column;
-  align-items:center; gap:4px; transition:border-color 0.15s,background 0.15s; position:relative;
+background:var(–card); border:1px solid var(–dim); border-radius:5px;
+padding:10px 4px 7px; cursor:pointer; display:flex; flex-direction:column;
+align-items:center; gap:4px; transition:border-color 0.15s,background 0.15s; position:relative;
 }
 .rune-btn:active { background:#1a1a22; }
-.rune-btn.selected { border-color:var(--accent); background:#181610; }
+.rune-btn.selected { border-color:var(–accent); background:#181610; }
 .rune-btn.selected::after {
-  content:''; position:absolute; top:4px; right:4px;
-  width:4px; height:4px; border-radius:50%; background:var(--accent);
+content:’’; position:absolute; top:4px; right:4px;
+width:4px; height:4px; border-radius:50%; background:var(–accent);
 }
-.rune-btn .glyph { font-size:24px; line-height:1; color:var(--fg); }
-.rune-btn .name  { font-size:7.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(--dim2); text-align:center; }
-.gen-wrap { padding:6px 14px 0; max-width:460px; margin:0 auto; }
+.rune-btn .glyph { font-size:24px; line-height:1; color:var(–fg); }
+.rune-btn .name  { font-size:7.5px; letter-spacing:0.12em; text-transform:uppercase; color:var(–dim2); text-align:center; }
+
+/* ── DRAW MODE (slot machine) ── */
+#draw-mode { display:none; flex-direction:column; align-items:center; padding:0 24px 10px; }
+#draw-mode.visible { display:flex; }
+.draw-slots {
+display:flex; align-items:center; justify-content:center;
+gap:12px; margin-bottom:28px;
+}
+.draw-slot {
+width:86px; display:flex; flex-direction:column; align-items:center; gap:8px;
+}
+.draw-slot-window {
+width:80px; height:90px; overflow:hidden; position:relative;
+border:1px solid var(–dim); border-radius:4px; background:var(–card);
+}
+.draw-slot-window::before, .draw-slot-window::after {
+content:’’; position:absolute; left:0; right:0; z-index:2; pointer-events:none;
+height:24px;
+}
+.draw-slot-window::before {
+top:0;
+background:linear-gradient(to bottom, var(–card), transparent);
+}
+.draw-slot-window::after {
+bottom:0;
+background:linear-gradient(to top, var(–card), transparent);
+}
+.draw-slot-reel {
+display:flex; flex-direction:column; align-items:center;
+will-change:transform;
+}
+.draw-slot-reel .reel-item {
+width:80px; height:90px;
+display:flex; align-items:center; justify-content:center;
+font-size:40px; line-height:1; color:var(–fg); opacity:0.7;
+flex-shrink:0;
+}
+.draw-slot-reel .reel-item.center {
+opacity:0.95;
+}
+.draw-slot-name {
+font-size:8px; letter-spacing:0.22em; text-transform:uppercase;
+color:var(–accent); min-height:12px; text-align:center;
+opacity:0; transition:opacity 0.4s;
+}
+.draw-slot-name.visible { opacity:1; }
+.draw-slot-sep { width:3px; height:3px; border-radius:50%; background:var(–dim2); margin-bottom:10px; }
+
+.draw-btn {
+width:100%; max-width:340px; background:none;
+border:1px solid var(–accent); color:var(–accent);
+font-family:‘Cormorant Garamond’,serif; font-size:10px;
+letter-spacing:0.4em; text-transform:uppercase; padding:15px; cursor:pointer;
+transition:background 0.2s,color 0.2s;
+}
+.draw-btn:hover,.draw-btn:active { background:var(–accent); color:var(–bg); }
+.draw-btn:disabled { border-color:var(–dim); color:var(–dim2); cursor:default; background:none; }
+
+/* ── GENERATE / RESULT ── */
+.gen-wrap { padding:6px 14px 0; max-width:460px; margin:0 auto; width:100%; }
 .gen-btn {
-  width:100%; background:none; border:1px solid var(--accent); color:var(--accent);
-  font-family:'Cormorant Garamond',serif; font-size:10px;
-  letter-spacing:0.4em; text-transform:uppercase; padding:15px; cursor:pointer;
-  transition:background 0.2s,color 0.2s;
+width:100%; background:none; border:1px solid var(–accent); color:var(–accent);
+font-family:‘Cormorant Garamond’,serif; font-size:10px;
+letter-spacing:0.4em; text-transform:uppercase; padding:15px; cursor:pointer;
+transition:background 0.2s,color 0.2s;
 }
-.gen-btn:hover,.gen-btn:active { background:var(--accent); color:var(--bg); }
-.gen-btn:disabled { border-color:var(--dim); color:var(--dim2); cursor:default; background:none; }
+.gen-btn:hover,.gen-btn:active { background:var(–accent); color:var(–bg); }
+.gen-btn:disabled { border-color:var(–dim); color:var(–dim2); cursor:default; background:none; }
 .status {
-  text-align:center; font-size:10px; letter-spacing:0.25em; text-transform:uppercase;
-  color:var(--dim2); padding:16px; min-height:42px; font-style:italic;
+text-align:center; font-size:10px; letter-spacing:0.25em; text-transform:uppercase;
+color:var(–dim2); padding:16px; min-height:42px; font-style:italic;
 }
 .result-wrap {
-  display:none; flex-direction:column; align-items:center;
-  gap:16px; padding:0 14px; max-width:460px; margin:0 auto;
+display:none; flex-direction:column; align-items:center;
+gap:16px; padding:0 14px; max-width:460px; margin:0 auto;
 }
 .result-wrap.visible { display:flex; }
-.result-wrap img { width:100%; border-radius:4px; border:1px solid var(--dim); display:block; }
-.save-hint { font-size:9px; letter-spacing:0.3em; text-transform:uppercase; color:var(--dim2); text-align:center; }
+.result-wrap img { width:100%; border-radius:4px; border:1px solid var(–dim); display:block; }
+.save-hint { font-size:9px; letter-spacing:0.3em; text-transform:uppercase; color:var(–dim2); text-align:center; }
 .save-btn {
-  width:100%; background:none; border:1px solid var(--accent); color:var(--accent);
-  font-family:'Cormorant Garamond',serif; font-size:10px;
-  letter-spacing:0.3em; text-transform:uppercase; padding:14px; cursor:pointer;
-  text-decoration:none; display:block; text-align:center;
-  transition:background 0.2s, color 0.2s;
+width:100%; background:none; border:1px solid var(–accent); color:var(–accent);
+font-family:‘Cormorant Garamond’,serif; font-size:10px;
+letter-spacing:0.3em; text-transform:uppercase; padding:14px; cursor:pointer;
+text-decoration:none; display:block; text-align:center;
+transition:background 0.2s, color 0.2s;
 }
-.save-btn:hover,.save-btn:active { background:var(--accent); color:var(--bg); }
+.save-btn:hover,.save-btn:active { background:var(–accent); color:var(–bg); }
 #cv { display:none; }
+
+/* slot spin animation */
+@keyframes slotBlur {
+0%   { filter:blur(0px); }
+30%  { filter:blur(2px); }
+70%  { filter:blur(2px); }
+100% { filter:blur(0px); }
+}
+.draw-slot-window.spinning .draw-slot-reel {
+animation:slotBlur 0.1s linear infinite;
+}
 </style>
+
 </head>
 <body>
 
-<header>
-  <h1>Daily Rune Reading</h1>
-  <div class="date-str" id="hdr-date"></div>
-</header>
+<!-- ══════════════════════════════ START SCREEN ══════════════════════════════ -->
 
-<div class="section-label">Your Draw — Select Three</div>
-<div class="selected-row">
-  <div class="slot"><div class="slot-glyph" id="sg0"></div><div class="slot-name" id="sn0"></div></div>
-  <div class="slot-sep"></div>
-  <div class="slot"><div class="slot-glyph" id="sg1"></div><div class="slot-name" id="sn1"></div></div>
-  <div class="slot-sep"></div>
-  <div class="slot"><div class="slot-glyph" id="sg2"></div><div class="slot-name" id="sn2"></div></div>
+<div id="start-screen">
+  <div class="start-title">Daily Rune Reading</div>
+  <div class="start-date" id="start-date-str"></div>
+  <div class="start-sep"></div>
+  <div class="start-label">Choose your method</div>
+  <div class="mode-cards">
+    <div class="mode-card" onclick="enterMode('draw')">
+      <div class="mode-glyph">ᚠ ᚢ ᚦ</div>
+      <div class="mode-name">Draw Runes</div>
+      <div class="mode-desc">Let fate decide — three runes drawn for you at random</div>
+    </div>
+    <div class="mode-card" onclick="enterMode('manual')">
+      <div class="mode-glyph">ᛟ</div>
+      <div class="mode-name">Manual Select</div>
+      <div class="mode-desc">Choose your own three runes from the full Elder Futhark</div>
+    </div>
+  </div>
 </div>
-<button class="clear-btn" onclick="clearAll()">Clear Selection</button>
 
-<div class="section-label">Elder Futhark</div>
-<div class="rune-grid" id="grid"></div>
+<!-- ══════════════════════════════ APP SHELL ══════════════════════════════ -->
 
-<div class="section-label" style="padding-top:20px;"></div>
-<div class="gen-wrap">
-  <button class="gen-btn" id="gen-btn" disabled onclick="generate()">
-    Generate Reading &amp; Wallpaper
-  </button>
-</div>
-<div class="status" id="status"></div>
+<div id="app">
+  <header>
+    <button class="back-btn" onclick="goBack()">← Back</button>
+    <h1>Daily Rune Reading</h1>
+    <div class="date-str" id="hdr-date"></div>
+  </header>
 
-<div class="result-wrap" id="result">
-  <div class="save-hint">Tap and hold image to save · or use button below</div>
-  <img id="out-img" src="" alt="Your rune wallpaper">
-  <a class="save-btn" id="dl-btn" download="rune-reading.jpg">Save Wallpaper</a>
+  <!-- ── DRAW MODE ── -->
+
+  <div id="draw-mode">
+    <div class="section-label">Your Draw</div>
+    <div class="draw-slots">
+      <div class="draw-slot">
+        <div class="draw-slot-window" id="dw0"><div class="draw-slot-reel" id="dr0"></div></div>
+        <div class="draw-slot-name" id="dn0"></div>
+      </div>
+      <div class="draw-slot-sep"></div>
+      <div class="draw-slot">
+        <div class="draw-slot-window" id="dw1"><div class="draw-slot-reel" id="dr1"></div></div>
+        <div class="draw-slot-name" id="dn1"></div>
+      </div>
+      <div class="draw-slot-sep"></div>
+      <div class="draw-slot">
+        <div class="draw-slot-window" id="dw2"><div class="draw-slot-reel" id="dr2"></div></div>
+        <div class="draw-slot-name" id="dn2"></div>
+      </div>
+    </div>
+    <button class="draw-btn" id="spin-btn" onclick="spinSlots()">Draw Three Runes</button>
+  </div>
+
+  <!-- ── MANUAL MODE ── -->
+
+  <div id="manual-mode">
+    <div class="section-label">Your Draw — Select Three</div>
+    <div class="selected-row">
+      <div class="slot"><div class="slot-glyph" id="sg0"></div><div class="slot-name" id="sn0"></div></div>
+      <div class="slot-sep"></div>
+      <div class="slot"><div class="slot-glyph" id="sg1"></div><div class="slot-name" id="sn1"></div></div>
+      <div class="slot-sep"></div>
+      <div class="slot"><div class="slot-glyph" id="sg2"></div><div class="slot-name" id="sn2"></div></div>
+    </div>
+    <button class="clear-btn" onclick="clearAll()">Clear Selection</button>
+    <div class="section-label">Elder Futhark</div>
+    <div class="rune-grid" id="grid"></div>
+    <div class="section-label" style="padding-top:20px;"></div>
+  </div>
+
+  <!-- ── SHARED GENERATE / RESULT ── -->
+
+  <div class="gen-wrap">
+    <button class="gen-btn" id="gen-btn" disabled onclick="generate()">
+      Generate Reading &amp; Wallpaper
+    </button>
+  </div>
+  <div class="status" id="status"></div>
+  <div class="result-wrap" id="result">
+    <div class="save-hint">Tap and hold image to save · or use button below</div>
+    <img id="out-img" src="" alt="Your rune wallpaper">
+    <a class="save-btn" id="dl-btn" download="rune-reading.jpg">Save Wallpaper</a>
+  </div>
 </div>
 
 <canvas id="cv"></canvas>
@@ -165,12 +360,74 @@ const RUNES = [
   {g:'○',n:'Blank',   m:'The unknowable, pure potential, fate'},
 ];
 
-let selected = [];
 const now = new Date();
 const dateStr = now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'});
+document.getElementById('start-date-str').textContent = dateStr;
 document.getElementById('hdr-date').textContent = dateStr;
 
-// Build grid
+let currentMode = null;
+let selected = [];
+
+// ── Mode navigation ──────────────────────────────────────────────────────────
+
+function enterMode(mode) {
+  currentMode = mode;
+  selected = [];
+
+  document.getElementById('start-screen').classList.add('hidden');
+  setTimeout(() => {
+    document.getElementById('start-screen').style.display = 'none';
+    const app = document.getElementById('app');
+    app.classList.add('visible');
+    document.getElementById('draw-mode').classList.remove('visible');
+    document.getElementById('draw-mode').style.display = 'none';
+    document.getElementById('manual-mode').classList.remove('visible');
+    document.getElementById('manual-mode').style.display = 'none';
+
+    if (mode === 'draw') {
+      document.getElementById('draw-mode').style.display = 'flex';
+      document.getElementById('draw-mode').classList.add('visible');
+      initDrawSlots();
+    } else {
+      document.getElementById('manual-mode').style.display = 'flex';
+      document.getElementById('manual-mode').classList.add('visible');
+    }
+
+    document.getElementById('gen-btn').disabled = true;
+    document.getElementById('result').classList.remove('visible');
+    document.getElementById('status').textContent = '';
+  }, 400);
+}
+
+function goBack() {
+  selected = [];
+  currentMode = null;
+  document.getElementById('app').classList.remove('visible');
+  const ss = document.getElementById('start-screen');
+  ss.style.display = 'flex';
+  ss.classList.remove('hidden');
+  document.getElementById('result').classList.remove('visible');
+  document.getElementById('status').textContent = '';
+  // reset draw slots
+  for (let i = 0; i < 3; i++) {
+    document.getElementById('dn'+i).textContent = '';
+    document.getElementById('dn'+i).classList.remove('visible');
+    document.getElementById('dw'+i).classList.remove('spinning');
+  }
+  document.getElementById('spin-btn').disabled = false;
+  document.getElementById('spin-btn').textContent = 'Draw Three Runes';
+  // reset manual
+  document.querySelectorAll('.rune-btn.selected').forEach(b => b.classList.remove('selected'));
+  for (let i = 0; i < 3; i++) {
+    const ge = document.getElementById('sg'+i);
+    const ne = document.getElementById('sn'+i);
+    if (ge) { ge.textContent = ''; ge.classList.remove('filled'); }
+    if (ne) ne.textContent = '';
+  }
+}
+
+// ── Manual mode ──────────────────────────────────────────────────────────────
+
 const grid = document.getElementById('grid');
 RUNES.forEach(r => {
   const b = document.createElement('button');
@@ -187,10 +444,10 @@ function toggle(r, btn) {
     if (selected.length >= 3) return;
     selected.push(r); btn.classList.add('selected');
   }
-  updateSlots();
+  updateManualSlots();
 }
 
-function updateSlots() {
+function updateManualSlots() {
   for (let i = 0; i < 3; i++) {
     const ge = document.getElementById('sg'+i);
     const ne = document.getElementById('sn'+i);
@@ -208,8 +465,121 @@ function updateSlots() {
 function clearAll() {
   selected = [];
   document.querySelectorAll('.rune-btn.selected').forEach(b => b.classList.remove('selected'));
-  updateSlots();
+  updateManualSlots();
 }
+
+// ── Draw mode (slot machine) ─────────────────────────────────────────────────
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function initDrawSlots() {
+  for (let i = 0; i < 3; i++) {
+    const reel = document.getElementById('dr'+i);
+    reel.innerHTML = '';
+    // Show a single placeholder dash until the first spin
+    const placeholder = document.createElement('div');
+    placeholder.className = 'reel-item center';
+    placeholder.style.color = 'var(--dim2)';
+    placeholder.style.fontSize = '28px';
+    placeholder.style.letterSpacing = '0.1em';
+    placeholder.textContent = '–';
+    reel.appendChild(placeholder);
+    // Reset position
+    reel.style.transition = 'none';
+    reel.style.transform = 'translateY(0)';
+    document.getElementById('dn'+i).textContent = '';
+    document.getElementById('dn'+i).classList.remove('visible');
+    document.getElementById('dw'+i).classList.remove('spinning');
+  }
+}
+
+let spinning = false;
+
+function spinSlots() {
+  if (spinning) return;
+  spinning = true;
+  selected = [];
+
+  const btn = document.getElementById('spin-btn');
+  btn.disabled = true;
+
+  document.getElementById('gen-btn').disabled = true;
+  document.getElementById('result').classList.remove('visible');
+  document.getElementById('status').textContent = '';
+
+  // Pick 3 distinct random runes
+  const picks = shuffle([...RUNES]).slice(0, 3);
+
+  // Stagger: slot 0 lands after 1.6s, slot 1 after 2.5s, slot 2 after 3.4s
+  const landTimes = [1600, 2500, 3400];
+
+  for (let i = 0; i < 3; i++) {
+    const win = document.getElementById('dw'+i);
+    const reel = document.getElementById('dr'+i);
+
+    // Build reel items with chosen rune placed near the end
+    reel.innerHTML = '';
+    const ITEM_H = 90;
+    const spinCount = 18 + i * 6; // different lengths to stagger
+
+    const pool = shuffle([...RUNES, ...RUNES]);
+    const items = [];
+    for (let j = 0; j < spinCount; j++) {
+      items.push(pool[j % pool.length]);
+    }
+    // Last item = the chosen rune
+    items.push(picks[i]);
+
+    items.forEach((r, idx) => {
+      const el = document.createElement('div');
+      el.className = 'reel-item' + (idx === items.length-1 ? ' center' : '');
+      el.textContent = r.g;
+      reel.appendChild(el);
+    });
+
+    // Target translateY: show the last (center) item centred in the 90px window
+    const targetY = -((items.length - 1) * ITEM_H);
+
+    // Start position
+    reel.style.transition = 'none';
+    reel.style.transform = 'translateY(0)';
+    win.classList.add('spinning');
+
+    // Animate
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        reel.style.transition = `transform ${landTimes[i]/1000}s cubic-bezier(0.25, 0.1, 0.1, 1)`;
+        reel.style.transform = `translateY(${targetY}px)`;
+      });
+    });
+
+    // On landing
+    setTimeout(() => {
+      win.classList.remove('spinning');
+      selected[i] = picks[i];
+      const nameEl = document.getElementById('dn'+i);
+      nameEl.textContent = picks[i].n;
+      nameEl.classList.add('visible');
+
+      // After last slot lands, enable generate
+      if (i === 2) {
+        spinning = false;
+        btn.disabled = false;
+        btn.textContent = 'Draw Again';
+        document.getElementById('gen-btn').disabled = false;
+      }
+    }, landTimes[i]);
+  }
+}
+
+// ── Generate ─────────────────────────────────────────────────────────────────
 
 async function generate() {
   if (selected.length < 3) return;
@@ -258,6 +628,8 @@ No headers, no bullet points. Keep it under 55 words total.`
   return data.content.map(c => c.text||'').join('').trim();
 }
 
+// ── Canvas render ─────────────────────────────────────────────────────────────
+
 function renderToCanvas(summary) {
   return new Promise((resolve, reject) => {
     const W = 585, H = 1266;
@@ -268,7 +640,6 @@ function renderToCanvas(summary) {
     document.fonts.ready.then(() => {
       draw(ctx, W, H, summary);
       try {
-        // JPEG on a hosted URL works fine in Safari
         const dataUrl = cv.toDataURL('image/jpeg', 0.93);
         const img = document.getElementById('out-img');
         img.src = dataUrl;
@@ -284,18 +655,15 @@ function renderToCanvas(summary) {
 function draw(ctx, W, H, summary) {
   const cx = W / 2;
 
-  // Background
   ctx.fillStyle = '#0a0a0f';
   ctx.fillRect(0, 0, W, H);
 
-  // Radial glow
   const grd = ctx.createRadialGradient(cx, H*0.44, 0, cx, H*0.44, W*0.75);
   grd.addColorStop(0, 'rgba(184,168,130,0.05)');
   grd.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = grd;
   ctx.fillRect(0, 0, W, H);
 
-  // Date
   ctx.save();
   ctx.fillStyle = '#3a3830';
   ctx.font = '300 22px "Cormorant Garamond",Georgia,serif';
@@ -304,10 +672,8 @@ function draw(ctx, W, H, summary) {
   ctx.fillText(dateStr.toUpperCase(), cx, 88);
   ctx.restore();
 
-  // Top rule
   vertRule(ctx, cx, 110, 60);
 
-  // Rune glyphs
   const runeY = H * 0.435;
   const sp = 120;
   const pos = [cx - sp, cx, cx + sp];
@@ -320,14 +686,12 @@ function draw(ctx, W, H, summary) {
   selected.forEach((r,i) => ctx.fillText(r.g, pos[i], runeY));
   ctx.restore();
 
-  // Separator dots
   ctx.save();
   ctx.fillStyle = '#3a3830';
   dot(ctx, cx - sp/2, runeY - 28, 4);
   dot(ctx, cx + sp/2, runeY - 28, 4);
   ctx.restore();
 
-  // Rune names
   const nameY = runeY + 70;
   ctx.save();
   ctx.font = '300 18px "Cormorant Garamond",Georgia,serif';
@@ -337,7 +701,6 @@ function draw(ctx, W, H, summary) {
   selected.forEach((r,i) => ctx.fillText(r.n.toUpperCase(), pos[i], nameY));
   ctx.restore();
 
-  // Horizontal divider
   const divY = nameY + 36;
   ctx.save();
   ctx.strokeStyle = '#2e2c28';
@@ -348,7 +711,6 @@ function draw(ctx, W, H, summary) {
   ctx.stroke();
   ctx.restore();
 
-  // Summary text
   ctx.save();
   ctx.font = 'italic 300 22px "Cormorant Garamond",Georgia,serif';
   ctx.textAlign = 'center';
@@ -357,10 +719,8 @@ function draw(ctx, W, H, summary) {
   wrapText(ctx, summary, cx, divY + 30, W - 110, 36);
   ctx.restore();
 
-  // Bottom rule
   vertRule(ctx, cx, H * 0.695, 60);
 
-  // Bottom mark
   ctx.save();
   ctx.fillStyle = '#252420';
   ctx.font = '300 16px "Cormorant Garamond",Georgia,serif';
