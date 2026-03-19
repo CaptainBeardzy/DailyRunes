@@ -1,858 +1,298 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rune Guide & Oracle</title>
+    <title>Bindrune Forge & Oracle</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg: #0d0d12; --fg: #ede9e0; --accent: #c9a96e;
             --dim: #1a1a24; --dim2: #8a8070; --card: #15151e;
-            --fg2: #b8b4aa; --red-dim: #551a1a;
+            --fg2: #b8b4aa; --gold-light: #fefaf0; --gold-dark: #7a5e2d;
         }
 
-```
-    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-    /* ── iOS Safari colour fixes ── */
-    button, a {
-        -webkit-appearance: none; appearance: none;
-        color: inherit; -webkit-text-fill-color: inherit;
-        font-family: 'Cormorant Garamond', serif;
-    }
+        body {
+            background: var(--bg); color: var(--fg);
+            font-family: 'Cormorant Garamond', serif;
+            overscroll-behavior: none; overflow-x: hidden;
+        }
 
-    body {
-        background: var(--bg); color: var(--fg);
-        font-family: 'Cormorant Garamond', serif;
-        overscroll-behavior: none; overflow-x: hidden;
-        -webkit-text-fill-color: var(--fg);
-    }
+        /* --- Navigation --- */
+        #nav { position: fixed; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; z-index: 2000; padding-bottom: env(safe-area-inset-bottom); }
+        .nav-pill { background: rgba(26,26,36,0.95); backdrop-filter: blur(20px); border: 1px solid rgba(201,169,110,0.15); border-radius: 50px; display: flex; padding: 8px 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+        .nav-btn { width: 65px; height: 55px; background: none; border: none; color: var(--dim2); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer; }
+        .nav-btn.active { color: var(--accent); }
+        .nav-btn .icon { font-size: 20px; margin-bottom: 2px; }
+        .nav-btn .txt { font-size: 8px; text-transform: uppercase; letter-spacing: 0.15em; }
 
-    /* Navigation */
-    #nav { position: fixed; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; z-index: 2000; padding-bottom: env(safe-area-inset-bottom); }
-    .nav-pill { background: rgba(26,26,36,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(201,169,110,0.15); border-radius: 50px; display: flex; padding: 8px 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
-    .nav-btn { width: 65px; height: 55px; background: none; border: none; color: var(--dim2); -webkit-text-fill-color: var(--dim2); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer; }
-    .nav-btn.active { color: var(--accent); -webkit-text-fill-color: var(--accent); }
-    .nav-btn .icon { font-size: 20px; margin-bottom: 2px; color: inherit; -webkit-text-fill-color: inherit; }
-    .nav-btn .txt { font-size: 8px; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 300; color: inherit; -webkit-text-fill-color: inherit; }
+        .page { display: none; flex-direction: column; min-height: 100vh; padding-bottom: 140px; }
+        .page.active { display: flex; animation: fadeIn 0.4s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    .page { display: none; flex-direction: column; min-height: 100dvh; padding-bottom: 160px; opacity: 0; }
-    .page.active { display: flex; opacity: 1; animation: fadeIn 0.5s forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        /* --- Home/Hero --- */
+        .home-hero { text-align: center; padding: 60px 24px 40px; }
+        .date-display { font-size: 11px; letter-spacing: 0.5em; text-transform: uppercase; margin-bottom: 50px; opacity: 0.7; }
+        .rotd-glyph { font-size: 110px; margin-bottom: 15px; text-shadow: 0 0 30px rgba(201,169,110,0.2); }
+        .rotd-name { font-size: 18px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5em; margin-bottom: 8px; }
 
-    /* Home */
-    .home-hero { text-align: center; padding: 60px 24px 40px; }
-    .date-display { font-size: 11px; letter-spacing: 0.5em; color: var(--fg); -webkit-text-fill-color: var(--fg); text-transform: uppercase; margin-bottom: 50px; opacity: 0.8; }
-    .rotd-glyph { font-size: 110px; color: var(--fg); -webkit-text-fill-color: var(--fg); margin-bottom: 15px; text-shadow: 0 0 30px rgba(201,169,110,0.2); }
-    .rotd-name { font-size: 18px; color: var(--accent); -webkit-text-fill-color: var(--accent); text-transform: uppercase; letter-spacing: 0.5em; margin-bottom: 8px; }
-    .rotd-meaning { font-size: 14px; font-style: italic; color: var(--dim2); -webkit-text-fill-color: var(--dim2); margin-bottom: 40px; }
+        .action-card { background: var(--dim); border: 1px solid rgba(255,255,255,0.05); border-radius: 18px; margin: 0 20px 15px; padding: 30px 25px; cursor: pointer; }
+        .action-title { text-transform: uppercase; letter-spacing: 3px; font-size: 14px; color: var(--accent); margin-bottom: 4px; }
+        .action-sub { font-size: 11px; color: var(--dim2); font-style: italic; }
 
-    .action-card { background: var(--dim); border: 1px solid rgba(255,255,255,0.05); border-radius: 18px; margin: 0 20px 15px; padding: 30px 25px; cursor: pointer; transition: transform 0.2s; }
-    .action-card:active { transform: scale(0.97); }
-    .action-title { text-transform: uppercase; letter-spacing: 3px; font-size: 14px; color: var(--accent); -webkit-text-fill-color: var(--accent); margin-bottom: 4px; }
-    .action-sub { font-size: 11px; color: var(--dim2); -webkit-text-fill-color: var(--dim2); font-style: italic; }
+        /* --- Oracle Roulette Draw --- */
+        .reel-container { display: flex; justify-content: center; gap: 12px; margin: 40px 0; height: 130px; }
+        .slot { width: 90px; height: 130px; background: var(--dim); border: 1px solid rgba(201,169,110,0.1); border-radius: 12px; overflow: hidden; position: relative; }
+        .reel { position: absolute; top: 0; left: 0; width: 100%; transition: transform 3.5s cubic-bezier(0.15, 0, 0.05, 1); }
+        .reel-unit { height: 130px; display: flex; align-items: center; justify-content: center; font-size: 52px; }
 
-    /* Reader */
-    .reel-container { display: flex; justify-content: center; gap: 15px; margin: 40px 0; height: 130px; }
-    .slot { width: 95px; height: 130px; background: var(--dim); border: 1px solid rgba(201,169,110,0.1); border-radius: 12px; overflow: hidden; position: relative; }
-    .reel { transition-property: transform; transition-timing-function: cubic-bezier(0.15, 0, 0.05, 1); }
-    .reel-unit { height: 130px; display: flex; align-items: center; justify-content: center; font-size: 52px; color: var(--fg); -webkit-text-fill-color: var(--fg); }
+        /* --- Forge Engine Styling --- */
+        .forge-main-container { position: relative; width: 320px; height: 320px; margin: 20px auto; border-radius: 50%; overflow: hidden; background: radial-gradient(circle, #1a1a24 0%, #0d0d12 100%); border: 1px solid rgba(201,169,110,0.2); }
+        #forge-canvas-el { width: 100%; height: 100%; display: block; filter: drop-shadow(0 0 10px rgba(201,169,110,0.1)); }
+        
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
+        .rune-btn { background: var(--dim); border: 1px solid transparent; border-radius: 10px; padding: 15px 5px; text-align: center; font-size: 22px; cursor: pointer; transition: 0.2s; }
+        .rune-btn.active { border-color: var(--accent); background: rgba(201,169,110,0.1); }
 
-    .manual-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
-    .manual-item { background: var(--dim); border: 1px solid transparent; border-radius: 10px; padding: 18px 5px; text-align: center; transition: 0.3s; font-size: 24px; color: var(--fg); -webkit-text-fill-color: var(--fg); cursor: pointer; }
-    .manual-item.selected { border-color: var(--accent); background: rgba(201,169,110,0.15); }
+        /* --- Guide/Descriptions --- */
+        .guide-item { border-bottom: 1px solid var(--dim); padding: 25px 20px; }
+        .guide-header { display: flex; align-items: center; gap: 20px; cursor: pointer; }
+        .guide-content { max-height: 0; overflow: hidden; transition: 0.4s ease; color: var(--fg2); font-size: 15px; }
+        .guide-item.open .guide-content { max-height: 400px; margin-top: 15px; }
 
-    /* ── FORGE ── */
-    .forge-container {
-        position: relative; width: 300px; height: 300px;
-        margin: 20px auto;
-    }
-    .forge-container svg { width: 100%; height: 100%; }
+        .btn-gold { width: calc(100% - 40px); background: none; border: 1px solid var(--accent); color: var(--accent); padding: 20px; text-transform: uppercase; letter-spacing: 0.3em; font-size: 11px; margin: 20px; cursor: pointer; border-radius: 4px; }
+        .btn-gold:disabled { opacity: 0.3; cursor: default; }
 
-    /* Forge picker */
-    .forge-picker { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 20px; }
-    .forge-pick-btn {
-        background: var(--dim); padding: 10px; border-radius: 8px;
-        text-align: center; font-size: 20px; cursor: pointer;
-        border: 1px solid transparent; transition: border-color 0.2s, background 0.2s;
-        color: var(--fg); -webkit-text-fill-color: var(--fg);
-    }
-    .forge-pick-btn.chosen { border-color: var(--accent); background: rgba(201,169,110,0.12); }
-
-    /* Stats / History */
-    .talisman-card { background: var(--dim); border: 1px solid rgba(201,169,110,0.1); border-radius: 15px; padding: 25px; margin-bottom: 20px; }
-    .talisman-power { font-size: 14px; font-style: italic; line-height: 1.6; color: var(--fg2); -webkit-text-fill-color: var(--fg2); }
-    .stats-section { padding: 0 20px; margin-bottom: 30px; }
-    .stat-label { font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--dim2); -webkit-text-fill-color: var(--dim2); margin-bottom: 15px; display: block; }
-    .full-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 40px; }
-    .grid-stat-box { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
-    .history-item { position: relative; width: 100%; overflow: hidden; background: var(--bg); border-bottom: 1px solid var(--dim); }
-    .history-content { position: relative; z-index: 10; background: var(--bg); padding: 25px 20px; transition: transform 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
-    .history-delete { position: absolute; right: 0; top: 0; bottom: 0; width: 100px; background: var(--red-dim); color: #ff9999; -webkit-text-fill-color: #ff9999; display: flex; align-items: center; justify-content: center; font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; z-index: 1; cursor: pointer; }
-
-    /* Guide */
-    .guide-item { border-bottom: 1px solid var(--dim); padding: 25px 20px; }
-    .guide-header { display: flex; align-items: center; gap: 25px; cursor: pointer; }
-    .guide-desc { max-height: 0; overflow: hidden; transition: max-height 0.5s ease; color: var(--fg2); -webkit-text-fill-color: var(--fg2); line-height: 1.7; font-size: 15px; }
-    .guide-item.open .guide-desc { max-height: 600px; margin-top: 20px; }
-
-    .btn-main {
-        width: calc(100% - 40px); background: none;
-        border: 1px solid var(--accent); color: var(--accent); -webkit-text-fill-color: var(--accent);
-        padding: 22px; text-transform: uppercase; letter-spacing: 0.4em;
-        font-size: 11px; margin: 20px; cursor: pointer; border-radius: 4px;
-        font-family: 'Cormorant Garamond', serif;
-    }
-    .btn-main:disabled { opacity: 0.2; pointer-events: none; }
-    .btn-danger { border-color: var(--red-dim); color: #ff9999; -webkit-text-fill-color: #ff9999; margin-top: 40px; }
-    .btn-subtle { border: none; color: var(--dim2); -webkit-text-fill-color: var(--dim2); text-decoration: underline; font-size: 9px; margin-top: -10px; }
-
-    .toast { position: fixed; top: 40px; left: 50%; transform: translateX(-50%); background: var(--accent); color: var(--bg); -webkit-text-fill-color: var(--bg); padding: 12px 25px; border-radius: 30px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; z-index: 3000; opacity: 0; transition: 0.4s; pointer-events: none; }
-
-    /* Reading result rune display */
-    .reveal-rune { font-size: 50px; color: var(--fg); -webkit-text-fill-color: var(--fg); }
-    .reveal-name { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); -webkit-text-fill-color: var(--accent); margin-top: 4px; text-align: center; }
-
-    /* ── FORGE ── */
-    .forge-container {
-        position: relative; width: 300px; height: 300px;
-        margin: 20px auto; border-radius: 50%; overflow: hidden;
-        background: #0d0d12;
-        border: 1px solid rgba(201,169,110,0.15);
-        box-shadow: 0 0 40px rgba(201,169,110,0.06), inset 0 0 30px rgba(0,0,0,0.5);
-    }
-    #forge-canvas-el {
-        width: 100%; height: 100%; display: block; border-radius: 50%;
-    }
-    #forge-placeholder-text {
-        position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-        font-size: 11px; letter-spacing: 0.35em; text-transform: uppercase;
-        color: rgba(138,128,112,0.35); pointer-events: none;
-    }
-    .forge-pick-btn {
-        background: var(--dim); padding: 10px; border-radius: 8px;
-        text-align: center; font-size: 20px; cursor: pointer;
-        border: 1px solid transparent; transition: border-color 0.2s, background 0.2s;
-        color: var(--fg); -webkit-text-fill-color: var(--fg);
-    }
-    .forge-pick-btn.chosen { border-color: var(--accent); background: rgba(201,169,110,0.12); }
-    .btn-recast {
-        border-color: rgba(201,169,110,0.35); color: var(--dim2); -webkit-text-fill-color: var(--dim2);
-        font-size: 12px; margin-top: 4px;
-    }
-    .btn-recast:not([disabled]):hover, .btn-recast:not([disabled]):active {
-        border-color: var(--accent); color: var(--accent); -webkit-text-fill-color: var(--accent);
-    }
-</style>
-```
-
+        .history-card { background: var(--dim); border-radius: 15px; padding: 20px; margin: 0 20px 15px; }
+    </style>
 </head>
 <body>
 
-<div id="toast" class="toast"></div>
-
-<!-- HOME -->
-
-<div class="page" id="page-home">
+<div id="page-home" class="page active">
     <div class="home-hero">
         <div class="date-display" id="date-now"></div>
         <div class="rotd-glyph" id="rotd-g"></div>
         <div class="rotd-name" id="rotd-n"></div>
-        <div class="rotd-meaning" id="rotd-m"></div>
+        <div id="rotd-m" style="font-style:italic; opacity:0.6;"></div>
     </div>
-    <div class="action-card" onclick="navTo('reading'); setReadMode('draw')">
-        <div class="action-title">Draw Staves</div>
-        <div class="action-sub">Let the Norns guide your hand</div>
+    <div class="action-card" onclick="navTo('read')">
+        <div class="action-title">Cast the Oracle</div>
+        <div class="action-sub">Draw three staves from the well of Wyrd</div>
     </div>
-    <div class="action-card" onclick="navTo('reading'); setReadMode('manual')">
-        <div class="action-title">Manual Choice</div>
-        <div class="action-sub">Select with conscious intent</div>
+    <div class="action-card" onclick="navTo('forge')">
+        <div class="action-title">Forge Bindrune</div>
+        <div class="action-sub">Combine runes into a shared-stave talisman</div>
     </div>
 </div>
 
-<!-- READING -->
-
-<div class="page" id="page-reading">
-    <div style="padding: 60px 20px 0; text-align:center;">
-        <h2 id="read-title" style="font-size:12px; letter-spacing:0.5em; text-transform:uppercase; color:var(--accent); -webkit-text-fill-color:var(--accent); margin-bottom:40px;">The Oracle</h2>
-
-```
-    <div id="draw-ui">
+<div id="page-read" class="page">
+    <div style="padding: 60px 20px; text-align:center;">
+        <h2 class="date-display">The Oracle</h2>
         <div class="reel-container" id="reel-wrap"></div>
-        <button class="btn-main" id="cast-btn" onclick="startCast()">Cast the Runes</button>
-    </div>
-
-    <div id="manual-ui" style="display:none;">
-        <div class="manual-grid" id="manual-grid"></div>
-        <button class="btn-main" id="manual-submit" onclick="submitManual()" disabled>Select 3 Staves</button>
-    </div>
-
-    <div id="reveal-ui" style="display:none;">
-        <div id="reveal-glyphs" style="display:flex; justify-content:center; gap:24px; margin-bottom:40px; flex-wrap:wrap;"></div>
-        <div id="reveal-text" style="font-size:18px; font-style:italic; line-height:1.8; color:var(--fg2); -webkit-text-fill-color:var(--fg2); padding:0 20px; margin-bottom:40px;"></div>
-        <button class="btn-main" onclick="resetReader()">New Reading</button>
-    </div>
-</div>
-```
-
-</div>
-
-<!-- FORGE -->
-
-<div class="page" id="page-forge">
-    <div style="padding: 60px 20px 0; text-align:center;">
-        <h2 style="font-size:12px; letter-spacing:0.5em; text-transform:uppercase; color:var(--accent); -webkit-text-fill-color:var(--accent); margin-bottom:8px;">Bindrune Forge</h2>
-        <p style="font-size:13px; color:var(--dim2); -webkit-text-fill-color:var(--dim2); font-style:italic; margin-bottom:20px;">Select 2–4 runes to forge a bind rune</p>
-
-```
-    <!-- Forge canvas: pure HTML5 Canvas, no wedge clipping -->
-    <div class="forge-container" id="forge-canvas">
-        <canvas id="forge-canvas-el" width="300" height="300"></canvas>
-        <div id="forge-placeholder-text">SELECT RUNES</div>
-    </div>
-
-    <button class="btn-main btn-recast" id="recast-btn" onclick="recastForge()" disabled>
-        ᛜ &nbsp; Rethrow the Bones
-    </button>
-
-    <div class="forge-picker" id="forge-picker"></div>
-
-    <button class="btn-main" id="bind-btn" onclick="bindTalisman()" disabled>Bind to Library</button>
-    <button class="btn-main btn-subtle" onclick="forgeSet=[]; document.querySelectorAll('.forge-pick-btn.chosen').forEach(b=>b.classList.remove('chosen')); updateForge();">Clear Forge</button>
-
-    <div style="padding:40px 20px; text-align:left;">
-        <span class="stat-label">Talisman Library</span>
-        <div id="talisman-list"></div>
-    </div>
-</div>
-```
-
-</div>
-
-<!-- HISTORY / STATS -->
-
-<div class="page" id="page-history">
-    <div style="padding-top:60px;">
-        <div class="stats-section">
-            <span class="stat-label">Full Futhark Census</span>
-            <div class="full-grid" id="full-rune-stats"></div>
+        <div id="read-result" style="display:none; margin-bottom:30px;">
+            <div id="read-text" style="font-size:18px; line-height:1.6; font-style:italic; color:var(--fg2);"></div>
         </div>
-        <div class="stats-section">
-            <span class="stat-label">Reading History — Swipe to Delete</span>
-            <div id="history-list"></div>
-            <button class="btn-main btn-danger" onclick="purgeHistory()">Purge All Records</button>
-        </div>
+        <button class="btn-gold" id="cast-btn" onclick="startCast()">Cast the Runes</button>
     </div>
 </div>
 
-<!-- GUIDE -->
-
-<div class="page" id="page-library">
-    <div id="guide-list" style="padding:60px 0;"></div>
+<div id="page-forge" class="page">
+    <div style="padding: 60px 20px; text-align:center;">
+        <h2 class="date-display">Bindrune Forge</h2>
+        <div class="forge-main-container">
+            <canvas id="forge-canvas-el" width="600" height="600"></canvas>
+        </div>
+        <button class="btn-gold" style="margin:10px 20px; padding:12px;" onclick="recastForge()">✧ Rethrow the Bones</button>
+        <div class="grid" id="forge-grid"></div>
+        <button class="btn-gold" id="bind-btn" onclick="saveTalisman()" disabled>Bind to Library</button>
+        <div id="talisman-library" style="padding:20px; text-align:left;"></div>
+    </div>
 </div>
 
-<!-- NAV -->
+<div id="page-history" class="page">
+    <div style="padding: 60px 0;">
+        <h2 class="date-display" style="text-align:center;">History & Stats</h2>
+        <div id="history-list"></div>
+    </div>
+</div>
 
-<div id="nav">
+<div id="page-guide" class="page">
+    <div id="guide-list" style="padding: 60px 0;"></div>
+</div>
+
+<nav id="nav">
     <div class="nav-pill">
-        <button class="nav-btn active" data-id="home"    onclick="navTo('home')">   <span class="icon">ᚹ</span><span class="txt">Home</span></button>
-        <button class="nav-btn"        data-id="reading" onclick="navTo('reading')"><span class="icon">ᚱ</span><span class="txt">Read</span></button>
-        <button class="nav-btn"        data-id="forge"   onclick="navTo('forge')">  <span class="icon">ᛉ</span><span class="txt">Forge</span></button>
-        <button class="nav-btn"        data-id="history" onclick="navTo('history')"><span class="icon">ᚻ</span><span class="txt">Stats</span></button>
-        <button class="nav-btn"        data-id="library" onclick="navTo('library')"><span class="icon">ᛒ</span><span class="txt">Guide</span></button>
+        <button class="nav-btn active" onclick="navTo('home')"><span class="icon">ᚹ</span><span class="txt">Home</span></button>
+        <button class="nav-btn" onclick="navTo('read')"><span class="icon">ᚱ</span><span class="txt">Read</span></button>
+        <button class="nav-btn" onclick="navTo('forge')"><span class="icon">ᛉ</span><span class="txt">Forge</span></button>
+        <button class="nav-btn" onclick="navTo('history')"><span class="icon">ᚻ</span><span class="txt">Stats</span></button>
+        <button class="nav-btn" onclick="navTo('guide')"><span class="icon">ᛒ</span><span class="txt">Guide</span></button>
     </div>
-</div>
+</nav>
 
 <script>
-// ── Data ──────────────────────────────────────────────────────────────────────
 const RUNES = [
-    {g:'ᚠ',n:'Fehu',    m:'Wealth',    l:'Wealth and creative fire. It represents prosperity, mobility, and the energy required to maintain success. It warns that wealth is a flow, not a hoard.'},
-    {g:'ᚢ',n:'Uruz',    m:'Vitality',  l:'The primal strength of the wild ox. Represents physical health, raw potential, and the courage to face inevitable change or growth.'},
-    {g:'ᚦ',n:'Thurisaz',m:'Force',     l:'The thorn or giant. A reactive power of defense and conflict. It is a boundary-setter that warns of danger while providing the force to resist it.'},
-    {g:'ᚨ',n:'Ansuz',   m:'Insight',   l:'The breath of the gods. Rules communication, signals, and ancestral wisdom. It suggests a time to listen to omens and higher voices.'},
-    {g:'ᚱ',n:'Raidho',  m:'Direction', l:'The wheel and the journey. Represents rhythm, justice, and the rational movement of the soul towards its intended destination.'},
-    {g:'ᚲ',n:'Kenaz',   m:'Clarity',   l:'The controlled fire of the torch. It represents technical skill, knowledge, and the artistic spark that brings light to dark places.'},
-    {g:'ᚷ',n:'Gebo',    m:'Exchange',  l:'A gift for a gift. Signifies the sacred bond between individuals and the harmony required in any equal partnership or sacrifice.'},
-    {g:'ᚹ',n:'Wunjo',   m:'Harmony',   l:'The peak of joy and well-being. It represents the moment when one\'s internal will is perfectly aligned with the external universe.'},
-    {g:'ᚺ',n:'Hagalaz', m:'Evolution', l:'The hailstone. Necessary disruption and crisis. It clears away stagnant patterns to allow for a new, stronger formation.'},
-    {g:'ᚾ',n:'Naudhiz', m:'Resilience',l:'Innovation born of friction. The "need-fire" that forces us to adapt, find strength in hardship, and overcome limits.'},
-    {g:'ᛁ',n:'Isa',     m:'Stillness', l:'The ice block. A period of total stasis where outward progress is frozen so that internal clarity and concentration can form.'},
-    {g:'ᛃ',n:'Jera',    m:'Cycles',    l:'The harvest and natural reward. It reminds us that patient effort in the right season leads to inevitable and fruitful results.'},
-    {g:'ᛇ',n:'Eihwaz',  m:'Endurance', l:'The Yew tree. It connects the vertical axis of the world, representing continuity, protection, and the ability to endure life\'s transitions.'},
-    {g:'ᛈ',n:'Perthro', m:'Destiny',   l:'The dice cup of the Norns. Rules the hidden laws of probability, cosmic luck, and the mysteries that govern what is yet to be revealed.'},
-    {g:'ᛉ',n:'Algiz',   m:'Guard',     l:'The elk-sedge or shield. It is the protective instinct and higher spirit connection that shields one from physical and spiritual harm.'},
-    {g:'ᛊ',n:'Sowilo',  m:'Success',   l:'The rays of the sun. Vitality, victory, and the light that burns away shadows. It provides the energy needed to complete any task.'},
-    {g:'ᛏ',n:'Tiwaz',   m:'Honor',     l:'The warrior\'s spear. It represents sacrifice for the greater good, leadership, integrity, and the courage to act with justice.'},
-    {g:'ᛒ',n:'Berkano', m:'Growth',    l:'The birch tree. The energy of the womb—nurturing, healing, and bringing new life or creative ideas into physical bloom.'},
-    {g:'ᛖ',n:'Ehwaz',   m:'Synergy',   l:'The horse and rider. Progress achieved through mutual trust, partnership, and the harmonious movement of two distinct forces.'},
-    {g:'ᛗ',n:'Mannaz',  m:'Identity',  l:'The individual within the tribe. It represents human consciousness, social bonds, and the realisation of one\'s true self.'},
-    {g:'ᛚ',n:'Laguz',   m:'Intuition', l:'The flow of water. Rules the deep emotions, the subconscious mind, and the fluid, ever-changing nature of our perceived reality.'},
-    {g:'ᛜ',n:'Ingwaz',  m:'Potential', l:'The seed. Represents stored potential and the need for a period of rest and protection before an idea can burst into life.'},
-    {g:'ᛞ',n:'Dagaz',   m:'Awakening', l:'The light of dawn. A radical breakthrough where a total transformation of perspective leads to absolute clarity.'},
-    {g:'ᛟ',n:'Othala',  m:'Legacy',    l:'Ancestral home and spiritual land. Represents the foundations we build and the lasting inheritances we leave for the future.'},
-    {g:'◯',n:'Wyrd',    m:'Fate',      l:'The Blank Rune. It represents the unknowable, the absolute void, and the destiny that has not yet been written by the Norns.'}
+    {g:'ᚠ',n:'Fehu',m:'Wealth',d:'Mobile property, creative fire, and the power of circulation.'},
+    {g:'ᚢ',n:'Uruz',m:'Vitality',d:'The primal ox. Physical strength, health, and raw persistence.'},
+    {g:'ᚦ',n:'Thurisaz',m:'Force',d:'The thorn or giant. Reactive power, defense, and conflict.'},
+    {g:'ᚨ',n:'Ansuz',m:'Insight',l:'Breath of the divine. Communication, wisdom, and the mind.'},
+    {g:'ᚱ',n:'Raidho',m:'Direction',d:'The wagon. Journeys, rhythm, and the law of the right path.'},
+    {g:'ᚲ',n:'Kenaz',m:'Clarity',d:'The torch. Technical knowledge, controlled fire, and revelation.'},
+    {g:'ᚷ',n:'Gebo',m:'Exchange',d:'The gift. Partnerships, balance, and the sacred trade.'},
+    {g:'ᚹ',n:'Wunjo',m:'Harmony',d:'The flag. Joy, perfect alignment, and the absence of friction.'},
+    {g:'ᚺ',n:'Hagalaz',m:'Evolution',d:'The hail. Sudden disruption, crisis, and necessary change.'},
+    {g:'ᚾ',n:'Naudhiz',m:'Resilience',d:'The need. Innovation born from restriction and friction.'},
+    {g:'ᛁ',n:'Isa',m:'Stillness',d:'The ice. Concentration, stasis, and internal focus.'},
+    {g:'ᛃ',n:'Jera',m:'Cycles',d:'The year. Harvest, natural growth, and the rewards of time.'},
+    {g:'ᛇ',n:'Eihwaz',m:'Endurance',d:'The yew tree. Continuity, death and rebirth, and protection.'},
+    {g:'ᛈ',n:'Perthro',m:'Destiny',d:'The dice cup. Hidden laws, probability, and secrets.'},
+    {g:'ᛉ',n:'Algiz',m:'Guard',d:'The elk. Instinctive protection and spiritual defense.'},
+    {g:'ᛊ',n:'Sowilo',m:'Success',d:'The sun. Victory, burning energy, and total clarity.'},
+    {g:'ᛏ',n:'Tiwaz',m:'Honor',d:'The spear. Justice, sacrifice for the group, and victory through law.'},
+    {g:'ᛒ',n:'Berkano',m:'Growth',d:'The birch. Nurturing, birth, and the blossoming of ideas.'},
+    {g:'ᛖ',n:'Ehwaz',m:'Synergy',d:'The horse. Progress through trust, partnership, and movement.'},
+    {g:'ᛗ',n:'Mannaz',m:'Identity',d:'The human. Social ties, consciousness, and self-realization.'},
+    {g:'ᛚ',n:'Laguz',m:'Intuition',d:'The water. The flow of life, emotions, and the subconscious.'},
+    {g:'ᛜ',n:'Ingwaz',m:'Potential',d:'The seed. Gestation of power before breakthrough.'},
+    {g:'ᛞ',n:'Dagaz',m:'Awakening',d:'The day. Radical shift, enlightenment, and the dawn.'},
+    {g:'ᛟ',n:'Othala',m:'Legacy',d:'The ancestral home. Foundations, inheritance, and fixed property.'},
+    {g:' ',n:'Wyrd',m:'The Unknown',d:'The blank rune. Destiny unwritten, the void, and the absolute.'}
 ];
 
-// ── State ─────────────────────────────────────────────────────────────────────
-let forgeSet  = [];
-let manualSet = [];
-let readingActive = false;   // TRUE once a reading result is showing
-let currentReadMode = 'draw';
-let stats     = JSON.parse(localStorage.getItem('rune_stats') || '{}');
-let history   = JSON.parse(localStorage.getItem('rune_hist')  || '[]');
-let talismans = JSON.parse(localStorage.getItem('rune_tali')  || '[]');
+let forgeSet = [], forgeMirrors = [];
+let historyData = JSON.parse(localStorage.getItem('rune_history') || '[]');
+let talismans = JSON.parse(localStorage.getItem('talisman_lib') || '[]');
 
-// ── Init ──────────────────────────────────────────────────────────────────────
-(function init() {
-    const now = new Date();
-    document.getElementById('date-now').textContent =
-        now.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'}).toUpperCase();
+window.onload = () => {
+    const d = new Date();
+    document.getElementById('date-now').innerText = d.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'}).toUpperCase();
+    const rotd = RUNES[d.getDate() % RUNES.length];
+    document.getElementById('rotd-g').innerText = rotd.g;
+    document.getElementById('rotd-n').innerText = rotd.n;
+    document.getElementById('rotd-m').innerText = rotd.m;
+    initGrids();
+    initRoulette();
+};
 
-    // Rune of the day — deterministic by calendar date
-    const rotdIdx = (now.getFullYear()*10000 + (now.getMonth()+1)*100 + now.getDate()) % 24; // exclude Wyrd
-    const rotd = RUNES[rotdIdx];
-    document.getElementById('rotd-g').textContent = rotd.g;
-    document.getElementById('rotd-n').textContent = rotd.n;
-    document.getElementById('rotd-m').textContent = rotd.m;
-
-    navTo('home');
-})();
-
-// ── Navigation ────────────────────────────────────────────────────────────────
 function navTo(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('page-' + id).classList.add('active');
-    document.querySelector(`[data-id="${id}"]`).classList.add('active');
-
-    if (id === 'reading') {
-        // ★ KEY FIX: only reset reading if no reading is currently in progress
-        if (!readingActive) {
-            setReadMode(currentReadMode);
-        } else {
-            // Make sure the reveal is shown and input UIs are hidden
-            document.getElementById('draw-ui').style.display   = 'none';
-            document.getElementById('manual-ui').style.display = 'none';
-            document.getElementById('reveal-ui').style.display = 'block';
-        }
-    }
-    if (id === 'forge')   initForge();
-    if (id === 'history') renderStats();
-    if (id === 'library') renderGuide();
+    const btn = Array.from(document.querySelectorAll('.nav-btn')).find(b => b.innerText.toLowerCase().includes(id));
+    if(btn) btn.classList.add('active');
+    if(id === 'history') renderHistory();
 }
 
-// ── Reading: mode setup ───────────────────────────────────────────────────────
-function setReadMode(mode) {
-    currentReadMode = mode;
-    readingActive   = false;
+function initGrids() {
+    const fg = document.getElementById('forge-grid');
+    const gl = document.getElementById('guide-list');
+    RUNES.forEach(r => {
+        // Forge Grid
+        const b = document.createElement('div'); b.className = 'rune-btn'; b.innerText = r.g;
+        b.onclick = () => {
+            if(forgeSet.find(x=>x.n===r.n)) { forgeSet = forgeSet.filter(x=>x.n!==r.n); b.classList.remove('active'); }
+            else if(forgeSet.length < 4) { forgeSet.push(r); b.classList.add('active'); }
+            document.getElementById('bind-btn').disabled = forgeSet.length < 2;
+            recastForge();
+        };
+        fg.appendChild(b);
+        // Guide List
+        const gi = document.createElement('div'); gi.className = 'guide-item';
+        gi.innerHTML = `<div class="guide-header" onclick="this.parentElement.classList.toggle('open')">
+            <span style="font-size:30px; color:var(--accent);">${r.g}</span>
+            <div><b style="text-transform:uppercase;">${r.n}</b><br><small>${r.m}</small></div>
+        </div><div class="guide-content">${r.d}</div>`;
+        gl.appendChild(gi);
+    });
+}
 
-    document.getElementById('draw-ui').style.display   = mode === 'draw'   ? 'block' : 'none';
-    document.getElementById('manual-ui').style.display = mode === 'manual' ? 'block' : 'none';
-    document.getElementById('reveal-ui').style.display = 'none';
-
-    if (mode === 'draw') {
-        document.getElementById('cast-btn').disabled = false;
-        const wrap = document.getElementById('reel-wrap');
-        wrap.innerHTML = '';
-        for (let i = 0; i < 3; i++) {
-            const slot = document.createElement('div'); slot.className = 'slot';
-            const reel = document.createElement('div'); reel.className = 'reel'; reel.id = `r${i}`;
-            reel.style.transitionDuration = (3.2 + i * 0.6) + 's';
-            reel.style.transitionDelay    = (i * 0.15) + 's';
-            for (let j = 0; j < 45; j++) {
-                const unit = document.createElement('div'); unit.className = 'reel-unit';
-                unit.textContent = RUNES[Math.floor(Math.random() * 25)].g;
-                reel.appendChild(unit);
-            }
-            slot.appendChild(reel); wrap.appendChild(slot);
+// --- Oracle Logic ---
+function initRoulette() {
+    const wrap = document.getElementById('reel-wrap'); wrap.innerHTML = '';
+    for(let i=0; i<3; i++) {
+        const slot = document.createElement('div'); slot.className = 'slot';
+        const reel = document.createElement('div'); reel.className = 'reel'; reel.id = 'reel-'+i;
+        for(let j=0; j<40; j++) {
+            const u = document.createElement('div'); u.className = 'reel-unit';
+            u.innerText = RUNES[Math.floor(Math.random()*RUNES.length)].g;
+            reel.appendChild(u);
         }
-    } else {
-        const grid = document.getElementById('manual-grid');
-        grid.innerHTML = '';
-        manualSet = [];
-        RUNES.forEach(r => {
-            const item = document.createElement('div'); item.className = 'manual-item';
-            item.textContent = r.g;
-            item.onclick = () => {
-                if (manualSet.includes(r)) {
-                    manualSet = manualSet.filter(x => x !== r);
-                    item.classList.remove('selected');
-                } else if (manualSet.length < 3) {
-                    manualSet.push(r); item.classList.add('selected');
-                }
-                const btn = document.getElementById('manual-submit');
-                btn.disabled = manualSet.length !== 3;
-                btn.textContent = manualSet.length === 3 ? 'Read the Staves' : `Select ${3 - manualSet.length} More`;
-            };
-            grid.appendChild(item);
-        });
+        slot.appendChild(reel); wrap.appendChild(slot);
     }
 }
 
-// ── Reading: cast ─────────────────────────────────────────────────────────────
 function startCast() {
     document.getElementById('cast-btn').disabled = true;
+    document.getElementById('read-result').style.display = 'none';
     const picks = [];
-    for (let i = 0; i < 3; i++) {
-        const win = RUNES[Math.floor(Math.random() * 25)];
-        picks.push(win);
-        const r = document.getElementById('r' + i);
-        r.lastChild.textContent = win.g;
-        r.style.transform = `translateY(-${44 * 130}px)`;
+    for(let i=0; i<3; i++) {
+        const r = RUNES[Math.floor(Math.random()*RUNES.length)]; picks.push(r);
+        const el = document.getElementById('reel-'+i);
+        el.lastChild.innerText = r.g;
+        el.style.transform = `translateY(-${39 * 130}px)`;
     }
-    setTimeout(() => processReading(picks), 4600);
-}
-
-function submitManual() { processReading(manualSet); }
-
-function processReading(runes) {
-    readingActive = true;  // ★ mark reading as in progress
-
-    document.getElementById('draw-ui').style.display   = 'none';
-    document.getElementById('manual-ui').style.display = 'none';
-
-    const container = document.getElementById('reveal-glyphs');
-    container.innerHTML = '';
-    runes.forEach(r => {
-        const wrap = document.createElement('div');
-        wrap.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:6px;';
-        const glyph = document.createElement('div'); glyph.className = 'reveal-rune'; glyph.textContent = r.g;
-        const name  = document.createElement('div'); name.className  = 'reveal-name';  name.textContent  = r.n;
-        wrap.appendChild(glyph); wrap.appendChild(name);
-        container.appendChild(wrap);
-        stats[r.n] = (stats[r.n] || 0) + 1;
-    });
-    localStorage.setItem('rune_stats', JSON.stringify(stats));
-
-    const dateStr = new Date().toLocaleDateString('en-GB', {day:'numeric', month:'short'}).toUpperCase();
-    const textStr = `The presence of ${runes[0].n} (${runes[0].m}) suggests a deep foundation is currently established in your life. The energy of ${runes[1].n} (${runes[1].m}) acts as the necessary catalyst for change, which will eventually manifest in the clarity offered by ${runes[2].n} (${runes[2].m}). Trust the unfolding process as the Norns weave your path.`;
-
-    history.unshift({ date: dateStr, names: runes.map(r => r.n), glyphs: runes.map(r => r.g).join(' · '), text: textStr });
-    localStorage.setItem('rune_hist', JSON.stringify(history.slice(0, 30)));
-
-    document.getElementById('reveal-text').textContent = textStr;
-    document.getElementById('reveal-ui').style.display = 'block';
-}
-
-function resetReader() {
-    readingActive = false;
-    setReadMode(currentReadMode);
-    document.getElementById('cast-btn').disabled = false;
-}
-
-// ── Forge ─────────────────────────────────────────────────────────────────────
-// Approach: draw runes as large Unicode text on a Canvas.
-// No pixel reading (avoids iOS Safari canvas taint errors).
-// Each rune is drawn upright or mirrored, centred on the same point.
-// Rethrow cycles through mirror combinations for variety.
-// XOR-style compositing done via globalCompositeOperation.
-
-let forgeMirrors  = [];
-let forgeTransforms = [];
-
-const FORGE_SIZE = 300;
-const FORGE_FS   = 220;
-const FORGE_FONT = `${FORGE_FS}px "Segoe UI Historic","Segoe UI Symbol","Noto Sans Runic",serif`;
-
-// Known visual centre offsets per rune (y offset as fraction of font size).
-// Runic glyphs sit differently relative to the font baseline.
-// We use a fixed upward nudge to visually centre them.
-const RUNE_Y_NUDGE = -0.08; // most runes sit slightly above centre
-
-function drawRune(ctx, glyph, x, y, scale, mirror) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(scale, mirror ? -1 : 1);
-    if (mirror) {
-        // horizontal mirror
-        ctx.scale(-1, 1);
-        ctx.scale(1, -1); // undo vertical flip
-    }
-    ctx.scale(scale, scale);
-    ctx.font = `${FORGE_FS}px "Segoe UI Historic","Segoe UI Symbol","Noto Sans Runic",serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(glyph, 0, FORGE_FS * RUNE_Y_NUDGE);
-    ctx.restore();
-}
-
-function compositeForge() {
-    const cv = document.getElementById('forge-canvas-el');
-    if (!cv) return;
-    const ctx = cv.getContext('2d');
-    const cx = FORGE_SIZE / 2, cy = FORGE_SIZE / 2;
-    const count = forgeSet.length;
-
-    ctx.clearRect(0, 0, FORGE_SIZE, FORGE_SIZE);
-
-    // Background
-    ctx.fillStyle = '#0d0d12';
-    ctx.beginPath();
-    ctx.arc(cx, cy, cx, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Inner glow
-    const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, cx * 0.85);
-    grd.addColorStop(0,   'rgba(201,169,110,0.10)');
-    grd.addColorStop(0.5, 'rgba(201,169,110,0.04)');
-    grd.addColorStop(1,   'rgba(0,0,0,0)');
-    ctx.fillStyle = grd;
-    ctx.beginPath();
-    ctx.arc(cx, cy, cx, 0, Math.PI * 2);
-    ctx.fill();
-
-    if (count === 0) return;
-
-    // ── Position offsets ───────────────────────────────────────────────────
-    // Rather than forcing all runes to the exact same centre, we nudge each
-    // one slightly so they sit beside/touching rather than perfectly stacked.
-    // This gives a more natural hand-drawn bind rune feel.
-    // Offsets are in canvas pixels, applied before scale.
-    const SCALE = 0.78;
-    const BASE_Y = -FORGE_SIZE * 0.03;
-
-    // For 2 runes: nudge apart horizontally so they touch at the boundary
-    // For 3 runes: one centre, others offset left/right
-    // For 4 runes: slight spread in all directions
-    const nudge = FORGE_SIZE * 0.08; // base nudge distance
-    const offsets = {
-        1: [[0, 0]],
-        2: [[-nudge * 0.6, 0], [nudge * 0.6, 0]],
-        3: [[0, -nudge * 0.4], [-nudge * 0.7, nudge * 0.5], [nudge * 0.7, nudge * 0.5]],
-        4: [[-nudge * 0.5, -nudge * 0.4], [nudge * 0.5, -nudge * 0.4],
-            [-nudge * 0.5,  nudge * 0.5], [nudge * 0.5,  nudge * 0.5]],
-    };
-    const pos = offsets[count] || offsets[4];
-
-    // ── Helper: draw one rune onto ctx at its position ─────────────────────
-    function drawRune(r, i, colour, strokeW) {
-        const mirror = forgeMirrors[i] ?? false;
-        const [ox, oy] = pos[i] ?? [0, 0];
-        ctx.save();
-        ctx.translate(cx + ox, cy + BASE_Y + oy);
-        ctx.scale(SCALE, SCALE);
-        if (mirror) ctx.scale(-1, 1);
-        ctx.font = FORGE_FONT;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        if (strokeW) {
-            ctx.strokeStyle = colour;
-            ctx.lineWidth = strokeW;
-            ctx.lineJoin = 'round';
-            ctx.strokeText(r.g, 0, FORGE_FS * RUNE_Y_NUDGE);
-        } else {
-            ctx.fillStyle = colour;
-            ctx.fillText(r.g, 0, FORGE_FS * RUNE_Y_NUDGE);
-        }
-        ctx.restore();
-    }
-
-    // ── Layered painter's algorithm ────────────────────────────────────────
-    // For each rune in order:
-    //   1. Stamp a MASK of all previously drawn runes in background colour
-    //      with extra stroke width — this "erases" the area where the new
-    //      rune would create an ugly intersection with earlier ones
-    //   2. Draw the new rune on top in gold
-    //
-    // Result: rune[0] is always fully visible. Rune[1] shows where it
-    // doesn't cross rune[0]. Rune[2] shows where it doesn't cross 0 or 1.
-    // The mask stroke is thick enough to cover any antialiasing fringe.
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(cx, cy, cx - 2, 0, Math.PI * 2);
-    ctx.clip();
-
-    forgeSet.forEach((r, i) => {
-        // Step A: mask — redraw all previous runes as thick background-coloured
-        // strokes. This blocks the area where the current rune would overlap.
-        if (i > 0) {
-            for (let j = 0; j < i; j++) {
-                // Thick dark stroke punches out the region
-                drawRune(forgeSet[j], j, '#0d0d12', 14);
-            }
-        }
-
-        // Step B: draw the current rune — shadow stroke then gold fill
-        drawRune(r, i, '#0d0d12', 9);   // dark separator stroke
-        drawRune(r, i, '#c9a96e', null); // gold fill
-    });
-
-    ctx.restore();
-
-    // Vignette
-    const vig = ctx.createRadialGradient(cx, cy, cx * 0.52, cx, cy, cx);
-    vig.addColorStop(0,    'rgba(0,0,0,0)');
-    vig.addColorStop(0.75, 'rgba(13,13,18,0.20)');
-    vig.addColorStop(1,    'rgba(13,13,18,1)');
-    ctx.fillStyle = vig;
-    ctx.beginPath();
-    ctx.arc(cx, cy, cx, 0, Math.PI * 2);
-    ctx.fill();
-}
-
-function smartAlignAngles() {
-    // No pixel analysis — just try all mirror combos and pick the one
-    // that will produce the most varied composition. Since all runes
-    // are centred on the same point, mirroring alternating runes creates
-    // the bind rune appearance (branches point in different directions).
-    const count = forgeSet.length;
-
-    // Default: alternate mirrors for natural variety
-    forgeMirrors = forgeSet.map((_, i) => i % 2 === 1);
-    compositeForge();
-}
-
-
-function initForge() {
-    const p = document.getElementById('forge-picker');
-    if (p.children.length > 0) { renderTalismans(); return; }
-    RUNES.forEach(r => {
-        const b = document.createElement('div');
-        b.className = 'forge-pick-btn';
-        b.textContent = r.g;
-        b.dataset.rune = r.n;
-        b.onclick = () => {
-            if (forgeSet.find(x => x.n === r.n)) {
-                forgeSet = forgeSet.filter(x => x.n !== r.n);
-                forgeMirrors = forgeMirrors.slice(0, forgeSet.length);
-                b.classList.remove('chosen');
-            } else if (forgeSet.length < 4) {
-                forgeSet.push(r);
-                forgeMirrors.push(forgeSet.length % 2 === 0);
-                b.classList.add('chosen');
-            }
-            updateForge();
-        };
-        p.appendChild(b);
-    });
-    renderTalismans();
-}
-
-function updateForge() {
-    const placeholder = document.getElementById('forge-placeholder-text');
-    document.getElementById('bind-btn').disabled   = forgeSet.length < 2;
-    document.getElementById('recast-btn').disabled = forgeSet.length < 2;
-
-    if (forgeSet.length === 0) {
-        placeholder.style.display = 'flex';
-        compositeForge();
-        return;
-    }
-    placeholder.style.display = 'none';
-    compositeForge();
-}
-
-
-function recastForge() {
-    if (forgeSet.length < 2) return;
-    const c = document.getElementById('forge-canvas');
-    c.style.transition = 'opacity 0.1s';
-    c.style.opacity = '0.15';
     setTimeout(() => {
-        // Randomise mirrors and which rune is "primary" by shuffling order
-        forgeMirrors = forgeSet.map(() => Math.random() > 0.5);
-        // Rotate forgeSet order so a different rune gets drawn first (is primary)
-        const shift = 1 + Math.floor(Math.random() * (forgeSet.length - 1));
-        forgeSet = [...forgeSet.slice(shift), ...forgeSet.slice(0, shift)];
-        forgeMirrors = [...forgeMirrors.slice(shift), ...forgeMirrors.slice(0, shift)];
-        compositeForge();
-        c.style.opacity = '1';
-    }, 120);
+        const txt = `The staves of ${picks[0].n}, ${picks[1].n}, and ${picks[2].n} have fallen. ${picks[0].m} guides your current path, ${picks[1].m} represents the challenge, and ${picks[2].m} is the potential outcome.`;
+        document.getElementById('read-text').innerText = txt;
+        document.getElementById('read-result').style.display = 'block';
+        document.getElementById('cast-btn').disabled = false;
+        historyData.unshift({ date: new Date().toLocaleDateString(), text: txt, glyphs: picks.map(p=>p.g).join(' ') });
+        localStorage.setItem('rune_history', JSON.stringify(historyData.slice(0, 20)));
+    }, 3800);
 }
 
-function bindTalisman() {
-    if (forgeSet.length < 2) return;
-    const glyphs = forgeSet.map(r => r.g).join('');
-    const names  = forgeSet.map(r => r.n);
-    const meanings = forgeSet.map(r => r.m.toLowerCase());
-    const incantation = `By the binding of ${names.slice(0,-1).join(', ')} and ${names[names.length-1]}, this talisman carries the ${meanings[0]} of ${names[0]} and the ${meanings[1]} of ${names[1]}${names[2] ? ', tempered by the ' + meanings[2] + ' of ' + names[2] : ''}${names[3] ? ' and the ' + meanings[3] + ' of ' + names[3] : ''}.`;
+// --- Forge Engine ---
+function recastForge() {
+    forgeMirrors = forgeSet.map(() => Math.random() > 0.5);
+    forgeSet = forgeSet.sort(() => Math.random() - 0.5);
+    drawForge();
+}
 
-    // Redraw onto a fresh canvas that has never had getImageData called on it
-    // — guarantees toDataURL works on iOS Safari
-    let snap = null;
-    try {
-        const fresh = document.createElement('canvas');
-        fresh.width = fresh.height = 300;
-        const fCtx = fresh.getContext('2d');
-        const cx = 150, cy = 150, S = 300;
-        const SCALE = 0.78, BASE_Y = -S * 0.03;
-        const nudge = S * 0.08;
-        const count = forgeSet.length;
-        const offsets = {
-            1: [[0,0]], 2: [[-nudge*0.6,0],[nudge*0.6,0]],
-            3: [[0,-nudge*0.4],[-nudge*0.7,nudge*0.5],[nudge*0.7,nudge*0.5]],
-            4: [[-nudge*0.5,-nudge*0.4],[nudge*0.5,-nudge*0.4],[-nudge*0.5,nudge*0.5],[nudge*0.5,nudge*0.5]],
-        };
-        const pos = offsets[count] || offsets[4];
+function drawForge() {
+    const cv = document.getElementById('forge-canvas-el'), ctx = cv.getContext('2d');
+    const cx = 300, cy = 300, count = forgeSet.length;
+    ctx.clearRect(0,0,600,600);
+    if(count === 0) return;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = "bold 320px serif";
+    
+    forgeSet.forEach((r, i) => {
+        const mirror = forgeMirrors[i], yOff = (i - (count-1)/2)*40, s = 0.85 - (i*0.06);
+        ctx.save(); ctx.translate(cx, cy + yOff); ctx.scale(mirror ? -s : s, s);
+        if(i > 0) { ctx.globalCompositeOperation = 'destination-out'; ctx.strokeStyle = 'black'; ctx.lineWidth = 20; ctx.strokeText(r.g, 0, 0); }
+        ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = '#c9a96e'; ctx.fillText(r.g, 0, 0); ctx.restore();
+    });
 
-        fCtx.fillStyle = '#0d0d12';
-        fCtx.beginPath(); fCtx.arc(cx,cy,cx,0,Math.PI*2); fCtx.fill();
+    ctx.save(); ctx.globalCompositeOperation = 'source-atop';
+    const g = ctx.createLinearGradient(0,100,0,500); g.addColorStop(0,'#fefaf0'); g.addColorStop(0.5,'#c9a96e'); g.addColorStop(1,'#7a5e2d');
+    ctx.fillStyle = g; ctx.fillRect(0,0,600,600); ctx.restore();
+}
 
-        function fDraw(r, i, colour, strokeW) {
-            const mirror = forgeMirrors[i] ?? false;
-            const [ox,oy] = pos[i] ?? [0,0];
-            fCtx.save();
-            fCtx.translate(cx+ox, cy+BASE_Y+oy);
-            fCtx.scale(SCALE, SCALE);
-            if (mirror) fCtx.scale(-1,1);
-            fCtx.font = FORGE_FONT; fCtx.textAlign='center'; fCtx.textBaseline='middle';
-            if (strokeW) {
-                fCtx.strokeStyle=colour; fCtx.lineWidth=strokeW; fCtx.lineJoin='round';
-                fCtx.strokeText(r.g, 0, FORGE_FS*RUNE_Y_NUDGE);
-            } else {
-                fCtx.fillStyle=colour;
-                fCtx.fillText(r.g, 0, FORGE_FS*RUNE_Y_NUDGE);
-            }
-            fCtx.restore();
-        }
-
-        fCtx.save();
-        fCtx.beginPath(); fCtx.arc(cx,cy,cx-2,0,Math.PI*2); fCtx.clip();
-        forgeSet.forEach((r, i) => {
-            if (i > 0) for (let j=0; j<i; j++) fDraw(forgeSet[j],j,'#0d0d12',14);
-            fDraw(r, i, '#0d0d12', 9);
-            fDraw(r, i, '#c9a96e', null);
-        });
-        fCtx.restore();
-
-        const vig = fCtx.createRadialGradient(cx,cy,cx*0.52,cx,cy,cx);
-        vig.addColorStop(0,'rgba(0,0,0,0)'); vig.addColorStop(0.75,'rgba(13,13,18,0.2)');
-        vig.addColorStop(1,'rgba(13,13,18,1)');
-        fCtx.fillStyle=vig; fCtx.beginPath(); fCtx.arc(cx,cy,cx,0,Math.PI*2); fCtx.fill();
-
-        snap = fresh.toDataURL('image/png');
-    } catch(e) {
-        console.warn('Canvas snapshot failed:', e);
-        snap = null;
-    }
-
-    talismans.unshift({ glyphs, incantation, snap, mirrors: [...forgeMirrors] });
-    localStorage.setItem('rune_tali', JSON.stringify(talismans.slice(0, 15)));
-    showToast('Talisman Bound');
-
-    forgeSet = [];
-    forgeMirrors = [];
-    document.querySelectorAll('.forge-pick-btn.chosen').forEach(b => b.classList.remove('chosen'));
-    updateForge();
+function saveTalisman() {
+    const img = document.getElementById('forge-canvas-el').toDataURL();
+    talismans.unshift({ img, date: new Date().toLocaleDateString(), runes: forgeSet.map(r=>r.n).join(' & ') });
+    localStorage.setItem('talisman_lib', JSON.stringify(talismans.slice(0,10)));
     renderTalismans();
 }
 
 function renderTalismans() {
-    const list = document.getElementById('talisman-list');
-    list.innerHTML = '';
-    if (talismans.length === 0) {
-        list.innerHTML = '<p style="font-size:13px; color:var(--dim2); -webkit-text-fill-color:var(--dim2); font-style:italic; text-align:center; padding:20px 0;">No talismans bound yet</p>';
-        return;
-    }
-    talismans.forEach((t, idx) => {
-        const card = document.createElement('div'); card.className = 'talisman-card';
-        const preview = t.snap && t.snap.startsWith('data:')
-            ? `<img src="${t.snap}" style="width:80px;height:80px;border-radius:50%;display:block;margin:0 auto 15px;">`
-            : `<div style="font-size:36px;letter-spacing:-6px;color:var(--accent);-webkit-text-fill-color:var(--accent);margin-bottom:12px;text-align:center;">${t.glyphs}</div>`;
-        card.innerHTML = `
-            ${preview}
-            <div class="talisman-power">${t.incantation}</div>
-            <div style="text-align:right;margin-top:15px;">
-                <span style="font-size:9px;color:#ff9999;-webkit-text-fill-color:#ff9999;cursor:pointer;" onclick="deleteTalisman(${idx})">UNBIND</span>
-            </div>`;
-        list.appendChild(card);
+    const lib = document.getElementById('talisman-library'); lib.innerHTML = '<h3 class="date-display">Library</h3>';
+    talismans.forEach(t => {
+        lib.innerHTML += `<div class="history-card" style="text-align:center;"><img src="${t.img}" style="width:120px;"><br><small>${t.runes} - ${t.date}</small></div>`;
     });
 }
 
-function deleteTalisman(idx) {
-    talismans.splice(idx, 1);
-    localStorage.setItem('rune_tali', JSON.stringify(talismans));
-    renderTalismans();
-}
-
-// ── Stats & History ───────────────────────────────────────────────────────────
-function renderStats() {
-    const census = document.getElementById('full-rune-stats');
-    census.innerHTML = '';
-    RUNES.forEach(r => {
-        const count = stats[r.n] || 0;
-        const box = document.createElement('div'); box.className = 'grid-stat-box';
-        box.innerHTML = `
-            <span style="font-size:22px;">${r.g}</span>
-            <span style="font-size:9px; opacity:0.4; text-transform:uppercase; letter-spacing:0.1em;">${r.n}</span>
-            <span style="color:var(--accent); -webkit-text-fill-color:var(--accent); font-weight:bold;">${count}</span>`;
-        census.appendChild(box);
+function renderHistory() {
+    const h = document.getElementById('history-list'); h.innerHTML = '';
+    historyData.forEach(item => {
+        h.innerHTML += `<div class="history-card">
+            <div style="font-size:24px; color:var(--accent); margin-bottom:10px;">${item.glyphs}</div>
+            <div style="font-size:14px; color:var(--fg2); line-height:1.4;">${item.text}</div>
+            <div style="font-size:10px; opacity:0.4; margin-top:10px;">${item.date}</div>
+        </div>`;
     });
-
-    const hList = document.getElementById('history-list');
-    hList.innerHTML = '';
-    history.forEach((h, idx) => {
-        const item = document.createElement('div'); item.className = 'history-item';
-        item.innerHTML = `
-            <div class="history-delete" onclick="deleteHistory(${idx})">Delete</div>
-            <div class="history-content">
-                <div style="font-size:10px; color:var(--accent); -webkit-text-fill-color:var(--accent); margin-bottom:5px;">${h.date}</div>
-                <div style="font-size:20px; letter-spacing:6px; margin-bottom:10px;">${h.glyphs}</div>
-                <div style="font-size:14px; font-style:italic; opacity:0.7; line-height:1.5;">${h.text}</div>
-            </div>`;
-        let startX = 0;
-        const content = item.querySelector('.history-content');
-        content.addEventListener('touchstart', e => startX = e.touches[0].clientX, {passive:true});
-        content.addEventListener('touchmove',  e => {
-            const diff = e.touches[0].clientX - startX;
-            if (diff < 0 && diff > -100) content.style.transform = `translateX(${diff}px)`;
-        }, {passive:true});
-        content.addEventListener('touchend',   e => {
-            const diff = e.touches[0].clientX - startX;
-            content.style.transform = diff < -50 ? 'translateX(-100px)' : 'translateX(0)';
-        });
-        hList.appendChild(item);
-    });
-}
-
-function deleteHistory(idx) {
-    const item = history[idx];
-    if (item.names) item.names.forEach(n => { if (stats[n] > 0) stats[n]--; });
-    history.splice(idx, 1);
-    localStorage.setItem('rune_hist',  JSON.stringify(history));
-    localStorage.setItem('rune_stats', JSON.stringify(stats));
-    renderStats();
-}
-
-function purgeHistory() {
-    if (confirm('Purge all records? This will reset your census counts and history.')) {
-        history = []; stats = {};
-        localStorage.removeItem('rune_hist');
-        localStorage.removeItem('rune_stats');
-        renderStats();
-        showToast('Records Purged');
-    }
-}
-
-// ── Stave Guide ───────────────────────────────────────────────────────────────
-function renderGuide() {
-    const cont = document.getElementById('guide-list');
-    if (cont.innerHTML) return;
-    RUNES.forEach(r => {
-        const div = document.createElement('div'); div.className = 'guide-item';
-        div.innerHTML = `
-            <div class="guide-header" onclick="this.parentElement.classList.toggle('open')">
-                <span style="font-size:40px; color:var(--accent); -webkit-text-fill-color:var(--accent);">${r.g}</span>
-                <div>
-                    <div style="text-transform:uppercase; letter-spacing:3px; font-size:16px;">${r.n}</div>
-                    <div style="font-size:12px; color:var(--dim2); -webkit-text-fill-color:var(--dim2);">${r.m}</div>
-                </div>
-            </div>
-            <div class="guide-desc">${r.l}</div>`;
-        cont.appendChild(div);
-    });
-}
-
-// ── Utilities ─────────────────────────────────────────────────────────────────
-function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg; t.style.opacity = '1';
-    setTimeout(() => t.style.opacity = '0', 2500);
 }
 </script>
-
 </body>
 </html>
