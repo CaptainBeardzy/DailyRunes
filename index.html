@@ -385,7 +385,7 @@ function processReading(runes) {
 
 function resetReader() { readingActive = false; setReadMode(currentReadMode); }
 
-// ── Forge Engine 2.0 ──────────────────────────────────────────────────────────
+// ── Forge Engine 2.1 (Smart Interlace) ─────────────────────────────────────────
 function compositeForge() {
     const cv = document.getElementById('forge-canvas-el');
     if (!cv) return;
@@ -394,26 +394,28 @@ function compositeForge() {
     const count = forgeSet.length;
 
     ctx.clearRect(0, 0, FORGE_SIZE, FORGE_SIZE);
+    
+    // Background Radial
     ctx.fillStyle = '#0d0d12';
     ctx.beginPath(); ctx.arc(cx, cy, cx, 0, Math.PI * 2); ctx.fill();
-
     const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, cx * 0.85);
-    grd.addColorStop(0, 'rgba(201,169,110,0.10)');
+    grd.addColorStop(0, 'rgba(201,169,110,0.12)');
     grd.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = grd;
     ctx.beginPath(); ctx.arc(cx, cy, cx, 0, Math.PI * 2); ctx.fill();
 
     if (count === 0) return;
 
-    const nudge = FORGE_SIZE * 0.08;
+    // Smart spacing: adjust nudge based on count to keep runes central but distinct
+    const nudge = count === 2 ? 15 : 22; 
     const offsets = {
         1: [[0, 0]],
-        2: [[-nudge * 0.6, 0], [nudge * 0.6, 0]],
-        3: [[0, -nudge * 0.4], [-nudge * 0.7, nudge * 0.5], [nudge * 0.7, nudge * 0.5]],
-        4: [[-nudge * 0.5, -nudge * 0.4], [nudge * 0.5, -nudge * 0.4], [-nudge * 0.5, nudge * 0.5], [nudge * 0.5, nudge * 0.5]],
+        2: [[-nudge, 0], [nudge, 0]],
+        3: [[0, -nudge * 0.8], [-nudge, nudge * 0.8], [nudge, nudge * 0.8]],
+        4: [[-nudge, -nudge], [nudge, -nudge], [-nudge, nudge], [nudge, nudge]],
     };
     const pos = offsets[count] || offsets[4];
-    const SCALE = 0.78;
+    const SCALE = 0.75;
 
     function drawSingleRune(r, i, color, strokeW) {
         const mirror = forgeMirrors[i] ?? false;
@@ -424,6 +426,7 @@ function compositeForge() {
         if (mirror) ctx.scale(-1, 1);
         ctx.font = FORGE_FONT;
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        
         if (strokeW) {
             ctx.strokeStyle = color; ctx.lineWidth = strokeW; ctx.lineJoin = 'round';
             ctx.strokeText(r.g, 0, FORGE_FS * RUNE_Y_NUDGE);
@@ -433,15 +436,22 @@ function compositeForge() {
         ctx.restore();
     }
 
-    ctx.save();
-    ctx.beginPath(); ctx.arc(cx, cy, cx - 2, 0, Math.PI * 2); ctx.clip();
+    // LAYERED RENDERING: Use 'destination-out' to carve clean gaps between strokes
     forgeSet.forEach((r, i) => {
-        if (i > 0) { for (let j = 0; j < i; j++) drawSingleRune(forgeSet[j], j, '#0d0d12', 14); }
-        drawSingleRune(r, i, '#0d0d12', 9); 
-        drawSingleRune(r, i, '#c9a96e', null);
-    });
-    ctx.restore();
+        // 1. Create the gap (Only cuts what is already drawn)
+        if (i > 0) {
+            ctx.globalCompositeOperation = 'destination-out';
+            drawSingleRune(r, i, 'black', 12); // Reduced gap size for visibility
+            ctx.globalCompositeOperation = 'source-over';
+        }
 
+        // 2. Draw the actual rune
+        // Add subtle depth to lower layers by reducing brightness slightly
+        const depthTone = i === count - 1 ? '#c9a96e' : `rgba(201,169,110, ${0.6 + (i * 0.1)})`;
+        drawSingleRune(r, i, depthTone, null);
+    });
+
+    // Outer Vignette
     const vig = ctx.createRadialGradient(cx, cy, cx * 0.52, cx, cy, cx);
     vig.addColorStop(0, 'rgba(0,0,0,0)'); vig.addColorStop(0.75, 'rgba(13,13,18,0.20)');
     vig.addColorStop(1, 'rgba(13,13,18,1)');
