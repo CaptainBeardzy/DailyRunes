@@ -15,41 +15,60 @@
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { background: var(--bg); color: var(--fg); font-family: 'Cormorant Garamond', serif; overscroll-behavior: none; overflow-x: hidden; }
 
-        .page { display: none; flex-direction: column; min-height: 100dvh; padding-bottom: 140px; }
-        .page.active { display: flex; animation: fadeIn 0.4s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        /* Navigation - Original Style */
-        #nav { position: fixed; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; z-index: 1000; }
+        /* Navigation - Restored with Icons */
+        #nav { position: fixed; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
         .nav-pill { background: rgba(26, 26, 36, 0.95); backdrop-filter: blur(20px); border: 1px solid rgba(201,169,110,0.15); border-radius: 50px; display: flex; padding: 8px 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
-        .nav-btn { width: 65px; height: 50px; background: none; border: none; color: var(--dim2); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.3s; position: relative; }
+        .nav-btn { width: 65px; height: 55px; background: none; border: none; color: var(--dim2); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.3s; position: relative; }
         .nav-btn.active { color: var(--accent); }
-        .nav-btn .icon { font-size: 18px; margin-bottom: 2px; }
+        .nav-btn .icon { font-size: 20px; margin-bottom: 2px; line-height: 1; }
         .nav-btn .txt { font-size: 8px; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 300; }
-        .nav-dot { position: absolute; top: 5px; right: 18px; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent); display: none; }
+        .nav-dot { position: absolute; top: 8px; right: 20px; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent); display: none; }
 
-        /* Forge - Improved Bindrune Logic */
-        .forge-vessel { width: 320px; height: 320px; background: radial-gradient(circle, #1a1a24 0%, #0d0d12 100%); margin: 20px auto; border: 1px solid var(--dim); border-radius: 50%; position: relative; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 50px rgba(0,0,0,0.9); }
-        .forge-rune { position: absolute; font-size: 160px; color: var(--accent); opacity: 0.6; mix-blend-mode: screen; transition: 0.4s; }
-        
-        /* Stats Dashboard - Visual Summary */
-        .stats-hero { padding: 40px 20px 20px; }
-        .summary-card { background: var(--dim); border-radius: 15px; padding: 20px; margin-bottom: 20px; border-left: 3px solid var(--accent); }
-        .summary-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.2em; color: var(--dim2); margin-bottom: 10px; }
+        .page { display: none; flex-direction: column; min-height: 100dvh; padding-bottom: 140px; opacity: 0; transition: opacity 0.4s; }
+        .page.active { display: flex; opacity: 1; }
 
-        /* History Swipe Logic */
-        .history-item { position: relative; width: 100%; overflow: hidden; background: var(--bg); margin-bottom: 2px; height: 100px; }
-        .history-content { position: relative; z-index: 2; background: var(--bg); height: 100%; display: flex; flex-direction: column; justify-content: center; padding: 0 20px; transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); border-bottom: 1px solid var(--dim); }
-        .history-delete { position: absolute; right: 0; top: 0; bottom: 0; width: 100px; background: #441111; color: white; display: flex; align-items: center; justify-content: center; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; z-index: 1; }
+        /* Home Layout - Screenshot Match */
+        .home-hero { text-align: center; padding: 60px 24px 40px; }
+        .date-display { font-size: 11px; letter-spacing: 0.5em; color: var(--fg); text-transform: uppercase; margin-bottom: 50px; opacity: 0.8; }
+        .rotd-glyph { font-size: 100px; color: var(--fg); margin-bottom: 20px; text-shadow: 0 0 30px rgba(201,169,110,0.15); }
+        .rotd-name { font-size: 18px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5em; margin-bottom: 10px; }
+        .rotd-meaning { font-size: 14px; font-style: italic; color: var(--dim2); margin-bottom: 40px; }
 
-        /* Guide - Sleek Tap to Expand */
-        .guide-item { border-bottom: 1px solid var(--dim); padding: 20px; }
-        .guide-header { display: flex; align-items: center; gap: 20px; cursor: pointer; }
-        .guide-details { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; font-size: 15px; color: var(--fg2); line-height: 1.6; margin-top: 15px; }
-        .guide-item.open .guide-details { max-height: 300px; }
+        .action-card { background: var(--dim); border: 1px solid rgba(255,255,255,0.05); border-radius: 18px; margin: 0 20px 15px; padding: 30px 25px; cursor: pointer; transition: 0.3s; }
+        .action-card:active { transform: scale(0.97); background: #1f1f2a; }
+        .action-title { text-transform: uppercase; letter-spacing: 3px; font-size: 14px; color: var(--accent); margin-bottom: 4px; }
+        .action-sub { font-size: 11px; color: var(--dim2); font-style: italic; }
 
-        .btn-main { width: calc(100% - 40px); background: none; border: 1px solid var(--accent); color: var(--accent); padding: 20px; text-transform: uppercase; letter-spacing: 0.3em; font-size: 11px; margin: 20px; cursor: pointer; }
-        .toast { position: fixed; top: 40px; left: 50%; transform: translateX(-50%); background: var(--accent); color: var(--bg); padding: 12px 25px; border-radius: 30px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; z-index: 3000; opacity: 0; transition: 0.4s; pointer-events: none; }
+        /* Reading Roulette */
+        .reel-container { display: flex; justify-content: center; gap: 15px; margin: 40px 0; }
+        .slot { width: 95px; height: 130px; background: var(--dim); border: 1px solid rgba(201,169,110,0.1); border-radius: 12px; overflow: hidden; position: relative; }
+        .reel { transition: transform 3s cubic-bezier(0.15, 0, 0.05, 1); }
+        .reel-unit { height: 130px; display: flex; align-items: center; justify-content: center; font-size: 52px; color: var(--fg); }
+
+        /* Forge Vessel - Screenshot Match */
+        .forge-vessel { width: 320px; height: 320px; background: radial-gradient(circle, #1a1a24 0%, #0d0d12 100%); margin: 20px auto; border: 1px solid var(--dim); border-radius: 50%; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 40px rgba(0,0,0,0.8); }
+        .forge-rune { position: absolute; font-size: 160px; color: var(--accent); opacity: 0.6; mix-blend-mode: screen; transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1); filter: drop-shadow(0 0 10px rgba(201,169,110,0.2)); }
+
+        /* Stats & History - Sticky Swipe */
+        .stats-summary { padding: 20px; }
+        .summary-box { background: var(--dim); border-radius: 15px; padding: 20px; margin-bottom: 20px; }
+        .history-item { position: relative; width: 100%; overflow: hidden; background: var(--bg); margin-bottom: 1px; }
+        .history-content { position: relative; z-index: 2; background: var(--bg); padding: 20px; transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28); border-bottom: 1px solid var(--dim); }
+        .history-delete { position: absolute; right: 0; top: 0; bottom: 0; width: 100px; background: #551a1a; color: #ff9999; display: flex; align-items: center; justify-content: center; font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; z-index: 1; }
+
+        /* Manual Mode Grid */
+        .rune-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 20px; }
+        .grid-item { background: var(--dim); border: 1px solid transparent; border-radius: 10px; padding: 15px 5px; text-align: center; transition: 0.3s; }
+        .grid-item.active { border-color: var(--accent); background: rgba(201,169,110,0.1); }
+
+        /* Guide Styles */
+        .guide-item { border-bottom: 1px solid var(--dim); padding: 20px; transition: 0.3s; }
+        .guide-details { max-height: 0; overflow: hidden; transition: max-height 0.4s; color: var(--fg2); line-height: 1.6; font-size: 15px; }
+        .guide-item.open .guide-details { max-height: 500px; margin-top: 15px; }
+
+        .btn-main { width: calc(100% - 40px); background: none; border: 1px solid var(--accent); color: var(--accent); padding: 20px; text-transform: uppercase; letter-spacing: 0.3em; font-size: 11px; margin: 20px; cursor: pointer; transition: 0.3s; }
+        .btn-main:active { background: rgba(201,169,110,0.1); }
+        .toast { position: fixed; top: 40px; left: 50%; transform: translateX(-50%); background: var(--accent); color: var(--bg); padding: 12px 25px; border-radius: 30px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; z-index: 3000; opacity: 0; transition: 0.4s; }
     </style>
 </head>
 <body>
@@ -57,19 +76,31 @@
 <div id="toast" class="toast"></div>
 
 <div class="page" id="page-home">
-    <div style="text-align: center; padding: 80px 24px 40px;">
-        <div id="date-now" style="font-size: 11px; letter-spacing: 0.5em; text-transform: uppercase; margin-bottom: 60px;"></div>
-        <div id="rotd-g" style="font-size: 110px; color: var(--fg); margin-bottom: 20px;"></div>
-        <div id="rotd-n" style="font-size: 18px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5em; margin-bottom: 10px;"></div>
-        <div id="rotd-m" style="font-size: 14px; font-style: italic; color: var(--dim2);"></div>
+    <div class="home-hero">
+        <div class="date-display" id="date-now">THURSDAY 19 MARCH</div>
+        <div class="rotd-glyph" id="rotd-g">ᛗ</div>
+        <div class="rotd-name" id="rotd-n">MANNAZ</div>
+        <div class="rotd-meaning" id="rotd-m">Humanity, self, community</div>
     </div>
     
-    <div style="background: var(--dim); border-radius: 15px; margin: 0 20px 15px; padding: 25px;" onclick="navTo('reading'); setReadMode('draw')">
+    <div style="font-size: 10px; letter-spacing: 0.4em; text-transform: uppercase; text-align: center; margin-bottom: 25px; opacity: 0.5;">Begin Reading</div>
+
+    <div class="action-card" onclick="navTo('reading'); setReadMode('draw')">
         <div style="display:flex; align-items:center; gap:25px;">
             <span style="font-size:35px; color:var(--accent)">ᚱ</span>
             <div>
-                <div style="text-transform:uppercase; letter-spacing:2px; font-size:14px;">Draw Staves</div>
-                <div style="font-size:11px; color:var(--dim2); font-style:italic;">Let the Norns guide your hand</div>
+                <div class="action-title">Draw Staves</div>
+                <div class="action-sub">Let the Norns guide your hand</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-card" onclick="navTo('reading'); setReadMode('manual')">
+        <div style="display:flex; align-items:center; gap:25px;">
+            <span style="font-size:35px; color:var(--accent)">ᛟ</span>
+            <div>
+                <div class="action-title">Manual Selection</div>
+                <div class="action-sub">Choose with intention</div>
             </div>
         </div>
     </div>
@@ -77,13 +108,21 @@
 
 <div class="page" id="page-reading">
     <div style="padding: 60px 20px 0; text-align:center;">
+        <h2 id="read-head" style="font-size:12px; letter-spacing:0.5em; text-transform:uppercase; color:var(--accent); margin-bottom:40px;">Reading</h2>
+        
         <div id="draw-ui">
-            <div id="roulette-container" style="display:flex; justify-content:center; gap:15px; margin:50px 0;"></div>
+            <div class="reel-container" id="reel-wrap"></div>
             <button class="btn-main" onclick="startCast()">Cast the Runes</button>
         </div>
+
+        <div id="manual-ui" style="display:none;">
+            <div class="rune-grid" id="manual-grid"></div>
+            <button class="btn-main" id="manual-btn" onclick="submitManual()" style="opacity:0.3; pointer-events:none;">Select 3</button>
+        </div>
+
         <div id="reveal-ui" style="display:none;">
             <div id="reveal-glyphs" style="display:flex; justify-content:center; gap:20px; margin-bottom:40px;"></div>
-            <div id="reveal-text" style="font-size:18px; font-style:italic; line-height:1.8; color:var(--fg2); padding:0 20px;"></div>
+            <div id="reveal-text" style="font-size:18px; font-style:italic; line-height:1.8; color:var(--fg2); padding:0 20px; margin-bottom:40px;"></div>
             <button class="btn-main" onclick="location.reload()">Reset</button>
         </div>
     </div>
@@ -95,29 +134,29 @@
         <div class="forge-vessel" id="forge-canvas"></div>
         <div id="forge-picker" style="display:grid; grid-template-columns: repeat(6, 1fr); gap:8px; padding:20px;"></div>
         <button class="btn-main" onclick="saveTalisman()">Save to Talisman Library</button>
-        <div id="forge-library" style="padding:20px;"></div>
+        <div id="forge-library" style="padding:20px; text-align:left;"></div>
     </div>
 </div>
 
 <div class="page" id="page-history">
-    <div class="stats-hero">
-        <div class="summary-card">
-            <div class="summary-label">Latest Achievement</div>
-            <div id="latest-ach" style="font-size:16px; color:var(--fg);">No achievements yet</div>
-        </div>
-        
-        <div class="summary-card">
-            <div class="summary-label">Most Frequent Staves</div>
-            <div id="top-three-list"></div>
+    <div class="stats-summary">
+        <div class="summary-box">
+            <div style="font-size:10px; letter-spacing:0.2em; color:var(--dim2); margin-bottom:15px; text-transform:uppercase;">Latest Achievement</div>
+            <div id="stat-ach" style="font-size:18px; color:var(--accent);">The Seeker</div>
         </div>
 
-        <div class="summary-label" style="margin-left:5px;">Past Readings</div>
-        <div id="history-list" style="margin-top:10px;"></div>
+        <div class="summary-box">
+            <div style="font-size:10px; letter-spacing:0.2em; color:var(--dim2); margin-bottom:15px; text-transform:uppercase;">Most Frequent Guides</div>
+            <div id="stat-top"></div>
+        </div>
+
+        <div style="font-size:10px; letter-spacing:0.2em; color:var(--dim2); margin-bottom:15px; text-transform:uppercase; padding-left:5px;">Past Readings</div>
+        <div id="history-list"></div>
     </div>
 </div>
 
 <div class="page" id="page-library">
-    <div id="guide-list" style="padding:60px 0;"></div>
+    <div id="guide-list" style="padding:60px 0 20px;"></div>
 </div>
 
 <div id="nav">
@@ -135,35 +174,37 @@
 
 <script>
     const RUNES = [
-        {g:'ᚠ',n:'Fehu',m:'Abundance',l:'Wealth is not just gold, but the creative fire that fuels growth. It warns against greed while encouraging the flow of energy.', type:'vertical'},
-        {g:'ᚢ',n:'Uruz',m:'Vitality',l:'The primal strength of the wild ox. It represents physical health, raw potential, and the courage to face change.', type:'vertical'},
-        {g:'ᚦ',n:'Thurisaz',m:'Protection',l:'The thorn that protects the rose. It is a reactive force—a defensive power that strikes only when boundaries are crossed.', type:'point'},
-        {g:'ᚨ',n:'Ansuz',m:'Insight',l:'The breath of the divine. It rules communication, signals, and the wisdom passed down through ancestral lines.', type:'vertical'},
-        {g:'ᚱ',n:'Raidho',m:'Direction',l:'The rhythm of the journey. It represents personal path-finding, justice, and staying in tune with the cosmic law.', type:'vertical'},
-        {g:'ᚲ',n:'Kenaz',m:'Clarity',l:'The torch in the dark. It is the controlled fire of knowledge, skill, and the artistic spark of transformation.', type:'angle'},
-        {g:'ᚷ',n:'Gebo',m:'Exchange',l:'A gift for a gift. It signifies the sacred bond between people and the balance required in all relationships.', type:'cross'},
-        {g:'ᚹ',n:'Wunjo',m:'Harmony',l:'The peak of joy. It is the alignment of self with the universe, leading to fulfillment and peace of mind.', type:'point'},
-        {g:'ᚺ',n:'Hagalaz',m:'Evolution',l:'The hailstone. It brings necessary disruption and crisis to clear away the old and make room for the new.', type:'cross'},
-        {g:'ᚾ',n:'Naudhiz',m:'Resilience',l:'Innovation born from friction. It is the "need-fire" that forces us to adapt and find strength in hardship.', type:'cross'},
-        {g:'ᛁ',n:'Isa',m:'Stillness',l:'The block of ice. It represents a period of stasis where outward progress stops so internal clarity can form.', type:'vertical'},
-        {g:'ᛃ',n:'Jera',m:'Cycles',l:'The harvest. It rewards patience and consistent effort, reminding us that everything has its natural timing.', type:'angle'},
-        {g:'ᛇ',n:'Eihwaz',m:'Endurance',l:'The Yew tree. It connects the heavens and the underworld, representing the continuity of life through death.', type:'vertical'},
-        {g:'ᛈ',n:'Perthro',m:'Destiny',l:'The dice cup of the Norns. It rules the hidden laws of probability and the mysteries that govern our luck.', type:'angle'},
-        {g:'ᛉ',n:'Algiz',m:'Guidance',l:'The elk-sedge. It is the higher connection to spirit and the protective instinct that keeps one safe.', type:'vertical'},
-        {g:'ᛊ',n:'Sowilo',m:'Success',l:'The sun\'s rays. It provides the energy and light needed to achieve victory and burn away all shadows.', type:'angle'},
-        {g:'ᛏ',n:'Tiwaz',m:'Honor',l:'The warrior\'s spear. It represents sacrifice for the greater good, leadership, and unwavering integrity.', type:'vertical'},
-        {g:'ᛒ',n:'Berkano',m:'Renewal',l:'The birch tree. It is the energy of a mother’s womb—nurturing, healing, and bringing new ideas into bloom.', type:'vertical'},
-        {g:'ᛖ',n:'Ehwaz',m:'Synergy',l:'The horse and rider. It signifies progress through trust, partnership, and working in tandem with others.', type:'vertical'},
-        {g:'ᛗ',n:'Mannaz',m:'Identity',l:'The self within the tribe. It represents human consciousness, our shared social bonds, and personal growth.', type:'vertical'},
-        {g:'ᛚ',n:'Laguz',m:'Intuition',l:'The flow of water. It rules the deep emotions, the subconscious, and the fluid nature of our reality.', type:'vertical'},
-        {g:'ᛜ',n:'Ingwaz',m:'Incubation',l:'The seed. It is the stored potential that requires rest and protection before it can burst into life.', type:'cross'},
-        {g:'ᛞ',n:'Dagaz',m:'Awakening',l:'The light of dawn. It is the radical breakthrough that changes your entire perspective in a single moment.', type:'cross'},
-        {g:'ᛟ',n:'Legacy',m:'Heritage',l:'Ancestral land and home. It represents the lasting foundations we build to leave behind for others.', type:'angle'}
+        {g:'ᚠ',n:'Fehu',m:'Wealth',l:'Prosperity and creative fire. It represents movable wealth and the responsibility of success. Use it to manifest abundance or protect your resources.'},
+        {g:'ᚢ',n:'Uruz',m:'Strength',l:'The primal power of the wild ox. It represents physical health, untamed potential, and the courage required for radical change.'},
+        {g:'ᚦ',n:'Thurisaz',m:'Force',l:'The thorn or the giant. A reactive power of defense and conflict. It warns of danger but offers the strength to strike back.'},
+        {g:'ᚨ',n:'Ansuz',m:'Wisdom',l:'Divine communication and ancestral breath. It rules over messages, signals, and the wisdom gained through listening.'},
+        {g:'ᚱ',n:'Raidho',m:'Journey',l:'The wheel and the path. It represents justice, rhythm, and the rational movement of the soul toward its destination.'},
+        {g:'ᚲ',n:'Kenaz',m:'Torch',l:'Knowledge and technical skill. The controlled fire of the artist or craftsman that brings clarity and illumination.'},
+        {g:'ᚷ',n:'Gebo',m:'Gift',l:'Balance in exchange. It signifies the sacred bond between the giver and the receiver, and the harmony of partnership.'},
+        {g:'ᚹ',n:'Wunjo',m:'Joy',l:'Contentment and harmony. The peak of well-being where the individual is in perfect alignment with the universe.'},
+        {g:'ᚺ',n:'Hagalaz',m:'Hail',l:'Necessary disruption. Primal forces that clear away the old and stagnant to make room for new growth.'},
+        {g:'ᚾ',n:'Naudhiz',m:'Need',l:'Resistance and innovation. The "need-fire" that sparks survival instincts and forces us to adapt to hardship.'},
+        {g:'ᛁ',n:'Isa',m:'Ice',l:'Stillness and concentration. A period of stasis where outward progress is frozen to allow for internal reflection.'},
+        {g:'ᛃ',n:'Jera',m:'Harvest',l:'Cycles and rewards. It reminds us that patience and consistent effort lead to a fruitful conclusion in the natural season.'},
+        {g:'ᛇ',n:'Eihwaz',m:'Endurance',l:'The Yew tree. It represents continuity between life and death, providing protection and the power of longevity.'},
+        {g:'ᛈ',n:'Perthro',m:'Fate',l:'Mystery and the laws of probability. It rules the dice cup and the hidden forces that govern our cosmic luck.'},
+        {g:'ᛉ',n:'Algiz',m:'Protection',l:'The elk-sedge or higher guidance. It is the shield of the spirit and the connection to one\'s guardian instincts.'},
+        {g:'ᛊ',n:'Sowilo',m:'Sun',l:'Vitality and victory. The light that burns away doubt and provides the energy to achieve one\'s highest goals.'},
+        {g:'ᛏ',n:'Tiwaz',m:'Justice',l:'Sacrifice for the greater good. It represents leadership, integrity, and the courage of the spiritual warrior.'},
+        {g:'ᛒ',n:'Berkano',m:'Growth',l:'Renewal and the birch tree. It is the nurturing energy of rebirth, healing, and the blossoming of new ideas.'},
+        {g:'ᛖ',n:'Ehwaz',m:'Trust',l:'Progress through partnership. It signifies the bond between horse and rider—movement achieved through mutual trust.'},
+        {g:'ᛗ',n:'Mannaz',m:'Identity',l:'The self within the collective. It rules human consciousness, social structure, and our shared destiny.'},
+        {g:'ᛚ',n:'Laguz',m:'Flow',l:'Intuition and the deep waters. It governs the subconscious, emotional depth, and the fluid nature of reality.'},
+        {g:'ᛜ',n:'Ingwaz',m:'Potential',l:'Rest before release. It is the seed containing all potential, requiring internal incubation before growth.'},
+        {g:'ᛞ',n:'Dagaz',m:'Awakening',l:'The light of dawn. It represents a radical breakthrough and the transformation of perspective into total clarity.'},
+        {g:'ᛟ',n:'Heritage',m:'Legacy',l:'Ancestral home and spiritual inheritance. It represents the foundations we build to sustain those who follow us.'}
     ];
 
     let forgeSet = [];
+    let manualSet = [];
     let stats = JSON.parse(localStorage.getItem('rune_stats') || '{}');
-    let history = JSON.parse(localStorage.getItem('rune_hist') || '[]');
+    let history = JSON.parse(localStorage.getItem('rune_hist') || []);
+    let achievements = JSON.parse(localStorage.getItem('rune_ach') || '["The Seeker"]');
 
     function navTo(id) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -171,7 +212,7 @@
         document.getElementById('page-' + id).classList.add('active');
         document.querySelector(`[data-id="${id}"]`).classList.add('active');
         if(id === 'history') { renderStats(); document.getElementById('notif-dot').style.display='none'; }
-        if(id === 'forge') initForge();
+        if(id === 'forge') renderForge();
         if(id === 'library') renderGuide();
     }
 
@@ -180,29 +221,98 @@
         setTimeout(() => t.style.opacity = '0', 3000);
     }
 
-    /* FORGE - Improved Stave-Sync Logic */
-    function initForge() {
-        const p = document.getElementById('forge-picker'); if(p.children.length > 0) return;
+    /* READING ENGINE - Roulette & Manual Restore */
+    function setReadMode(mode) {
+        document.getElementById('draw-ui').style.display = mode === 'draw' ? 'block' : 'none';
+        document.getElementById('manual-ui').style.display = mode === 'manual' ? 'block' : 'none';
+        document.getElementById('reveal-ui').style.display = 'none';
+        if(mode === 'draw') initRoulette();
+        if(mode === 'manual') initManualGrid();
+    }
+
+    function initRoulette() {
+        const wrap = document.getElementById('reel-wrap'); wrap.innerHTML = '';
+        for(let i=0; i<3; i++) {
+            const slot = document.createElement('div'); slot.className = 'slot';
+            const reel = document.createElement('div'); reel.className = 'reel'; reel.id = `r${i}`;
+            for(let j=0; j<31; j++) {
+                const unit = document.createElement('div'); unit.className = 'reel-unit';
+                unit.textContent = RUNES[Math.floor(Math.random()*24)].g;
+                reel.appendChild(unit);
+            }
+            slot.appendChild(reel); wrap.appendChild(slot);
+        }
+    }
+
+    function startCast() {
+        const picks = [];
+        for(let i=0; i<3; i++) {
+            const win = RUNES[Math.floor(Math.random()*24)]; picks.push(win);
+            const r = document.getElementById('r'+i);
+            r.lastChild.textContent = win.g;
+            r.style.transform = `translateY(-${30 * 130}px)`;
+        }
+        setTimeout(() => displayReveal(picks), 3200);
+    }
+
+    function initManualGrid() {
+        const g = document.getElementById('manual-grid'); g.innerHTML = ''; manualSet = [];
         RUNES.forEach(r => {
-            const b = document.createElement('div'); b.style.cssText = "background:var(--dim); padding:12px; border-radius:8px; text-align:center; font-size:18px; cursor:pointer;";
-            b.textContent = r.g;
-            b.onclick = () => {
-                if(forgeSet.includes(r)) { forgeSet = forgeSet.filter(x=>x!==r); b.style.border = 'none'; }
-                else if(forgeSet.length < 4) { forgeSet.push(r); b.style.border = '1px solid var(--accent)'; }
-                updateForgeDisplay();
+            const d = document.createElement('div'); d.className = 'grid-item';
+            d.innerHTML = `<div style="font-size:24px; color:var(--fg)">${r.g}</div><div style="font-size:8px; color:var(--dim2)">${r.n}</div>`;
+            d.onclick = () => {
+                if(manualSet.includes(r)) { manualSet = manualSet.filter(x=>x!==r); d.classList.remove('active'); }
+                else if(manualSet.length < 3) { manualSet.push(r); d.classList.add('active'); }
+                document.getElementById('manual-btn').style.opacity = manualSet.length === 3 ? '1' : '0.3';
+                document.getElementById('manual-btn').style.pointerEvents = manualSet.length === 3 ? 'all' : 'none';
             };
-            p.appendChild(b);
+            g.appendChild(d);
         });
     }
 
-    function updateForgeDisplay() {
+    function submitManual() { displayReveal(manualSet); }
+
+    function displayReveal(runes) {
+        document.getElementById('draw-ui').style.display = 'none';
+        document.getElementById('manual-ui').style.display = 'none';
+        const v = document.getElementById('reveal-glyphs'); v.innerHTML = '';
+        runes.forEach(r => {
+            const d = document.createElement('div'); d.style.fontSize = '45px'; d.textContent = r.g; v.appendChild(d);
+            stats[r.n] = (stats[r.n] || 0) + 1;
+        });
+        localStorage.setItem('rune_stats', JSON.stringify(stats));
+        
+        const date = new Date().toLocaleDateString('en-GB', {day:'numeric', month:'short'}).toUpperCase();
+        const text = `${runes[0].m} is your current state, challenged by ${runes[1].m}, resulting in ${runes[2].m}.`;
+        history.unshift({ date, glyphs: runes.map(p=>p.g).join(' · '), text });
+        localStorage.setItem('rune_hist', JSON.stringify(history.slice(0, 20)));
+
+        document.getElementById('reveal-text').textContent = text;
+        document.getElementById('reveal-ui').style.display = 'block';
+    }
+
+    /* FORGE - Magnetic Stave Sync */
+    function renderForge() {
+        const p = document.getElementById('forge-picker'); if(p.children.length > 0) return;
+        RUNES.forEach(r => {
+            const b = document.createElement('div'); b.style.cssText = "background:var(--dim); padding:10px; border-radius:8px; text-align:center; font-size:18px; cursor:pointer;";
+            b.textContent = r.g;
+            b.onclick = () => {
+                if(forgeSet.includes(r)) { forgeSet = forgeSet.filter(x=>x!==r); b.style.borderColor = 'transparent'; }
+                else if(forgeSet.length < 4) { forgeSet.push(r); b.style.border = '1px solid var(--accent)'; }
+                updateForgeVessel();
+            };
+            p.appendChild(b);
+        });
+        updateForgeLib();
+    }
+
+    function updateForgeVessel() {
         const cv = document.getElementById('forge-canvas'); cv.innerHTML = '';
         forgeSet.forEach((r, i) => {
             const el = document.createElement('div'); el.className = 'forge-rune'; el.textContent = r.g;
-            // The "Stave Sync" Fix: Force them to center on a shared vertical spine
-            // but add slight scale/opacity variance for depth
-            el.style.opacity = 0.5 + (i * 0.1);
-            el.style.transform = `scale(${1 - (i*0.05)}) translate(${(i-1)*2}px, 0)`;
+            el.style.transform = `scale(${1 - (i*0.05)}) translate(${(i-1)*3}px, 0)`;
+            el.style.opacity = 0.4 + (i * 0.15);
             cv.appendChild(el);
         });
     }
@@ -210,88 +320,65 @@
     function saveTalisman() {
         if(forgeSet.length < 2) return;
         let lib = JSON.parse(localStorage.getItem('rune_lib') || '[]');
-        const spell = forgeSet.map(r => r.m).join(' + ') + ' bound for intent.';
+        const spell = forgeSet.map(r => r.m).join(' + ') + ' bound.';
         lib.unshift({ glyphs: forgeSet.map(r=>r.g).join(''), spell });
         localStorage.setItem('rune_lib', JSON.stringify(lib.slice(0, 10)));
-        showToast("Talisman Bound");
+        showToast("Talisman Saved"); updateForgeLib();
     }
 
-    /* STATS & HISTORY - Sticky Swipe Restore */
-    function renderStats() {
-        // Achievement
-        const ach = JSON.parse(localStorage.getItem('rune_ach') || '[]');
-        document.getElementById('latest-ach').textContent = ach.length ? ach[ach.length-1] : "The Seeker (Cast your first rune)";
+    function updateForgeLib() {
+        const lib = JSON.parse(localStorage.getItem('rune_lib') || '[]');
+        const body = document.getElementById('forge-library'); body.innerHTML = '';
+        lib.forEach(item => {
+            body.innerHTML += `<div style="padding:15px 0; border-bottom:1px solid var(--dim);">
+                <div style="font-size:24px; color:var(--accent); letter-spacing:-8px;">${item.glyphs}</div>
+                <div style="font-size:12px; font-style:italic; opacity:0.6;">${item.spell}</div>
+            </div>`;
+        });
+    }
 
-        // Top Three
-        const topThree = Object.entries(stats).sort((a,b)=>b[1]-a[1]).slice(0,3);
-        const t3l = document.getElementById('top-three-list'); t3l.innerHTML = '';
-        topThree.forEach(([name, count]) => {
+    /* STATS - Restore Swipe Delete & Summaries */
+    function renderStats() {
+        document.getElementById('stat-ach').textContent = achievements[achievements.length-1];
+        
+        const top = Object.entries(stats).sort((a,b)=>b[1]-a[1]).slice(0,3);
+        const tDiv = document.getElementById('stat-top'); tDiv.innerHTML = '';
+        top.forEach(([name, count]) => {
             const r = RUNES.find(rx => rx.n === name);
-            t3l.innerHTML += `<div style="display:flex; align-items:center; gap:15px; margin-bottom:10px;">
-                <span style="font-size:24px; color:var(--accent)">${r.g}</span>
-                <div><div style="font-size:13px; text-transform:uppercase;">${name}</div>
+            tDiv.innerHTML += `<div style="display:flex; align-items:center; gap:20px; margin-bottom:15px;">
+                <span style="font-size:30px; color:var(--accent)">${r.g}</span>
+                <div><div style="text-transform:uppercase; font-size:14px;">${name}</div>
                 <div style="font-size:11px; color:var(--dim2)">${r.m} • Drawn ${count} times</div></div>
             </div>`;
         });
 
-        // History Swipe
         const hList = document.getElementById('history-list'); hList.innerHTML = '';
         history.forEach((h, idx) => {
             const item = document.createElement('div'); item.className = 'history-item';
             item.innerHTML = `
                 <div class="history-delete" onclick="deleteHistory(${idx})">Delete</div>
-                <div class="history-content" id="h-content-${idx}">
-                    <div style="font-size:10px; color:var(--accent); margin-bottom:5px;">${h.date}</div>
-                    <div style="font-size:20px; letter-spacing:5px;">${h.glyphs}</div>
+                <div class="history-content" id="hc-${idx}">
+                    <div style="font-size:10px; color:var(--accent); margin-bottom:4px;">${h.date}</div>
+                    <div style="font-size:20px; letter-spacing:4px; margin-bottom:4px;">${h.glyphs}</div>
                     <div style="font-size:12px; font-style:italic; opacity:0.7; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">${h.text}</div>
                 </div>
             `;
-            // Sticky Swipe Touch Logic
-            let startX = 0, currentX = 0;
-            const content = item.querySelector('.history-content');
-            content.addEventListener('touchstart', (e) => startX = e.touches[0].clientX);
-            content.addEventListener('touchmove', (e) => {
-                currentX = e.touches[0].clientX - startX;
-                if(currentX < 0 && currentX > -100) content.style.transform = `translateX(${currentX}px)`;
+            let startX = 0; const content = item.querySelector('.history-content');
+            content.addEventListener('touchstart', e => startX = e.touches[0].clientX);
+            content.addEventListener('touchmove', e => {
+                let diff = e.touches[0].clientX - startX;
+                if(diff < 0 && diff > -100) content.style.transform = `translateX(${diff}px)`;
             });
-            content.addEventListener('touchend', () => {
-                if(currentX < -50) content.style.transform = 'translateX(-100px)';
-                else content.style.transform = 'translateX(0)';
+            content.addEventListener('touchend', e => {
+                let diff = e.touches[0].clientX - startX;
+                content.style.transform = diff < -50 ? 'translateX(-100px)' : 'translateX(0)';
             });
             hList.appendChild(item);
         });
     }
 
     function deleteHistory(idx) {
-        history.splice(idx, 1); localStorage.setItem('rune_hist', JSON.stringify(history));
-        renderStats();
-    }
-
-    /* READING ENGINE */
-    function startCast() {
-        const picks = [];
-        for(let i=0; i<3; i++) {
-            const win = RUNES[Math.floor(Math.random()*24)]; picks.push(win);
-            stats[win.n] = (stats[win.n] || 0) + 1;
-        }
-        localStorage.setItem('rune_stats', JSON.stringify(stats));
-        
-        const date = new Date().toLocaleDateString('en-GB', {day:'numeric', month:'short'}).toUpperCase();
-        const text = `${picks[0].m} flows into ${picks[1].m}, resulting in ${picks[2].m}.`;
-        history.unshift({ date, glyphs: picks.map(p=>p.g).join(' · '), text });
-        localStorage.setItem('rune_hist', JSON.stringify(history.slice(0, 20)));
-
-        displayReveal(picks, text);
-    }
-
-    function displayReveal(runes, text) {
-        document.getElementById('draw-ui').style.display = 'none';
-        const v = document.getElementById('reveal-glyphs'); v.innerHTML = '';
-        runes.forEach(r => {
-            const d = document.createElement('div'); d.style.fontSize = '45px'; d.textContent = r.g; v.appendChild(d);
-        });
-        document.getElementById('reveal-text').textContent = text;
-        document.getElementById('reveal-ui').style.display = 'block';
+        history.splice(idx,1); localStorage.setItem('rune_hist', JSON.stringify(history)); renderStats();
     }
 
     function renderGuide() {
@@ -299,11 +386,11 @@
         RUNES.forEach(r => {
             const div = document.createElement('div'); div.className = 'guide-item';
             div.innerHTML = `
-                <div class="guide-header" onclick="this.parentElement.classList.toggle('open')">
-                    <span style="font-size:35px; color:var(--accent)">${r.g}</span>
+                <div style="display:flex; align-items:center; gap:25px;" onclick="this.parentElement.classList.toggle('open')">
+                    <span style="font-size:38px; color:var(--accent)">${r.g}</span>
                     <div>
-                        <div style="text-transform:uppercase; letter-spacing:2px; font-size:14px;">${r.n}</div>
-                        <div style="font-size:11px; color:var(--dim2);">${r.m}</div>
+                        <div style="text-transform:uppercase; letter-spacing:3px; font-size:15px;">${r.n}</div>
+                        <div style="font-size:12px; color:var(--dim2);">${r.m}</div>
                     </div>
                 </div>
                 <div class="guide-details">${r.l}</div>
@@ -312,12 +399,9 @@
         });
     }
 
-    // Init Home
-    const rotd = RUNES[Math.floor(Math.random()*24)];
-    document.getElementById('rotd-g').textContent = rotd.g;
-    document.getElementById('rotd-n').textContent = rotd.n;
-    document.getElementById('rotd-m').textContent = rotd.m;
-    document.getElementById('date-now').textContent = new Date().toLocaleDateString('en-GB', {weekday: 'long', day:'numeric', month:'long'});
+    // Init Date
+    const d = new Date();
+    document.getElementById('date-now').textContent = d.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'}).toUpperCase();
     navTo('home');
 </script>
 </body>
