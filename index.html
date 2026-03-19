@@ -688,8 +688,8 @@ function bindTalisman() {
         };
         const pos = offsets[count] || offsets[4];
 
-        fCtx.fillStyle = '#0d0d12';
-        fCtx.beginPath(); fCtx.arc(cx,cy,cx,0,Math.PI*2); fCtx.fill();
+        //fCtx.fillStyle = '#0d0d12';
+        //fCtx.beginPath(); fCtx.arc(cx,cy,cx,0,Math.PI*2); fCtx.fill();
 
         function fDraw(r, i, colour, strokeW) {
             const mirror = forgeMirrors[i] ?? false;
@@ -713,7 +713,7 @@ function bindTalisman() {
         fCtx.beginPath(); fCtx.arc(cx,cy,cx-2,0,Math.PI*2); fCtx.clip();
         forgeSet.forEach((r, i) => {
             if (i > 0) for (let j=0; j<i; j++) fDraw(forgeSet[j],j,'#0d0d12',14);
-            fDraw(r, i, '#0d0d12', 9);
+            //fDraw(r, i, '#0d0d12', 9);
             fDraw(r, i, '#c9a96e', null);
         });
         fCtx.restore();
