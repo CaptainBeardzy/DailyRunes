@@ -3,317 +3,383 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bindrune Forge</title>
+    <title>Rune Guide & Oracle</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-color: #0d0d12;
-            --card-bg: #1a1a24;
-            --gold-primary: #c9a96e;
-            --gold-light: #fefaf0;
-            --gold-dark: #7a5e2d;
-            --text-dim: #a0a0a0;
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --bg: #0d0d12; --fg: #ede9e0; --accent: #c9a96e;
+            --dim: #1a1a24; --dim2: #8a8070; --card: #15151e;
+            --fg2: #b8b4aa; --red-dim: #551a1a;
+            --gold-light: #fefaf0; --gold-dark: #7a5e2d;
         }
 
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            color: white;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
+            background: var(--bg); color: var(--fg);
+            font-family: 'Cormorant Garamond', serif;
+            overscroll-behavior: none; overflow-x: hidden;
+            -webkit-text-fill-color: var(--fg);
         }
 
-        header {
-            margin-top: 40px;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            font-size: 14px;
-            color: var(--gold-primary);
+        button, a {
+            -webkit-appearance: none; appearance: none;
+            color: inherit; -webkit-text-fill-color: inherit;
+            font-family: 'Cormorant Garamond', serif;
         }
 
-        /* --- Forge Section --- */
-        #forge-container {
-            position: relative;
-            width: 320px;
-            height: 320px;
-            margin: 30px 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+        /* Navigation */
+        #nav { position: fixed; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; z-index: 2000; padding-bottom: env(safe-area-inset-bottom); }
+        .nav-pill { background: rgba(26,26,36,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(201,169,110,0.15); border-radius: 50px; display: flex; padding: 8px 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+        .nav-btn { width: 65px; height: 55px; background: none; border: none; color: var(--dim2); -webkit-text-fill-color: var(--dim2); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer; }
+        .nav-btn.active { color: var(--accent); -webkit-text-fill-color: var(--accent); }
+        .nav-btn .icon { font-size: 20px; margin-bottom: 2px; color: inherit; -webkit-text-fill-color: inherit; }
+        .nav-btn .txt { font-size: 8px; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 300; color: inherit; -webkit-text-fill-color: inherit; }
 
-        #forge-canvas {
-            width: 300px;
-            height: 300px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: var(--transition);
-        }
+        .page { display: none; flex-direction: column; min-height: 100dvh; padding-bottom: 160px; opacity: 0; }
+        .page.active { display: flex; opacity: 1; animation: fadeIn 0.5s forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- Recast Button --- */
-        #recast-btn {
-            background: none;
-            border: 1px solid var(--gold-dark);
-            color: var(--gold-primary);
-            padding: 12px 30px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 12px;
-            cursor: pointer;
-            margin-bottom: 20px;
-            transition: var(--transition);
-        }
+        /* Home */
+        .home-hero { text-align: center; padding: 60px 24px 40px; }
+        .date-display { font-size: 11px; letter-spacing: 0.5em; color: var(--fg); -webkit-text-fill-color: var(--fg); text-transform: uppercase; margin-bottom: 50px; opacity: 0.8; }
+        .rotd-glyph { font-size: 110px; color: var(--fg); -webkit-text-fill-color: var(--fg); margin-bottom: 15px; text-shadow: 0 0 30px rgba(201,169,110,0.2); }
+        .rotd-name { font-size: 18px; color: var(--accent); -webkit-text-fill-color: var(--accent); text-transform: uppercase; letter-spacing: 0.5em; margin-bottom: 8px; }
+        .rotd-meaning { font-size: 14px; font-style: italic; color: var(--dim2); -webkit-text-fill-color: var(--dim2); margin-bottom: 40px; }
 
-        #recast-btn:active {
-            background: rgba(201, 169, 110, 0.1);
-            transform: scale(0.98);
-        }
+        .action-card { background: var(--dim); border: 1px solid rgba(255,255,255,0.05); border-radius: 18px; margin: 0 20px 15px; padding: 30px 25px; cursor: pointer; transition: transform 0.2s; }
+        .action-card:active { transform: scale(0.97); }
+        .action-title { text-transform: uppercase; letter-spacing: 3px; font-size: 14px; color: var(--accent); -webkit-text-fill-color: var(--accent); margin-bottom: 4px; }
+        .action-sub { font-size: 11px; color: var(--dim2); -webkit-text-fill-color: var(--dim2); font-style: italic; }
 
-        /* --- Rune Grid --- */
-        #rune-grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 8px;
-            padding: 20px;
-            width: 100%;
-            max-width: 400px;
-        }
+        /* Reader */
+        .reel-container { display: flex; justify-content: center; gap: 15px; margin: 40px 0; height: 130px; }
+        .slot { width: 95px; height: 130px; background: var(--dim); border: 1px solid rgba(201,169,110,0.1); border-radius: 12px; overflow: hidden; position: relative; }
+        .reel { transition-property: transform; transition-timing-function: cubic-bezier(0.15, 0, 0.05, 1); }
+        .reel-unit { height: 130px; display: flex; align-items: center; justify-content: center; font-size: 52px; color: var(--fg); -webkit-text-fill-color: var(--fg); }
 
-        .rune-btn {
-            aspect-ratio: 1;
-            background: var(--card-bg);
-            border: 1px solid transparent;
-            border-radius: 8px;
-            color: white;
-            font-size: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            transition: var(--transition);
-        }
+        .manual-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
+        .manual-item { background: var(--dim); border: 1px solid transparent; border-radius: 10px; padding: 18px 5px; text-align: center; transition: 0.3s; font-size: 24px; color: var(--fg); -webkit-text-fill-color: var(--fg); cursor: pointer; }
+        .manual-item.selected { border-color: var(--accent); background: rgba(201,169,110,0.15); }
 
-        .rune-btn.active {
-            border-color: var(--gold-primary);
-            box-shadow: 0 0 10px rgba(201, 169, 110, 0.3);
+        /* Forge */
+        .forge-container {
+            position: relative; width: 300px; height: 300px;
+            margin: 20px auto; border-radius: 50%; overflow: hidden;
+            background: #0d0d12; border: 1px solid rgba(201,169,110,0.15);
+            box-shadow: 0 0 40px rgba(201,169,110,0.06), inset 0 0 30px rgba(0,0,0,0.5);
         }
-
-        /* --- Navigation Bar --- */
-        nav {
-            position: fixed;
-            bottom: 30px;
-            background: rgba(26, 26, 36, 0.9);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 40px;
-            display: flex;
-            padding: 10px 25px;
-            gap: 25px;
+        #forge-canvas-el { width: 100%; height: 100%; display: block; }
+        #forge-placeholder-text {
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+            font-size: 11px; letter-spacing: 0.35em; text-transform: uppercase;
+            color: rgba(138,128,112,0.35); pointer-events: none;
         }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            color: var(--text-dim);
-            font-size: 10px;
-            text-transform: uppercase;
-            cursor: pointer;
+        .forge-picker { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 20px; }
+        .forge-pick-btn {
+            background: var(--dim); padding: 10px; border-radius: 8px;
+            text-align: center; font-size: 20px; cursor: pointer;
+            border: 1px solid transparent; transition: 0.2s;
+            color: var(--fg); -webkit-text-fill-color: var(--fg);
         }
+        .forge-pick-btn.chosen { border-color: var(--accent); background: rgba(201,169,110,0.12); }
+        
+        /* Stats/History */
+        .talisman-card { background: var(--dim); border: 1px solid rgba(201,169,110,0.1); border-radius: 15px; padding: 25px; margin-bottom: 20px; }
+        .stats-section { padding: 0 20px; margin-bottom: 30px; }
+        .stat-label { font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--dim2); -webkit-text-fill-color: var(--dim2); margin-bottom: 15px; display: block; }
+        .full-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 40px; }
+        .grid-stat-box { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .history-item { position: relative; width: 100%; background: var(--bg); border-bottom: 1px solid var(--dim); }
+        .history-content { padding: 25px 20px; }
 
-        .nav-item.active {
-            color: var(--gold-primary);
+        /* Guide */
+        .guide-item { border-bottom: 1px solid var(--dim); padding: 25px 20px; }
+        .guide-header { display: flex; align-items: center; gap: 25px; cursor: pointer; }
+        .guide-desc { max-height: 0; overflow: hidden; transition: max-height 0.5s ease; color: var(--fg2); font-size: 15px; }
+        .guide-item.open .guide-desc { max-height: 600px; margin-top: 20px; }
+
+        .btn-main {
+            width: calc(100% - 40px); background: none; border: 1px solid var(--accent); color: var(--accent); 
+            -webkit-text-fill-color: var(--accent); padding: 22px; text-transform: uppercase; letter-spacing: 0.4em;
+            font-size: 11px; margin: 20px; cursor: pointer; border-radius: 4px;
         }
-
-        .nav-icon {
-            font-size: 18px;
-        }
-
-        canvas { max-width: 100%; height: auto; }
+        .btn-recast { border-color: rgba(201,169,110,0.35); color: var(--dim2); -webkit-text-fill-color: var(--dim2); font-size: 12px; margin-top: 4px; }
+        .toast { position: fixed; top: 40px; left: 50%; transform: translateX(-50%); background: var(--accent); color: var(--bg); -webkit-text-fill-color: var(--bg); padding: 12px 25px; border-radius: 30px; font-size: 11px; z-index: 3000; opacity: 0; transition: 0.4s; pointer-events: none; }
     </style>
 </head>
 <body>
 
-    <header>Bindrune Forge</header>
+<div id="toast" class="toast"></div>
 
-    <div id="forge-container">
-        <canvas id="forge-canvas-el" width="600" height="600"></canvas>
+<div class="page" id="page-home">
+    <div class="home-hero">
+        <div class="date-display" id="date-now"></div>
+        <div class="rotd-glyph" id="rotd-g"></div>
+        <div class="rotd-name" id="rotd-n"></div>
+        <div class="rotd-meaning" id="rotd-m"></div>
     </div>
+    <div class="action-card" onclick="navTo('reading'); setReadMode('draw')">
+        <div class="action-title">Draw Staves</div>
+        <div class="action-sub">Let the Norns guide your hand</div>
+    </div>
+    <div class="action-card" onclick="navTo('reading'); setReadMode('manual')">
+        <div class="action-title">Manual Choice</div>
+        <div class="action-sub">Select with conscious intent</div>
+    </div>
+</div>
 
-    <button id="recast-btn" onclick="recastForge()">✧ Rethrow the Bones</button>
-
-    <div id="rune-grid">
+<div class="page" id="page-reading">
+    <div style="padding: 60px 20px 0; text-align:center;">
+        <h2 style="font-size:12px; letter-spacing:0.5em; text-transform:uppercase; color:var(--accent); margin-bottom:40px;">The Oracle</h2>
+        <div id="draw-ui">
+            <div class="reel-container" id="reel-wrap"></div>
+            <button class="btn-main" id="cast-btn" onclick="startCast()">Cast the Runes</button>
         </div>
+        <div id="manual-ui" style="display:none;">
+            <div class="manual-grid" id="manual-grid"></div>
+            <button class="btn-main" id="manual-submit" onclick="submitManual()" disabled>Select 3 Staves</button>
+        </div>
+        <div id="reveal-ui" style="display:none;">
+            <div id="reveal-glyphs" style="display:flex; justify-content:center; gap:24px; margin-bottom:40px;"></div>
+            <div id="reveal-text" style="font-size:18px; font-style:italic; line-height:1.8; color:var(--fg2); padding:0 20px; margin-bottom:40px;"></div>
+            <button class="btn-main" onclick="resetReader()">New Reading</button>
+        </div>
+    </div>
+</div>
 
-    <nav>
-        <div class="nav-item"><span class="nav-icon">ᚠ</span><span>Home</span></div>
-        <div class="nav-item"><span class="nav-icon">ᚱ</span><span>Read</span></div>
-        <div class="nav-item active"><span class="nav-icon">ᛘ</span><span>Forge</span></div>
-        <div class="nav-item"><span class="nav-icon">ᚻ</span><span>Stats</span></div>
-        <div class="nav-item"><span class="nav-icon">ᛒ</span><span>Guide</span></div>
-    </nav>
+<div class="page" id="page-forge">
+    <div style="padding: 60px 20px 0; text-align:center;">
+        <h2 style="font-size:12px; letter-spacing:0.5em; text-transform:uppercase; color:var(--accent); margin-bottom:8px;">Bindrune Forge</h2>
+        <p style="font-size:13px; color:var(--dim2); font-style:italic; margin-bottom:20px;">Select 2–4 runes to forge a shared-stave symbol</p>
+        <div class="forge-container" id="forge-canvas">
+            <canvas id="forge-canvas-el" width="300" height="300"></canvas>
+            <div id="forge-placeholder-text">SELECT RUNES</div>
+        </div>
+        <button class="btn-main btn-recast" id="recast-btn" onclick="recastForge()" disabled>ᛜ &nbsp; Rethrow the Bones</button>
+        <div class="forge-picker" id="forge-picker"></div>
+        <button class="btn-main" id="bind-btn" onclick="bindTalisman()" disabled>Bind to Library</button>
+        <div style="padding:40px 20px; text-align:left;">
+            <span class="stat-label">Talisman Library</span>
+            <div id="talisman-list"></div>
+        </div>
+    </div>
+</div>
 
-    <script>
-        const RUNES = [
-            { n: 'Fehu', g: 'ᚠ' }, { n: 'Uruz', g: 'ᚢ' }, { n: 'Thurisaz', g: 'ᚦ' },
-            { n: 'Ansuz', g: 'ᚨ' }, { n: 'Raidho', g: 'ᚱ' }, { n: 'Kenaz', g: 'ᚲ' },
-            { n: 'Gebo', g: 'ᚼ' }, { n: 'Wunjo', g: 'ᚹ' }, { n: 'Hagalaz', g: 'ᚻ' },
-            { n: 'Nauthiz', g: 'ᚾ' }, { n: 'Isa', g: 'ᛁ' }, { n: 'Jera', g: 'ᛄ' },
-            { n: 'Eihwaz', g: 'ᛇ' }, { n: 'Perthro', g: 'ᛈ' }, { n: 'Algiz', g: 'ᛉ' },
-            { n: 'Sowilo', g: 'ᛊ' }, { n: 'Tiwaz', g: 'ᛏ' }, { n: 'Berkano', g: 'ᛒ' },
-            { n: 'Ehwaz', g: 'ᛖ' }, { n: 'Mannaz', g: 'ᛗ' }, { n: 'Laguz', g: 'ᛚ' },
-            { n: 'Ingwaz', g: 'ᛜ' }, { n: 'Dagaz', g: 'ᛞ' }, { n: 'Othala', g: 'ᛟ' }
-        ];
+<div class="page" id="page-history">
+    <div style="padding-top:60px;">
+        <div class="stats-section">
+            <span class="stat-label">Full Futhark Census</span>
+            <div class="full-grid" id="full-rune-stats"></div>
+        </div>
+        <div class="stats-section">
+            <span class="stat-label">Reading History</span>
+            <div id="history-list"></div>
+        </div>
+    </div>
+</div>
 
-        let forgeSet = [];
-        let forgeMirrors = [];
-        const FORGE_SIZE = 600;
-        const FORGE_FONT = "bold 240px sans-serif"; // Using sans-serif as fallback for emoji/glyphs
-        const FORGE_FS = 240;
-        const RUNE_Y_NUDGE = 0.1; // Adjust based on font baseline
+<div class="page" id="page-library">
+    <div id="guide-list" style="padding:60px 0;"></div>
+</div>
 
-        function init() {
-            const grid = document.getElementById('rune-grid');
-            RUNES.forEach(rune => {
-                const btn = document.createElement('div');
-                btn.className = 'rune-btn';
-                btn.innerText = rune.g;
-                btn.onclick = () => toggleRune(rune, btn);
-                grid.appendChild(btn);
-            });
-            updateForge();
-        }
+<div id="nav">
+    <div class="nav-pill">
+        <button class="nav-btn active" data-id="home" onclick="navTo('home')"><span class="icon">ᚹ</span><span class="txt">Home</span></button>
+        <button class="nav-btn" data-id="reading" onclick="navTo('reading')"><span class="icon">ᚱ</span><span class="txt">Read</span></button>
+        <button class="nav-btn" data-id="forge" onclick="navTo('forge')"><span class="icon">ᛉ</span><span class="txt">Forge</span></button>
+        <button class="nav-btn" data-id="history" onclick="navTo('history')"><span class="icon">ᚻ</span><span class="txt">Stats</span></button>
+        <button class="nav-btn" data-id="library" onclick="navTo('library')"><span class="icon">ᛒ</span><span class="txt">Guide</span></button>
+    </div>
+</div>
 
-        function toggleRune(rune, btn) {
-            const index = forgeSet.findIndex(r => r.n === rune.n);
-            if (index > -1) {
-                forgeSet.splice(index, 1);
-                forgeMirrors.splice(index, 1);
-                btn.classList.remove('active');
-            } else if (forgeSet.length < 4) {
-                forgeSet.push(rune);
-                forgeMirrors.push(false);
-                btn.classList.add('active');
+<script>
+const RUNES = [
+    {g:'ᚠ',n:'Fehu',m:'Wealth',l:'Wealth and creative fire.'},{g:'ᚢ',n:'Uruz',m:'Vitality',l:'Primal strength and health.'},
+    {g:'ᚦ',n:'Thurisaz',m:'Force',l:'Reactive power and defense.'},{g:'ᚨ',n:'Ansuz',m:'Insight',l:'Communication and wisdom.'},
+    {g:'ᚱ',n:'Raidho',m:'Direction',l:'The journey and rhythm.'},{g:'ᚲ',n:'Kenaz',m:'Clarity',l:'Technical skill and knowledge.'},
+    {g:'ᚷ',n:'Gebo',m:'Exchange',l:'Sacred bond and partnership.'},{g:'ᚹ',n:'Wunjo',m:'Harmony',l:'Perfect alignment of will.'},
+    {g:'ᚺ',n:'Hagalaz',m:'Evolution',l:'Necessary disruption and crisis.'},{g:'ᚾ',n:'Naudhiz',m:'Resilience',l:'Innovation born of friction.'},
+    {g:'ᛁ',n:'Isa',m:'Stillness',l:'Stasis and concentration.'},{g:'ᛃ',n:'Jera',m:'Cycles',l:'Harvest and natural reward.'},
+    {g:'ᛇ',n:'Eihwaz',m:'Endurance',l:'Continuity and protection.'},{g:'ᛈ',n:'Perthro',m:'Destiny',l:'Hidden laws of probability.'},
+    {g:'ᛉ',n:'Algiz',m:'Guard',l:'Protective instinct and spirit.'},{g:'ᛊ',n:'Sowilo',m:'Success',l:'Victory and burning vitality.'},
+    {g:'ᛏ',n:'Tiwaz',m:'Honor',l:'Sacrifice for the greater good.'},{g:'ᛒ',n:'Berkano',m:'Growth',l:'Nurturing and creative bloom.'},
+    {g:'ᛖ',n:'Ehwaz',m:'Synergy',l:'Progress through mutual trust.'},{g:'ᛗ',n:'Mannaz',m:'Identity',l:'Human consciousness and social bonds.'},
+    {g:'ᛚ',n:'Laguz',m:'Intuition',l:'Flow of deep emotions.'},{g:'ᛜ',n:'Ingwaz',m:'Potential',l:'Rest before an idea bursts into life.'},
+    {g:'ᛞ',n:'Dagaz',m:'Awakening',l:'Radical breakthrough and dawn.'},{g:'ᛟ',n:'Othala',m:'Legacy',l:'Foundations and inheritances.'}
+];
+
+let forgeSet = [], forgeMirrors = [], manualSet = [], readingActive = false;
+let stats = JSON.parse(localStorage.getItem('rune_stats') || '{}');
+let history = JSON.parse(localStorage.getItem('rune_hist') || '[]');
+let talismans = JSON.parse(localStorage.getItem('rune_tali') || '[]');
+
+const FORGE_SIZE = 300, FORGE_FS = 180;
+const FORGE_FONT = `${FORGE_FS}px serif`;
+
+// Init
+window.onload = () => {
+    const now = new Date();
+    document.getElementById('date-now').textContent = now.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'}).toUpperCase();
+    const rotd = RUNES[now.getDate() % RUNES.length];
+    document.getElementById('rotd-g').textContent = rotd.g;
+    document.getElementById('rotd-n').textContent = rotd.n;
+    document.getElementById('rotd-m').textContent = rotd.m;
+    navTo('home');
+};
+
+function navTo(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + id).classList.add('active');
+    document.querySelector(`[data-id="${id}"]`).classList.add('active');
+    if (id === 'forge') initForge();
+    if (id === 'history') renderStats();
+    if (id === 'library') renderGuide();
+}
+
+// Oracle Logic
+function setReadMode(mode) {
+    readingActive = false;
+    document.getElementById('draw-ui').style.display = mode === 'draw' ? 'block' : 'none';
+    document.getElementById('manual-ui').style.display = mode === 'manual' ? 'block' : 'none';
+    document.getElementById('reveal-ui').style.display = 'none';
+    if (mode === 'draw') {
+        const wrap = document.getElementById('reel-wrap'); wrap.innerHTML = '';
+        for (let i = 0; i < 3; i++) {
+            const reel = document.createElement('div'); reel.className = 'reel'; reel.id = 'r'+i;
+            for (let j = 0; j < 30; j++) {
+                const u = document.createElement('div'); u.className = 'reel-unit'; u.textContent = RUNES[Math.floor(Math.random()*RUNES.length)].g;
+                reel.appendChild(u);
             }
-            updateForge();
+            const slot = document.createElement('div'); slot.className = 'slot'; slot.appendChild(reel); wrap.appendChild(slot);
         }
+    } else {
+        const grid = document.getElementById('manual-grid'); grid.innerHTML = ''; manualSet = [];
+        RUNES.forEach(r => {
+            const item = document.createElement('div'); item.className = 'manual-item'; item.textContent = r.g;
+            item.onclick = () => {
+                if(manualSet.includes(r)) { manualSet = manualSet.filter(x=>x!==r); item.classList.remove('selected'); }
+                else if(manualSet.length < 3) { manualSet.push(r); item.classList.add('selected'); }
+                document.getElementById('manual-submit').disabled = manualSet.length !== 3;
+            };
+            grid.appendChild(item);
+        });
+    }
+}
 
-        function updateForge() {
+function startCast() {
+    const picks = [];
+    for (let i=0; i<3; i++) {
+        const r = RUNES[Math.floor(Math.random()*RUNES.length)]; picks.push(r);
+        const el = document.getElementById('r'+i); el.lastChild.textContent = r.g;
+        el.style.transform = `translateY(-${29 * 130}px)`;
+    }
+    setTimeout(() => processReading(picks), 3500);
+}
+
+function submitManual() { processReading(manualSet); }
+
+function processReading(runes) {
+    readingActive = true;
+    document.getElementById('draw-ui').style.display = 'none';
+    document.getElementById('manual-ui').style.display = 'none';
+    const container = document.getElementById('reveal-glyphs'); container.innerHTML = '';
+    runes.forEach(r => {
+        const g = document.createElement('div'); g.style.fontSize = '40px'; g.textContent = r.g; container.appendChild(g);
+        stats[r.n] = (stats[r.n] || 0) + 1;
+    });
+    const txt = `The staves of ${runes[0].n}, ${runes[1].n}, and ${runes[2].n} have fallen. You are guided by ${runes[0].m}, challenged by ${runes[1].m}, and moving toward ${runes[2].m}.`;
+    document.getElementById('reveal-text').textContent = txt;
+    document.getElementById('reveal-ui').style.display = 'block';
+    history.unshift({ date: new Date().toLocaleDateString(), glyphs: runes.map(r=>r.g).join(' '), text: txt });
+    localStorage.setItem('rune_hist', JSON.stringify(history.slice(0,20)));
+    localStorage.setItem('rune_stats', JSON.stringify(stats));
+}
+
+function resetReader() { setReadMode('draw'); }
+
+// Forge Engine 2.2
+function compositeForge() {
+    const cv = document.getElementById('forge-canvas-el'); if (!cv) return;
+    const ctx = cv.getContext('2d'), cx = 150, cy = 150, count = forgeSet.length;
+    ctx.clearRect(0,0,300,300);
+    ctx.fillStyle = '#0d0d12'; ctx.beginPath(); ctx.arc(cx,cy,150,0,Math.PI*2); ctx.fill();
+    if (count === 0) return;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = FORGE_FONT;
+    forgeSet.forEach((r, i) => {
+        const mirror = forgeMirrors[i] ?? false, yNudge = (i - (count-1)/2)*15, scale = 0.8 - (i*0.05);
+        ctx.save(); ctx.translate(cx, cy + yNudge); ctx.scale(mirror ? -scale : scale, scale);
+        if (i > 0) { ctx.globalCompositeOperation = 'destination-out'; ctx.strokeStyle = 'black'; ctx.lineWidth = 12; ctx.strokeText(r.g, 0, 0); }
+        ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = '#c9a96e'; ctx.fillText(r.g, 0, 0); ctx.restore();
+    });
+    ctx.save(); ctx.globalCompositeOperation = 'source-atop';
+    const grd = ctx.createLinearGradient(0,50,0,250); grd.addColorStop(0,'#fefaf0'); grd.addColorStop(0.5,'#c9a96e'); grd.addColorStop(1,'#7a5e2d');
+    ctx.fillStyle = grd; ctx.fillRect(0,0,300,300); ctx.restore();
+}
+
+function initForge() {
+    const p = document.getElementById('forge-picker'); if (p.children.length > 0) return;
+    RUNES.forEach(r => {
+        const b = document.createElement('div'); b.className = 'forge-pick-btn'; b.textContent = r.g;
+        b.onclick = () => {
+            if (forgeSet.find(x=>x.n===r.n)) { forgeSet = forgeSet.filter(x=>x.n!==r.n); b.classList.remove('chosen'); }
+            else if (forgeSet.length < 4) { forgeSet.push(r); forgeMirrors.push(false); b.classList.add('chosen'); }
+            document.getElementById('bind-btn').disabled = forgeSet.length < 2;
+            document.getElementById('recast-btn').disabled = forgeSet.length < 2;
             compositeForge();
-        }
+        };
+        p.appendChild(b);
+    });
+}
 
-        // --- FORGE ENGINE 2.2 (Unified Shared-Stave) ---
-        function compositeForge() {
-            const cv = document.getElementById('forge-canvas-el');
-            if (!cv) return;
-            const ctx = cv.getContext('2d');
-            const cx = FORGE_SIZE / 2, cy = FORGE_SIZE / 2;
-            const count = forgeSet.length;
+function recastForge() {
+    forgeSet = forgeSet.sort(() => Math.random() - 0.5);
+    forgeMirrors = forgeSet.map(() => Math.random() > 0.5);
+    compositeForge();
+}
 
-            ctx.clearRect(0, 0, FORGE_SIZE, FORGE_SIZE);
-            
-            // 1. Forge Background
-            ctx.fillStyle = '#0d0d12';
-            ctx.beginPath(); ctx.arc(cx, cy, cx, 0, Math.PI * 2); ctx.fill();
-            const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, cx * 0.85);
-            grd.addColorStop(0, 'rgba(201,169,110,0.15)');
-            grd.addColorStop(1, 'rgba(0,0,0,0)');
-            ctx.fillStyle = grd;
-            ctx.beginPath(); ctx.arc(cx, cy, cx, 0, Math.PI * 2); ctx.fill();
+function bindTalisman() {
+    const snap = document.getElementById('forge-canvas-el').toDataURL();
+    talismans.unshift({ snap, date: new Date().toLocaleDateString() });
+    localStorage.setItem('rune_tali', JSON.stringify(talismans.slice(0,10)));
+    showToast('Talisman Bound'); renderTalismans();
+}
 
-            if (count === 0) return;
+function renderTalismans() {
+    const l = document.getElementById('talisman-list'); l.innerHTML = '';
+    talismans.forEach(t => {
+        const card = document.createElement('div'); card.className = 'talisman-card';
+        card.innerHTML = `<img src="${t.snap}" style="width:100px; display:block; margin:0 auto;"><p style="text-align:center; font-size:10px; margin-top:10px; color:var(--dim2);">${t.date}</p>`;
+        l.appendChild(card);
+    });
+}
 
-            // 2. Prep Unified Styling
-            ctx.lineJoin = 'round';
-            ctx.lineCap = 'round';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.font = FORGE_FONT;
+function renderStats() {
+    const c = document.getElementById('full-rune-stats'); c.innerHTML = '';
+    RUNES.forEach(r => {
+        const b = document.createElement('div'); b.className = 'grid-stat-box';
+        b.innerHTML = `<span>${r.g}</span><span style="color:var(--accent);">${stats[r.n] || 0}</span>`;
+        c.appendChild(b);
+    });
+    const h = document.getElementById('history-list'); h.innerHTML = '';
+    history.forEach(i => {
+        const d = document.createElement('div'); d.className = 'history-item';
+        d.innerHTML = `<div class="history-content"><div style="font-size:10px; color:var(--accent);">${i.date}</div><div style="font-size:24px; margin:10px 0;">${i.glyphs}</div><div style="font-size:14px; opacity:0.7;">${i.text}</div></div>`;
+        h.appendChild(d);
+    });
+}
 
-            // 3. Draw Shared-Geometry Base
-            forgeSet.forEach((r, i) => {
-                const mirror = forgeMirrors[i] ?? false;
-                const yNudge = (i - (count - 1) / 2) * 25; 
-                const scale = 0.85 - (i * 0.05); 
+function renderGuide() {
+    const l = document.getElementById('guide-list'); if (l.innerHTML) return;
+    RUNES.forEach(r => {
+        const d = document.createElement('div'); d.className = 'guide-item';
+        d.innerHTML = `<div class="guide-header" onclick="this.parentElement.classList.toggle('open')"><span style="font-size:30px; color:var(--accent);">${r.g}</span><div><b>${r.n}</b><br><small>${r.m}</small></div></div><div class="guide-desc">${r.l}</div>`;
+        l.appendChild(d);
+    });
+}
 
-                ctx.save();
-                ctx.translate(cx, cy + yNudge);
-                ctx.scale(mirror ? -scale : scale, scale);
-                
-                // Cutout logic for "forged" interlocking
-                if (i > 0) {
-                    ctx.globalCompositeOperation = 'destination-out';
-                    ctx.strokeStyle = 'black';
-                    ctx.lineWidth = 15;
-                    ctx.strokeText(r.g, 0, FORGE_FS * RUNE_Y_NUDGE);
-                }
-
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.fillStyle = '#c9a96e';
-                ctx.fillText(r.g, 0, FORGE_FS * RUNE_Y_NUDGE);
-                ctx.restore();
-            });
-
-            // 4. Unified Metallic Finish
-            ctx.save();
-            ctx.globalCompositeOperation = 'source-atop';
-            const metalGrd = ctx.createLinearGradient(0, 100, 0, 500);
-            metalGrd.addColorStop(0, '#fefaf0'); 
-            metalGrd.addColorStop(0.5, '#c9a96e'); 
-            metalGrd.addColorStop(1, '#7a5e2d'); 
-            ctx.fillStyle = metalGrd;
-            ctx.fillRect(0, 0, FORGE_SIZE, FORGE_SIZE);
-
-            // Inner heat glow
-            ctx.globalCompositeOperation = 'lighter';
-            ctx.shadowBlur = 30;
-            ctx.shadowColor = 'rgba(201,169,110,0.5)';
-            forgeSet.forEach((r, i) => {
-                const mirror = forgeMirrors[i] ?? false;
-                const yNudge = (i - (count - 1) / 2) * 25;
-                const scale = 0.85 - (i * 0.05);
-                ctx.save();
-                ctx.translate(cx, cy + yNudge);
-                ctx.scale(mirror ? -scale : scale, scale);
-                ctx.fillText(r.g, 0, FORGE_FS * RUNE_Y_NUDGE);
-                ctx.restore();
-            });
-            ctx.restore();
-
-            // 5. Final Vignette
-            const vig = ctx.createRadialGradient(cx, cy, cx * 0.6, cx, cy, cx);
-            vig.addColorStop(0, 'rgba(0,0,0,0)');
-            vig.addColorStop(1, 'rgba(13,13,18,0.9)');
-            ctx.fillStyle = vig;
-            ctx.beginPath(); ctx.arc(cx, cy, cx, 0, Math.PI * 2); ctx.fill();
-        }
-
-        function recastForge() {
-            if (forgeSet.length < 2) return;
-            const cv = document.getElementById('forge-canvas-el');
-            cv.style.transition = 'opacity 0.2s ease';
-            cv.style.opacity = '0.3';
-            
-            setTimeout(() => {
-                forgeMirrors = forgeSet.map(() => Math.random() > 0.5);
-                forgeSet = forgeSet.sort(() => Math.random() - 0.5);
-                updateForge();
-                cv.style.opacity = '1';
-            }, 200);
-        }
-
-        window.onload = init;
-    </script>
+function showToast(m) { const t = document.getElementById('toast'); t.textContent = m; t.style.opacity = '1'; setTimeout(()=>t.style.opacity='0', 2000); }
+</script>
 </body>
 </html>
