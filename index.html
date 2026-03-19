@@ -198,6 +198,40 @@ transition:background 0.2s,color 0.2s;
 .draw-btn:hover,.draw-btn:active { background:var(–accent); color:var(–bg); }
 .draw-btn:disabled { border-color:var(–dim); color:var(–dim2); cursor:default; background:none; }
 
+/* ── READING CARD ── */
+.reading-wrap {
+display:none; flex-direction:column; align-items:center;
+gap:0; padding:0 14px; max-width:460px; margin:0 auto; width:100%;
+}
+.reading-wrap.visible { display:flex; }
+.reading-card {
+width:100%; border:1px solid var(–dim); background:var(–card);
+padding:28px 24px 24px; position:relative;
+}
+.reading-rune-row {
+display:flex; justify-content:center; align-items:baseline;
+gap:6px; margin-bottom:18px;
+}
+.reading-rune-glyph { font-size:28px; color:var(–fg); opacity:0.85; line-height:1; }
+.reading-rune-sep { font-size:10px; color:var(–dim2); margin:0 2px; }
+.reading-rune-name { font-size:8px; letter-spacing:0.2em; text-transform:uppercase; color:var(–accent); }
+.reading-divider {
+width:40px; height:1px; background:var(–dim); margin:0 auto 20px;
+}
+.reading-text {
+font-size:17px; font-style:italic; font-weight:300; line-height:1.7;
+color:rgba(232,228,220,0.75); text-align:center;
+user-select:text; -webkit-user-select:text;
+}
+.reading-position-labels {
+display:flex; justify-content:space-between;
+padding:10px 2px 0; width:100%;
+}
+.reading-position-label {
+font-size:8px; letter-spacing:0.25em; text-transform:uppercase; color:var(–dim2);
+text-align:center; flex:1;
+}
+
 /* ── GENERATE / RESULT ── */
 .gen-wrap { padding:6px 14px 0; max-width:460px; margin:0 auto; width:100%; }
 .gen-btn {
@@ -314,11 +348,27 @@ animation:slotBlur 0.1s linear infinite;
     <div class="section-label" style="padding-top:20px;"></div>
   </div>
 
-  <!-- ── SHARED GENERATE / RESULT ── -->
+  <!-- ── READING CARD ── -->
 
-  <div class="gen-wrap">
+  <div class="reading-wrap" id="reading-wrap">
+    <div class="section-label">Today's Reading</div>
+    <div class="reading-card">
+      <div class="reading-rune-row" id="reading-rune-row"></div>
+      <div class="reading-divider"></div>
+      <div class="reading-text" id="reading-text"></div>
+    </div>
+    <div class="reading-position-labels">
+      <div class="reading-position-label">Past</div>
+      <div class="reading-position-label">Present</div>
+      <div class="reading-position-label">Future</div>
+    </div>
+  </div>
+
+  <!-- ── WALLPAPER ── -->
+
+  <div class="gen-wrap" id="gen-wrap" style="margin-top:18px;">
     <button class="gen-btn" id="gen-btn" disabled onclick="generate()">
-      Generate Reading &amp; Wallpaper
+      Generate Wallpaper
     </button>
   </div>
   <div class="status" id="status"></div>
@@ -402,11 +452,13 @@ function enterMode(mode) {
 function goBack() {
   selected = [];
   currentMode = null;
+  currentSummary = '';
   document.getElementById('app').classList.remove('visible');
   const ss = document.getElementById('start-screen');
   ss.style.display = 'flex';
   ss.classList.remove('hidden');
   document.getElementById('result').classList.remove('visible');
+  document.getElementById('reading-wrap').classList.remove('visible');
   document.getElementById('status').textContent = '';
   // reset draw slots
   for (let i = 0; i < 3; i++) {
@@ -457,9 +509,15 @@ function updateManualSlots() {
       ge.textContent = ''; ge.classList.remove('filled'); ne.textContent = '';
     }
   }
-  document.getElementById('gen-btn').disabled = selected.length < 3;
-  document.getElementById('result').classList.remove('visible');
-  document.getElementById('status').textContent = '';
+  if (selected.length === 3) {
+    showReading();
+  } else {
+    document.getElementById('reading-wrap').classList.remove('visible');
+    document.getElementById('gen-btn').disabled = true;
+    document.getElementById('result').classList.remove('visible');
+    document.getElementById('status').textContent = '';
+    currentSummary = '';
+  }
 }
 
 function clearAll() {
@@ -573,7 +631,7 @@ function spinSlots() {
         spinning = false;
         btn.disabled = false;
         btn.textContent = 'Draw Again';
-        document.getElementById('gen-btn').disabled = false;
+        showReading();
       }
     }, landTimes[i]);
   }
@@ -581,51 +639,341 @@ function spinSlots() {
 
 // ── Generate ─────────────────────────────────────────────────────────────────
 
-async function generate() {
-  if (selected.length < 3) return;
+// ── Phrase engine ─────────────────────────────────────────────────────────────
+// Each rune has phrases for three positions: past [0], present [1], future [2].
+// Each position holds 3 variants; one is chosen at random each time.
+// Sentences are joined into a two-sentence reading.
+
+const PHRASES = {
+  Fehu: [
+    ['What you have built is the ground beneath your feet.',
+     'A foundation of effort and abundance has been laid.',
+     'Past prosperity has shaped the ground you stand on.'],
+    ['Wealth — of spirit or of means — is within reach today.',
+     'Today calls you to tend what you have cultivated.',
+     'The energy of abundance moves through your hands right now.'],
+    ['What you nurture now will return to you in full.',
+     'Generosity given freely will find its way back.',
+     'The seeds of effort sown today bear fruit ahead.']
+  ],
+  Uruz: [
+    ['A time of raw strength has forged who you are.',
+     'You have already moved through something that demanded everything.',
+     'The effort behind you was real, and it has not been wasted.'],
+    ['Your body and will are resources — draw on them.',
+     'Today asks for vigour; trust the strength that lives in you.',
+     'Primal energy is available to you in this moment.'],
+    ['Vitality is returning, or will be needed soon.',
+     'Something ahead will ask for your full force — you have it.',
+     'A deep resilience is growing that will carry you forward.']
+  ],
+  Thurisaz: [
+    ['A difficulty you met has left its mark, and rightly so.',
+     'A trial already faced has sharpened your edge.',
+     'The force of a past challenge has not been without purpose.'],
+    ['There is friction here; meet it directly rather than around it.',
+     'Today holds a point of resistance — it is not without meaning.',
+     'Something is pushing back; that push is asking you to be clear.'],
+    ['What feels like an obstacle ahead may be a threshold.',
+     'A challenge coming will ask for courage, not cleverness.',
+     'The thorns ahead guard something worth reaching.']
+  ],
+  Ansuz: [
+    ['A truth spoken or received has set something in motion.',
+     'Words once shared have carried further than you knew.',
+     'Wisdom passed to you — or through you — has taken root.'],
+    ['Listen as much as you speak today.',
+     'The right word, offered or received, can open a door.',
+     'Communication is the work of this moment — be precise and open.'],
+    ['Understanding is coming; give it space to arrive.',
+     'A message, or a realisation, will find you.',
+     'The voice you trust — inner or outer — will speak when needed.']
+  ],
+  Raidho: [
+    ['A journey undertaken has changed your sense of direction.',
+     'Movement already made has brought you to exactly this place.',
+     'The road behind you was not walked in vain.'],
+    ['The path is yours to set today — take the next step.',
+     'Movement matters more than arrival right now.',
+     'Consider the direction you are moving in, and whether it is right.'],
+    ['The road ahead opens when you choose to walk it.',
+     'A journey — inward or outward — is drawing near.',
+     'What you head toward is more fitting than you yet know.']
+  ],
+  Kenaz: [
+    ['A spark of understanding has already changed something in you.',
+     'A past illumination — a moment of knowing — guides you still.',
+     'Knowledge once gained continues to light the way.'],
+    ['Turn your attention to what needs to be understood today.',
+     'Creative fire is available — do not let it sit unlit.',
+     'There is craft or clarity to be found in today\'s work.'],
+    ['A new understanding is beginning to take form.',
+     'The torch will be passed, or kindled within you.',
+     'Light is coming — an insight, an opening, a way through.']
+  ],
+  Gebo: [
+    ['An exchange made in good faith has left a balance in your favour.',
+     'Something freely given in the past continues to return to you.',
+     'A gift — of time, trust, or care — has not gone unmarked.'],
+    ['Give and receive in equal measure today.',
+     'A partnership or exchange is at the heart of this day.',
+     'What you offer, and what you ask for, both deserve honesty.'],
+    ['A generous act or agreement will prove its worth.',
+     'Something freely shared ahead will bring unexpected return.',
+     'Balance between giving and receiving will find its right form.']
+  ],
+  Wunjo: [
+    ['A moment of joy or belonging has stayed with you.',
+     'Something harmonious in the past has left a quiet warmth.',
+     'Fulfilment was found before, and its memory is a resource.'],
+    ['Today holds the possibility of genuine contentment.',
+     'Look for the small harmonies in this day — they are there.',
+     'Joy is not far; it may already be present if you are still enough.'],
+    ['A period of ease and belonging is on its way.',
+     'Harmony ahead is not wishful thinking — it is earned.',
+     'What you have worked toward will settle into something good.']
+  ],
+  Hagalaz: [
+    ['A disruption already endured has cleared ground you needed cleared.',
+     'What once fell apart was already outgrown.',
+     'The storm behind you has made the air cleaner.'],
+    ['Something is shifting under you — let it, rather than resist.',
+     'Today may bring disruption; it is doing necessary work.',
+     'What is breaking down today was never meant to hold indefinitely.'],
+    ['A disruption ahead is a passage, not a conclusion.',
+     'The hail that falls clears the field for what must grow.',
+     'Something will change — and what follows will be more honest.']
+  ],
+  Naudhiz: [
+    ['A period of constraint has taught you what is truly necessary.',
+     'You have met scarcity before and found your own resourcefulness.',
+     'Hardship in the past has made your priorities clear.'],
+    ['Today calls for patience and economy — not everything at once.',
+     'Work with what you have; constraint is itself a teacher.',
+     'The need you feel right now is pointing at something real.'],
+    ['What feels lacking will in time show itself as sufficient.',
+     'The pressure ahead will reveal a strength not yet called upon.',
+     'Endurance is being asked of you — and you are more capable than you know.']
+  ],
+  Isa: [
+    ['A stillness — or a stalling — was exactly what that time required.',
+     'A period of waiting has, in its way, done its work.',
+     'The pause in the past was a gathering, not a loss.'],
+    ['This is a day for stillness rather than force.',
+     'Do not push. Let things be as they are for now.',
+     'Today is better served by patience than by action.'],
+    ['A period of waiting lies ahead — use it.',
+     'What appears frozen will move again, at its own time.',
+     'Stillness ahead is not stagnation; it is preparation.']
+  ],
+  Jera: [
+    ['The effort you put in has quietly been accumulating.',
+     'What you tended with care is now in the process of ripening.',
+     'A cycle you committed to has not finished working yet.'],
+    ['Trust the pace of things today — cycles cannot be hurried.',
+     'The work is in the tending, not the harvest.',
+     'What you do with patience today is planting for a season ahead.'],
+    ['A reward is coming — in proportion to what was given.',
+     'The harvest you have been moving toward is closer than it seems.',
+     'What you have worked for will arrive in its proper season.']
+  ],
+  Eihwaz: [
+    ['You have already survived something that asked for deep endurance.',
+     'A passage between what was and what is has already been made.',
+     'The roots you grew in difficulty are holding you now.'],
+    ['Stand firm today; the pressure is not permanent.',
+     'You are the axis between what was and what will be.',
+     'Today asks for steadiness — neither retreat nor recklessness.'],
+    ['You will find you have more staying power than you anticipated.',
+     'Continuity is being woven — what you protect now will last.',
+     'The endurance asked of you ahead is of the quiet, rooted kind.']
+  ],
+  Perthro: [
+    ['Something hidden was at work beneath what you could see.',
+     'A mystery once turned over has left its quiet influence.',
+     'The unseen forces of the past have shaped this moment.'],
+    ['Not everything needs to be understood today — sit with the unknown.',
+     'Something is working beneath the surface; trust the process.',
+     'The day holds depths; you do not have to solve them all.'],
+    ['Something concealed will come to light in its own time.',
+     'Fate is doing work you cannot yet see.',
+     'What is hidden ahead is not hostile — only unready to be known.']
+  ],
+  Algiz: [
+    ['You were protected — by circumstance, by instinct, or by others.',
+     'A boundary or guardian in the past has served you well.',
+     'Something held you safe when you most needed it.'],
+    ['Trust your instincts today; they are working even when quiet.',
+     'Set the boundaries that need setting — this is the time.',
+     'Higher guidance is available; you only have to stop and listen.'],
+    ['Protection is available to you in what lies ahead.',
+     'Trust that what watches over you is still watching.',
+     'An instinct or boundary set now will prove its worth.']
+  ],
+  Sowilo: [
+    ['A moment of clarity or victory has already shifted your course.',
+     'The energy you brought to a past effort has not been forgotten.',
+     'Light and momentum were with you before, and their effect remains.'],
+    ['This is a day for clarity — say what you mean, do what matters.',
+     'Vital energy is with you; move with it rather than against it.',
+     'The sun is out, metaphorically speaking — use the light.'],
+    ['Clarity is coming, cutting cleanly through what confused you.',
+     'A victory — quiet or loud — is being prepared.',
+     'The energy you put out now returns to you amplified.']
+  ],
+  Tiwaz: [
+    ['A sacrifice made honestly has set something right.',
+     'You have already stood for something when it cost you.',
+     'A past act of courage or integrity continues to matter.'],
+    ['Act with honour today, even when it is the harder path.',
+     'Justice — to yourself or others — is the work of this moment.',
+     'What is right and what is easy may not be the same thing today.'],
+    ['What you do with integrity now will stand.',
+     'A just outcome is being shaped by the choices made now.',
+     'The courage asked of you ahead is of the steady, quiet kind.']
+  ],
+  Berkano: [
+    ['Something tender was nurtured in the past and has taken root.',
+     'A new beginning once made has grown further than it first appeared.',
+     'What was once fragile has quietly become strong.'],
+    ['Tend what is new and vulnerable today — it needs care, not force.',
+     'Growth is happening; it only asks to be protected, not pushed.',
+     'Today is a day for nurturing — of others, or of yourself.'],
+    ['Something new is preparing to emerge.',
+     'A beginning is ahead — small, but real, and worth tending.',
+     'What you are growing will find its form in the season ahead.']
+  ],
+  Ehwaz: [
+    ['A partnership or collaboration has carried you further than you went alone.',
+     'Trust placed in another — or in yourself — has made the journey possible.',
+     'Movement made in partnership has left you somewhere good.'],
+    ['Work in tandem today — with another, or with your own deeper self.',
+     'Trust is the engine of progress right now.',
+     'The path moves more easily when you stop trying to do it alone.'],
+    ['A partnership or alliance ahead will prove its value.',
+     'Progress comes through trust, not through force.',
+     'The road ahead is smoother when it is shared.']
+  ],
+  Mannaz: [
+    ['The people around you have shaped more of who you are than you realise.',
+     'Community — however small — has been your ground.',
+     'What you have given to others has come back to you in form.'],
+    ['Reflect honestly on yourself today — without harshness, without flattery.',
+     'You are both individual and part of something larger; hold both.',
+     'Today asks for self-knowledge as much as outward action.'],
+    ['Your relationship with others — and with yourself — is deepening.',
+     'Something about how you see yourself will become clearer.',
+     'The community or the self you are building will take on new meaning.']
+  ],
+  Laguz: [
+    ['Something felt, more than understood, has guided you well.',
+     'A current you trusted has carried you to this point.',
+     'What moved beneath the surface in the past is now beginning to show.'],
+    ['Follow feeling over logic today — your intuition is sharp.',
+     'Let things flow; forcing clarity will only muddy the water.',
+     'The deeper current of this day is worth attending to.'],
+    ['Something is flowing toward you — let it come.',
+     'Intuition will guide you to what analysis cannot find.',
+     'What is beneath the surface will surface, in its own time and way.']
+  ],
+  Ingwaz: [
+    ['A quiet period of inner work has prepared more than you know.',
+     'Something has been growing in the background, slowly and surely.',
+     'The potential held privately has not been idle.'],
+    ['This is inner work — what you tend within will shape what emerges.',
+     'Rest is not absence of effort; what gestates needs quiet.',
+     'Do not rush what is preparing itself inside you.'],
+    ['Something is almost ready to emerge.',
+     'A potential long held will find its moment.',
+     'What has been incubating in you is closer to form than it seems.']
+  ],
+  Dagaz: [
+    ['A breakthrough already reached has changed the light you see by.',
+     'Something once transformed cannot become what it was.',
+     'A threshold crossed in the past has opened the present.'],
+    ['Today stands at a turning point — be present for it.',
+     'Something is completing and something is beginning; they are the same moment.',
+     'The light available today is clear and honest — use it well.'],
+    ['A breakthrough is coming — not a distant hope, but a real arrival.',
+     'What felt stuck is about to shift, and the shift will be lasting.',
+     'The dawn ahead is closer than the dark suggests.']
+  ],
+  Othala: [
+    ['What was passed to you — skill, memory, place — is a living inheritance.',
+     'The roots of where you come from are more nourishing than you give them credit for.',
+     'What your past has handed you is worth holding.'],
+    ['Return today to what truly belongs to you — your values, your home, your people.',
+     'What do you protect, and what protects you? That is the question of this day.',
+     'Heritage is not a weight — it is a foundation you can build from.'],
+    ['What you are building now will become something worth inheriting.',
+     'Home — in its deepest sense — is being established.',
+     'What you protect and tend will endure beyond this season.']
+  ],
+  Blank: [
+    ['What you could not name or see has nonetheless been at work.',
+     'The unknowable has been present all along, beneath every certainty.',
+     'Something beyond understanding has shaped the path here.'],
+    ['Release the need to know; not everything can be mapped.',
+     'Today holds something that will not be explained — only lived.',
+     'The blank rune asks nothing of you but openness.'],
+    ['What lies ahead is genuinely open — shaped by nothing yet.',
+     'Fate is uncommitted; that is freedom, not uncertainty.',
+     'The future, for now, belongs entirely to possibility.']
+  ]
+};
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+let currentSummary = '';
+
+function showReading() {
+  currentSummary = `${pick(PHRASES[selected[0].n][0])} ${pick(PHRASES[selected[1].n][1])} ${pick(PHRASES[selected[2].n][2])}`;
+
+  // Rune row: glyph · name · sep · glyph · name · sep · glyph · name
+  const row = document.getElementById('reading-rune-row');
+  row.innerHTML = '';
+  selected.forEach((r, i) => {
+    const g = document.createElement('span');
+    g.className = 'reading-rune-glyph'; g.textContent = r.g;
+    const n = document.createElement('span');
+    n.className = 'reading-rune-name'; n.textContent = r.n;
+    row.appendChild(g); row.appendChild(n);
+    if (i < 2) {
+      const sep = document.createElement('span');
+      sep.className = 'reading-rune-sep'; sep.textContent = '·';
+      row.appendChild(sep);
+    }
+  });
+
+  document.getElementById('reading-text').textContent = currentSummary;
+
+  const wrap = document.getElementById('reading-wrap');
+  wrap.classList.add('visible');
+  wrap.scrollIntoView({behavior:'smooth', block:'nearest'});
+
+  document.getElementById('gen-btn').disabled = false;
+  document.getElementById('result').classList.remove('visible');
+  document.getElementById('status').textContent = '';
+}
+
+function generate() {
+  if (!currentSummary) return;
   const btn = document.getElementById('gen-btn');
   const status = document.getElementById('status');
   btn.disabled = true;
   document.getElementById('result').classList.remove('visible');
-  status.textContent = 'Consulting the runes…';
-
-  let summary = '';
-  try { summary = await getSummary(); }
-  catch(e) { summary = 'The runes speak of a day requiring reflection, patience, and trust in the unfolding path.'; }
-
   status.textContent = 'Drawing your wallpaper…';
-  try {
-    await renderToCanvas(summary);
+
+  renderToCanvas(currentSummary).then(() => {
     status.textContent = '';
     document.getElementById('result').classList.add('visible');
     document.getElementById('result').scrollIntoView({behavior:'smooth'});
-  } catch(e) {
+    btn.disabled = false;
+  }).catch(e => {
     status.textContent = 'Something went wrong — ' + e.message;
     console.error(e);
-  }
-  btn.disabled = false;
-}
-
-async function getSummary() {
-  const names    = selected.map(r => r.n).join(', ');
-  const meanings = selected.map(r => `${r.n} (${r.m})`).join('; ');
-  const resp = await fetch('https://api.anthropic.com/v1/messages', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({
-      model:'claude-sonnet-4-20250514',
-      max_tokens:1000,
-      messages:[{
-        role:'user',
-        content:`You are a thoughtful rune reader. The person has drawn three runes: ${names}.
-Meanings: ${meanings}.
-Write a daily reflection of exactly 2-3 sentences. Be poetic, grounded and personal in tone.
-No headers, no bullet points. Keep it under 55 words total.`
-      }]
-    })
+    btn.disabled = false;
   });
-  const data = await resp.json();
-  return data.content.map(c => c.text||'').join('').trim();
 }
 
 // ── Canvas render ─────────────────────────────────────────────────────────────
