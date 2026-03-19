@@ -40,10 +40,10 @@
         .action-title { text-transform: uppercase; letter-spacing: 3px; font-size: 14px; color: var(--accent); margin-bottom: 4px; }
         .action-sub { font-size: 11px; color: var(--dim2); font-style: italic; }
 
-        /* Reader Roulette */
+        /* Reader Roulette - Enhanced Randomness Styles */
         .reel-container { display: flex; justify-content: center; gap: 15px; margin: 40px 0; height: 130px; }
         .slot { width: 95px; height: 130px; background: var(--dim); border: 1px solid rgba(201,169,110,0.1); border-radius: 12px; overflow: hidden; position: relative; }
-        .reel { transition: transform 3.2s cubic-bezier(0.15, 0, 0.05, 1); }
+        .reel { transition-property: transform; transition-timing-function: cubic-bezier(0.15, 0, 0.05, 1); }
         .reel-unit { height: 130px; display: flex; align-items: center; justify-content: center; font-size: 52px; color: var(--fg); }
 
         /* Manual Grid */
@@ -54,6 +54,11 @@
         /* Forge */
         .forge-container { position: relative; width: 320px; height: 320px; margin: 20px auto; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle, #1a1a24 0%, #0d0d12 100%); border-radius: 50%; border: 1px solid var(--dim); }
         .forge-rune { position: absolute; font-size: 160px; color: var(--accent); opacity: 0.6; mix-blend-mode: screen; transition: 0.5s; pointer-events: none; }
+
+        /* Library (Bindrunes) */
+        .talisman-card { background: var(--dim); border: 1px solid rgba(201,169,110,0.1); border-radius: 15px; padding: 25px; margin-bottom: 20px; }
+        .talisman-glyph { font-size: 40px; color: var(--accent); letter-spacing: -12px; margin-bottom: 10px; }
+        .talisman-power { font-size: 14px; font-style: italic; line-height: 1.6; color: var(--fg2); }
 
         /* Stats & History */
         .stats-section { padding: 0 20px; margin-bottom: 30px; }
@@ -73,9 +78,14 @@
 
         .btn-main { width: calc(100% - 40px); background: none; border: 1px solid var(--accent); color: var(--accent); padding: 22px; text-transform: uppercase; letter-spacing: 0.4em; font-size: 11px; margin: 20px; cursor: pointer; border-radius: 4px; }
         .btn-main:disabled { opacity: 0.2; pointer-events: none; }
+        .btn-danger { border-color: var(--red-dim); color: #ff9999; margin-top: 40px; }
+
+        .toast { position: fixed; top: 40px; left: 50%; transform: translateX(-50%); background: var(--accent); color: var(--bg); padding: 12px 25px; border-radius: 30px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; z-index: 3000; opacity: 0; transition: 0.4s; pointer-events: none; }
     </style>
 </head>
 <body>
+
+<div id="toast" class="toast"></div>
 
 <div class="page" id="page-home">
     <div class="home-hero">
@@ -118,7 +128,13 @@
         <h2 style="font-size:12px; letter-spacing:0.5em; text-transform:uppercase; color:var(--accent); margin-bottom:20px;">Bindrune Forge</h2>
         <div class="forge-container" id="forge-canvas"></div>
         <div id="forge-picker" style="display:grid; grid-template-columns: repeat(6, 1fr); gap:8px; padding:20px;"></div>
-        <button class="btn-main" onclick="forgeSet = []; updateForge();">Clear Forge</button>
+        <button class="btn-main" id="bind-btn" onclick="bindTalisman()">Bind to Library</button>
+        <button class="btn-main" style="margin-top:-10px; border:none; color:var(--dim2); text-decoration:underline; font-size:9px;" onclick="forgeSet = []; updateForge();">Clear Forge</button>
+        
+        <div style="padding:40px 20px; text-align:left;">
+            <span class="stat-label">Talisman Library</span>
+            <div id="talisman-list"></div>
+        </div>
     </div>
 </div>
 
@@ -131,6 +147,7 @@
         <div class="stats-section">
             <span class="stat-label">Reading History (Swipe to Delete)</span>
             <div id="history-list"></div>
+            <button class="btn-main btn-danger" onclick="purgeHistory()">Purge All Records</button>
         </div>
     </div>
 </div>
@@ -182,6 +199,7 @@
     let manualSet = [];
     let stats = JSON.parse(localStorage.getItem('rune_stats') || '{}');
     let history = JSON.parse(localStorage.getItem('rune_hist') || '[]');
+    let talismans = JSON.parse(localStorage.getItem('rune_tali') || '[]');
 
     function navTo(id) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -194,6 +212,7 @@
         if(id === 'library') renderGuide();
     }
 
+    /* READER ENGINE: UNIQUE TIMINGS ADDED */
     function setReadMode(mode) {
         document.getElementById('draw-ui').style.display = mode === 'draw' ? 'block' : 'none';
         document.getElementById('manual-ui').style.display = mode === 'manual' ? 'block' : 'none';
@@ -203,6 +222,9 @@
             for(let i=0; i<3; i++) {
                 const slot = document.createElement('div'); slot.className = 'slot';
                 const reel = document.createElement('div'); reel.className = 'reel'; reel.id = `r${i}`;
+                // Different spin times for higher randomness feel
+                reel.style.transitionDuration = (3.2 + (i * 0.6)) + "s";
+                reel.style.transitionDelay = (i * 0.15) + "s";
                 for(let j=0; j<45; j++) {
                     const unit = document.createElement('div'); unit.className = 'reel-unit';
                     unit.textContent = RUNES[Math.floor(Math.random()*25)].g;
@@ -234,7 +256,8 @@
             r.lastChild.textContent = win.g; 
             r.style.transform = `translateY(-${44 * 130}px)`;
         }
-        setTimeout(() => processReading(picks), 3400);
+        // Wait for the longest reel to finish (3.2 + 1.2 + offset)
+        setTimeout(() => processReading(picks), 4600);
     }
 
     function submitManual() { processReading(manualSet); }
@@ -261,6 +284,7 @@
 
     function resetReader() { setReadMode('draw'); document.getElementById('cast-btn').disabled = false; }
 
+    /* FORGE & TALISMAN LIBRARY */
     function initForge() {
         const p = document.getElementById('forge-picker'); if(p.children.length > 0) return;
         RUNES.forEach(r => {
@@ -273,6 +297,7 @@
             };
             p.appendChild(b);
         });
+        renderTalismans();
     }
 
     function updateForge() {
@@ -283,8 +308,42 @@
             el.style.opacity = 0.4 + (i * 0.15);
             cv.appendChild(el);
         });
+        document.getElementById('bind-btn').disabled = forgeSet.length < 2;
     }
 
+    function bindTalisman() {
+        const glyphs = forgeSet.map(r => r.g).join('');
+        const names = forgeSet.map(r => r.n);
+        const incantation = `By the binding of ${names[0]} and ${names[1]}${names[2] ? ' and ' + names[2] : ''}, this talisman shall provide the wearer with the ${forgeSet[0].m.toLowerCase()} to conquer their shadows and the ${forgeSet[1].m.toLowerCase()} to shield their spirit from the chaos of the world.`;
+        
+        talismans.unshift({ glyphs, incantation });
+        localStorage.setItem('rune_tali', JSON.stringify(talismans.slice(0, 15)));
+        showToast("Talisman Bound");
+        renderTalismans();
+        forgeSet = []; updateForge();
+    }
+
+    function renderTalismans() {
+        const list = document.getElementById('talisman-list'); list.innerHTML = '';
+        talismans.forEach((t, idx) => {
+            const card = document.createElement('div'); card.className = 'talisman-card';
+            card.innerHTML = `
+                <div class="talisman-glyph">${t.glyphs}</div>
+                <div class="talisman-power">${t.incantation}</div>
+                <div style="text-align:right; margin-top:15px;">
+                    <span style="font-size:9px; color:var(--red-dim); cursor:pointer;" onclick="deleteTalisman(${idx})">UNBIND</span>
+                </div>`;
+            list.appendChild(card);
+        });
+    }
+
+    function deleteTalisman(idx) {
+        talismans.splice(idx, 1);
+        localStorage.setItem('rune_tali', JSON.stringify(talismans));
+        renderTalismans();
+    }
+
+    /* STATS & HISTORY */
     function renderStats() {
         const census = document.getElementById('full-rune-stats'); census.innerHTML = '';
         RUNES.forEach(r => {
@@ -318,13 +377,25 @@
 
     function deleteHistory(idx) {
         const item = history[idx];
-        item.names.forEach(name => {
-            if(stats[name] && stats[name] > 0) stats[name]--;
-        });
+        if(item.names) {
+            item.names.forEach(name => {
+                if(stats[name] && stats[name] > 0) stats[name]--;
+            });
+        }
         history.splice(idx,1);
         localStorage.setItem('rune_hist', JSON.stringify(history));
         localStorage.setItem('rune_stats', JSON.stringify(stats));
         renderStats();
+    }
+
+    function purgeHistory() {
+        if(confirm("Purge all records? This will reset your census counts and history.")) {
+            history = []; stats = {};
+            localStorage.removeItem('rune_hist');
+            localStorage.removeItem('rune_stats');
+            renderStats();
+            showToast("Records Purged");
+        }
     }
 
     function renderGuide() {
@@ -339,6 +410,11 @@
                 <div class="guide-desc">${r.l}</div>`;
             cont.appendChild(div);
         });
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast'); t.textContent = msg; t.style.opacity = '1';
+        setTimeout(() => t.style.opacity = '0', 2500);
     }
 
     document.getElementById('date-now').textContent = new Date().toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'}).toUpperCase();
