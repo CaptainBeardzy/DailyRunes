@@ -488,7 +488,7 @@ function compositeForge() {
     ctx.clearRect(0, 0, FORGE_SIZE, FORGE_SIZE);
 
     // Background
-    ctx.fillStyle = '#0d0d12';
+   // ctx.fillStyle = '#0d0d12';
     ctx.beginPath();
     ctx.arc(cx, cy, cx, 0, Math.PI * 2);
     ctx.fill();
@@ -571,12 +571,12 @@ function compositeForge() {
         if (i > 0) {
             for (let j = 0; j < i; j++) {
                 // Thick dark stroke punches out the region
-                drawRune(forgeSet[j], j, '#0d0d12', 14);
+               // drawRune(forgeSet[j], j, '#0d0d12', 14);
             }
         }
 
         // Step B: draw the current rune — shadow stroke then gold fill
-        drawRune(r, i, '#0d0d12', 9);   // dark separator stroke
+      //  drawRune(r, i, '#0d0d12', 9);   // dark separator stroke
         drawRune(r, i, '#c9a96e', null); // gold fill
     });
 
