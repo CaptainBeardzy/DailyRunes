@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Rune Guide & Oracle</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Junicode:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
     <!-- Noto Sans Runic via Fontsource CDN — clean geometric runic glyphs -->
     <style>
     @font-face {
@@ -23,6 +23,23 @@
             --dim: #1a1a24; --dim2: #8a8070; --card: #15151e;
             --fg2: #b8b4aa; --red-dim: #551a1a;
         }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    button, a {
+        -webkit-appearance: none; appearance: none;
+        color: inherit; -webkit-text-fill-color: inherit;
+        font-family: 'Junicode', serif;
+    }
+
+    body {
+        background: var(--bg); color: var(--fg);
+        font-family: 'Junicode', serif;
+        overscroll-behavior: none; overflow-x: hidden;
+        -webkit-text-fill-color: var(--fg);
+    }
+
+    /* ALL YOUR ORIGINAL CSS REMAINS 100% UNCHANGED BELOW */
 
 ```
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
