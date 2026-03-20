@@ -484,11 +484,13 @@ function compositeForge() {
     const ctx = cv.getContext('2d');
     const cx = FORGE_SIZE / 2, cy = FORGE_SIZE / 2;
     const count = forgeSet.length;
+    const SCALE = 0.82;
+    const BASE_Y = -FORGE_SIZE * 0.03;
 
     ctx.clearRect(0, 0, FORGE_SIZE, FORGE_SIZE);
 
     // Background
-   // ctx.fillStyle = '#0d0d12';
+    ctx.fillStyle = '#0d0d12';
     ctx.beginPath();
     ctx.arc(cx, cy, cx, 0, Math.PI * 2);
     ctx.fill();
@@ -505,29 +507,18 @@ function compositeForge() {
 
     if (count === 0) return;
 
-    // ── Position offsets ───────────────────────────────────────────────────
-    // Rather than forcing all runes to the exact same centre, we nudge each
-    // one slightly so they sit beside/touching rather than perfectly stacked.
-    // This gives a more natural hand-drawn bind rune feel.
-    // Offsets are in canvas pixels, applied before scale.
-    const SCALE = 0.78;
-    const BASE_Y = -FORGE_SIZE * 0.03;
-
-    // For 2 runes: nudge apart horizontally so they touch at the boundary
-    // For 3 runes: one centre, others offset left/right
-    // For 4 runes: slight spread in all directions
-    const nudge = FORGE_SIZE * 0.08; // base nudge distance
+    // Position offsets — runes nudged slightly apart so they
+    // sit beside each other rather than perfectly stacked
+    const nudge = FORGE_SIZE * 0.07;
     const offsets = {
         1: [[0, 0]],
-        2: [[-nudge * 0.6, 0], [nudge * 0.6, 0]],
-        3: [[0, -nudge * 0.4], [-nudge * 0.7, nudge * 0.5], [nudge * 0.7, nudge * 0.5]],
-        4: [[-nudge * 0.5, -nudge * 0.4], [nudge * 0.5, -nudge * 0.4],
-            [-nudge * 0.5,  nudge * 0.5], [nudge * 0.5,  nudge * 0.5]],
+        2: [[-nudge * 0.5, 0], [nudge * 0.5, 0]],
+        3: [[0, -nudge * 0.4], [-nudge * 0.65, nudge * 0.45], [nudge * 0.65, nudge * 0.45]],
+        4: [[-nudge*0.5,-nudge*0.4],[nudge*0.5,-nudge*0.4],[-nudge*0.5,nudge*0.45],[nudge*0.5,nudge*0.45]],
     };
-    const pos = offsets[count] || offsets[4];
+    const pos = offsets[Math.min(count, 4)] || offsets[4];
 
-    // ── Helper: draw one rune onto ctx at its position ─────────────────────
-    function drawRune(r, i, colour, strokeW) {
+    function drawGlyph(r, i, colour, strokeW) {
         const mirror = forgeMirrors[i] ?? false;
         const [ox, oy] = pos[i] ?? [0, 0];
         ctx.save();
@@ -549,36 +540,19 @@ function compositeForge() {
         ctx.restore();
     }
 
-    // ── Layered painter's algorithm ────────────────────────────────────────
-    // For each rune in order:
-    //   1. Stamp a MASK of all previously drawn runes in background colour
-    //      with extra stroke width — this "erases" the area where the new
-    //      rune would create an ugly intersection with earlier ones
-    //   2. Draw the new rune on top in gold
-    //
-    // Result: rune[0] is always fully visible. Rune[1] shows where it
-    // doesn't cross rune[0]. Rune[2] shows where it doesn't cross 0 or 1.
-    // The mask stroke is thick enough to cover any antialiasing fringe.
-
     ctx.save();
     ctx.beginPath();
     ctx.arc(cx, cy, cx - 2, 0, Math.PI * 2);
     ctx.clip();
 
-    forgeSet.forEach((r, i) => {
-        // Step A: mask — redraw all previous runes as thick background-coloured
-        // strokes. This blocks the area where the current rune would overlap.
-        if (i > 0) {
-            for (let j = 0; j < i; j++) {
-                // Thick dark stroke punches out the region
-               // drawRune(forgeSet[j], j, '#0d0d12', 14);
-            }
-        }
+    // Pass 1: dark separator stroke under everything
+    // This creates a thin dark halo around each glyph so where
+    // two strokes cross there's a visible separation line —
+    // the eye reads it as one stroke passing in front of the other
+    forgeSet.forEach((r, i) => drawGlyph(r, i, '#0d0d12', 9));
 
-        // Step B: draw the current rune — shadow stroke then gold fill
-      //  drawRune(r, i, '#0d0d12', 9);   // dark separator stroke
-        drawRune(r, i, '#c9a96e', null); // gold fill
-    });
+    // Pass 2: gold fill — all runes on top, fully visible
+    forgeSet.forEach((r, i) => drawGlyph(r, i, '#c9a96e', null));
 
     ctx.restore();
 
@@ -678,18 +652,18 @@ function bindTalisman() {
         fresh.width = fresh.height = 300;
         const fCtx = fresh.getContext('2d');
         const cx = 150, cy = 150, S = 300;
-        const SCALE = 0.78, BASE_Y = -S * 0.03;
-        const nudge = S * 0.08;
+        const SCALE = 0.82, BASE_Y = -S * 0.03;
+        const nudge = S * 0.07;
         const count = forgeSet.length;
         const offsets = {
-            1: [[0,0]], 2: [[-nudge*0.6,0],[nudge*0.6,0]],
-            3: [[0,-nudge*0.4],[-nudge*0.7,nudge*0.5],[nudge*0.7,nudge*0.5]],
-            4: [[-nudge*0.5,-nudge*0.4],[nudge*0.5,-nudge*0.4],[-nudge*0.5,nudge*0.5],[nudge*0.5,nudge*0.5]],
+            1:[[0,0]], 2:[[-nudge*0.5,0],[nudge*0.5,0]],
+            3:[[0,-nudge*0.4],[-nudge*0.65,nudge*0.45],[nudge*0.65,nudge*0.45]],
+            4:[[-nudge*0.5,-nudge*0.4],[nudge*0.5,-nudge*0.4],[-nudge*0.5,nudge*0.45],[nudge*0.5,nudge*0.45]],
         };
-        const pos = offsets[count] || offsets[4];
+        const pos = offsets[Math.min(count,4)] || offsets[4];
 
-        //fCtx.fillStyle = '#0d0d12';
-        //fCtx.beginPath(); fCtx.arc(cx,cy,cx,0,Math.PI*2); fCtx.fill();
+        fCtx.fillStyle = '#0d0d12';
+        fCtx.beginPath(); fCtx.arc(cx,cy,cx,0,Math.PI*2); fCtx.fill();
 
         function fDraw(r, i, colour, strokeW) {
             const mirror = forgeMirrors[i] ?? false;
@@ -703,19 +677,15 @@ function bindTalisman() {
                 fCtx.strokeStyle=colour; fCtx.lineWidth=strokeW; fCtx.lineJoin='round';
                 fCtx.strokeText(r.g, 0, FORGE_FS*RUNE_Y_NUDGE);
             } else {
-                fCtx.fillStyle=colour;
-                fCtx.fillText(r.g, 0, FORGE_FS*RUNE_Y_NUDGE);
+                fCtx.fillStyle=colour; fCtx.fillText(r.g, 0, FORGE_FS*RUNE_Y_NUDGE);
             }
             fCtx.restore();
         }
 
         fCtx.save();
         fCtx.beginPath(); fCtx.arc(cx,cy,cx-2,0,Math.PI*2); fCtx.clip();
-        forgeSet.forEach((r, i) => {
-            if (i > 0) for (let j=0; j<i; j++) fDraw(forgeSet[j],j,'#0d0d12',14);
-            //fDraw(r, i, '#0d0d12', 9);
-            fDraw(r, i, '#c9a96e', null);
-        });
+        forgeSet.forEach((r,i) => fDraw(r,i,'#0d0d12',9));
+        forgeSet.forEach((r,i) => fDraw(r,i,'#c9a96e',null));
         fCtx.restore();
 
         const vig = fCtx.createRadialGradient(cx,cy,cx*0.52,cx,cy,cx);
