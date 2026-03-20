@@ -98,6 +98,50 @@
     .guide-desc { max-height: 0; overflow: hidden; transition: max-height 0.5s ease; color: var(--fg2); -webkit-text-fill-color: var(--fg2); line-height: 1.7; font-size: 15px; }
     .guide-item.open .guide-desc { max-height: 600px; margin-top: 20px; }
 
+    /* History swipe */
+    .history-item {
+        position: relative; overflow: hidden;
+        background: var(--bg); border-bottom: 1px solid var(--dim);
+        touch-action: pan-y;
+    }
+    .history-delete-bg {
+        position: absolute; right: 0; top: 0; bottom: 0; width: 100%;
+        background: #5c1a1a;
+        display: flex; align-items: center; justify-content: flex-end;
+        padding-right: 28px;
+        font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em;
+        color: #ff9999; -webkit-text-fill-color: #ff9999;
+    }
+    .history-content {
+        position: relative; z-index: 2; background: var(--bg);
+        padding: 22px 20px; cursor: pointer;
+        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        will-change: transform;
+    }
+    .history-item.swiped .history-content { transform: translateX(-90px); }
+
+    /* Full-screen detail modal */
+    .detail-modal {
+        position: fixed; inset: 0; z-index: 5000;
+        background: rgba(13,13,18,0.97);
+        display: flex; flex-direction: column;
+        padding: env(safe-area-inset-top, 20px) 0 env(safe-area-inset-bottom, 20px);
+        animation: fadeIn 0.25s forwards;
+        overflow-y: auto;
+    }
+    .detail-modal-close {
+        position: sticky; top: 0; z-index: 10;
+        display: flex; justify-content: flex-end;
+        padding: 16px 20px;
+    }
+    .detail-modal-close button {
+        background: rgba(255,255,255,0.07); border: none;
+        color: var(--fg2); -webkit-text-fill-color: var(--fg2);
+        font-size: 20px; width: 40px; height: 40px;
+        border-radius: 50%; cursor: pointer; display: flex;
+        align-items: center; justify-content: center;
+    }
+
     .btn-main {
         width: calc(100% - 40px); background: none;
         border: 1px solid var(--accent); color: var(--accent); -webkit-text-fill-color: var(--accent);
@@ -152,6 +196,7 @@
 <body>
 
 <div id="toast" class="toast"></div>
+<div id="detail-modal" style="display:none;"></div>
 
 <!-- HOME -->
 
@@ -161,6 +206,7 @@
         <div class="rotd-glyph" id="rotd-g"></div>
         <div class="rotd-name" id="rotd-n"></div>
         <div class="rotd-meaning" id="rotd-m"></div>
+        <div id="rotd-msg" style="font-size:16px; font-style:italic; line-height:1.7; color:var(--fg); -webkit-text-fill-color:var(--fg); max-width:280px; margin:0 auto 40px; text-align:center;"></div>
     </div>
     <div class="action-card" onclick="navTo('reading'); setReadMode('draw')">
         <div class="action-title">Draw Staves</div>
@@ -268,31 +314,131 @@
 <script>
 // ── Data ──────────────────────────────────────────────────────────────────────
 const RUNES = [
-    {g:'ᚠ',n:'Fehu',    m:'Wealth',    l:'Wealth and creative fire. It represents prosperity, mobility, and the energy required to maintain success. It warns that wealth is a flow, not a hoard.'},
-    {g:'ᚢ',n:'Uruz',    m:'Vitality',  l:'The primal strength of the wild ox. Represents physical health, raw potential, and the courage to face inevitable change or growth.'},
-    {g:'ᚦ',n:'Thurisaz',m:'Force',     l:'The thorn or giant. A reactive power of defense and conflict. It is a boundary-setter that warns of danger while providing the force to resist it.'},
-    {g:'ᚨ',n:'Ansuz',   m:'Insight',   l:'The breath of the gods. Rules communication, signals, and ancestral wisdom. It suggests a time to listen to omens and higher voices.'},
-    {g:'ᚱ',n:'Raidho',  m:'Direction', l:'The wheel and the journey. Represents rhythm, justice, and the rational movement of the soul towards its intended destination.'},
-    {g:'ᚲ',n:'Kenaz',   m:'Clarity',   l:'The controlled fire of the torch. It represents technical skill, knowledge, and the artistic spark that brings light to dark places.'},
-    {g:'ᚷ',n:'Gebo',    m:'Exchange',  l:'A gift for a gift. Signifies the sacred bond between individuals and the harmony required in any equal partnership or sacrifice.'},
-    {g:'ᚹ',n:'Wunjo',   m:'Harmony',   l:'The peak of joy and well-being. It represents the moment when one\'s internal will is perfectly aligned with the external universe.'},
-    {g:'ᚺ',n:'Hagalaz', m:'Evolution', l:'The hailstone. Necessary disruption and crisis. It clears away stagnant patterns to allow for a new, stronger formation.'},
-    {g:'ᚾ',n:'Naudhiz', m:'Resilience',l:'Innovation born of friction. The "need-fire" that forces us to adapt, find strength in hardship, and overcome limits.'},
-    {g:'ᛁ',n:'Isa',     m:'Stillness', l:'The ice block. A period of total stasis where outward progress is frozen so that internal clarity and concentration can form.'},
-    {g:'ᛃ',n:'Jera',    m:'Cycles',    l:'The harvest and natural reward. It reminds us that patient effort in the right season leads to inevitable and fruitful results.'},
-    {g:'ᛇ',n:'Eihwaz',  m:'Endurance', l:'The Yew tree. It connects the vertical axis of the world, representing continuity, protection, and the ability to endure life\'s transitions.'},
-    {g:'ᛈ',n:'Perthro', m:'Destiny',   l:'The dice cup of the Norns. Rules the hidden laws of probability, cosmic luck, and the mysteries that govern what is yet to be revealed.'},
-    {g:'ᛉ',n:'Algiz',   m:'Guard',     l:'The elk-sedge or shield. It is the protective instinct and higher spirit connection that shields one from physical and spiritual harm.'},
-    {g:'ᛊ',n:'Sowilo',  m:'Success',   l:'The rays of the sun. Vitality, victory, and the light that burns away shadows. It provides the energy needed to complete any task.'},
-    {g:'ᛏ',n:'Tiwaz',   m:'Honor',     l:'The warrior\'s spear. It represents sacrifice for the greater good, leadership, integrity, and the courage to act with justice.'},
-    {g:'ᛒ',n:'Berkano', m:'Growth',    l:'The birch tree. The energy of the womb—nurturing, healing, and bringing new life or creative ideas into physical bloom.'},
-    {g:'ᛖ',n:'Ehwaz',   m:'Synergy',   l:'The horse and rider. Progress achieved through mutual trust, partnership, and the harmonious movement of two distinct forces.'},
-    {g:'ᛗ',n:'Mannaz',  m:'Identity',  l:'The individual within the tribe. It represents human consciousness, social bonds, and the realisation of one\'s true self.'},
-    {g:'ᛚ',n:'Laguz',   m:'Intuition', l:'The flow of water. Rules the deep emotions, the subconscious mind, and the fluid, ever-changing nature of our perceived reality.'},
-    {g:'ᛜ',n:'Ingwaz',  m:'Potential', l:'The seed. Represents stored potential and the need for a period of rest and protection before an idea can burst into life.'},
-    {g:'ᛞ',n:'Dagaz',   m:'Awakening', l:'The light of dawn. A radical breakthrough where a total transformation of perspective leads to absolute clarity.'},
-    {g:'ᛟ',n:'Othala',  m:'Legacy',    l:'Ancestral home and spiritual land. Represents the foundations we build and the lasting inheritances we leave for the future.'},
-    {g:'◯',n:'Wyrd',    m:'Fate',      l:'The Blank Rune. It represents the unknowable, the absolute void, and the destiny that has not yet been written by the Norns.'}
+    {g:'ᚠ',n:'Fehu',    m:'Wealth',
+     predict:['Money or opportunity is moving toward you — act quickly, it won\'t wait.','A financial decision made now will shape the next six months. Trust your instincts.','Something you\'ve invested in is about to pay off. Watch for it.'],
+     warn:'Don\'t hoard what should flow. Share what you have before it stagnates.',
+     power:'Draws wealth and opportunity. Carry this talisman when seeking new income or starting a venture.',
+     l:'Wealth and creative fire — prosperity in motion, not hoarded. Act while the energy flows.'},
+    {g:'ᚢ',n:'Uruz',    m:'Vitality',
+     predict:['Your body and will are stronger than you think. Push through what\'s been holding you back.','A health challenge is coming to an end. Recovery is close.','Raw energy is available to you right now. Use it boldly.'],
+     warn:'Avoid being reckless with your strength. Power spent without aim is wasted.',
+     power:'Restores physical vitality and inner strength. Wear when you need endurance or healing.',
+     l:'The primal strength of the wild ox — raw potential and courage to face change head-on.'},
+    {g:'ᚦ',n:'Thurisaz',m:'Force',
+     predict:['A conflict or challenge is approaching. You are more prepared than you feel.','Someone is testing your limits. Hold your ground firmly.','A difficult decision needs to be made. The uncomfortable choice is the right one.'],
+     warn:'Don\'t strike first without cause. This rune defends — it does not attack.',
+     power:'Protection against aggression and enemies. Keep this talisman close in hostile situations.',
+     l:'The thorn — reactive power, defense, and necessary force. A boundary-setter against harm.'},
+    {g:'ᚨ',n:'Ansuz',   m:'Insight',
+     predict:['Pay close attention to what someone tells you in the next few days. It matters more than it seems.','An answer you\'ve been seeking will come through a conversation or unexpected message.','Trust the thought that keeps returning. Your intuition is speaking clearly.'],
+     warn:'Be careful what you say. Words spoken now carry unusual weight.',
+     power:'Sharpens communication and opens the mind to hidden truths. For writers, speakers, and seekers.',
+     l:'The breath of the gods — communication, signals, and ancestral wisdom. Listen for omens.'},
+    {g:'ᚱ',n:'Raidho',  m:'Direction',
+     predict:['A journey — physical or emotional — is about to begin. Embrace it rather than resist.','The path you\'re on is correct. Keep moving forward without second-guessing.','A situation that felt stuck is about to start moving again.'],
+     warn:'Don\'t rush. The right pace matters as much as the right direction.',
+     power:'Protects travellers and guides decisions. Carry when navigating change or long journeys.',
+     l:'The wheel and the journey — rhythm, justice, and the soul moving toward its destination.'},
+    {g:'ᚲ',n:'Kenaz',   m:'Clarity',
+     predict:['Confusion around a situation is about to lift. Clarity arrives within days.','A skill or creative ability you have will open a door unexpectedly.','Something hidden will be brought into the light. Be ready to see it clearly.'],
+     warn:'Don\'t ignore warning signs. The torch also reveals what you might prefer not to see.',
+     power:'Brings mental clarity and creative power. For artists, students, and problem-solvers.',
+     l:'The controlled torch — technical skill and the artistic spark that illuminates dark places.'},
+    {g:'ᚷ',n:'Gebo',    m:'Exchange',
+     predict:['A meaningful connection or partnership is forming. Nurture it carefully.','Something given freely to you will return multiplied. Accept it with grace.','A balanced exchange is needed. Give as much as you\'ve taken.'],
+     warn:'Avoid unequal relationships. If you give everything and receive nothing, walk away.',
+     power:'Strengthens partnerships and bonds. For relationships, contracts, and creative collaborations.',
+     l:'A gift for a gift — sacred balance between people. Harmony requires equal exchange.'},
+    {g:'ᚹ',n:'Wunjo',   m:'Harmony',
+     predict:['A period of genuine contentment is approaching. Let yourself enjoy it.','Something you\'ve been working toward is finally aligning. You\'re nearly there.','Joy is available to you right now, if you stop looking past it.'],
+     warn:'Don\'t let happiness make you complacent. Tend what you\'ve built.',
+     power:'Draws joy, wellbeing, and alignment into your life. A powerful talisman for emotional health.',
+     l:'The peak of well-being — the moment your inner will aligns perfectly with the outer world.'},
+    {g:'ᚺ',n:'Hagalaz', m:'Evolution',
+     predict:['Something is about to be disrupted or broken apart. This is necessary, not catastrophic.','A sudden change you didn\'t choose is clearing space for something better.','What falls apart now was already too fragile to serve you.'],
+     warn:'Don\'t try to hold on to what\'s breaking down. Let it go cleanly.',
+     power:'Breaks stagnant patterns and forces necessary change. Use when you need transformation.',
+     l:'The hailstone — necessary disruption that clears old patterns for a stronger formation.'},
+    {g:'ᚾ',n:'Naudhiz', m:'Resilience',
+     predict:['A period of pressure and restriction is testing you. You will come through it stronger.','The difficulty you\'re facing is forging something in you that couldn\'t form any other way.','Innovation is coming from necessity. The solution is hiding in the problem.'],
+     warn:'Don\'t give up when it\'s hardest. This is precisely when your effort counts most.',
+     power:'Builds resilience and adaptability under pressure. Wear during hardship or difficult trials.',
+     l:'Need-fire — strength born of friction. The force that makes us adapt and overcome our limits.'},
+    {g:'ᛁ',n:'Isa',     m:'Stillness',
+     predict:['Progress will be slow or stopped for a time. This is not failure — it\'s preservation.','You need to pause and think before moving forward. Rushing now will cost you.','Something is frozen that needs to thaw naturally. Don\'t force it.'],
+     warn:'Isolation can become a trap. Don\'t confuse stillness with retreat.',
+     power:'Brings focus and mental clarity. Use when you need to think clearly or calm a chaotic mind.',
+     l:'The ice — total stillness so that internal clarity and concentration can crystallise.'},
+    {g:'ᛃ',n:'Jera',    m:'Cycles',
+     predict:['Patient effort you\'ve put in is about to bear visible results. The harvest is coming.','A natural cycle is completing. What you planted is ready to be gathered.','This is not the time to start new things — it\'s time to receive what\'s already growing.'],
+     warn:'Don\'t rush the season. Forcing the harvest ruins it.',
+     power:'Brings the reward of patient effort to fruition. For long-term projects and goals.',
+     l:'The harvest — patient effort in the right season leads to inevitable and fruitful results.'},
+    {g:'ᛇ',n:'Eihwaz',  m:'Endurance',
+     predict:['You will face something that tests your staying power. You have more than enough.','A situation that looks like an ending is actually a transition. Keep going.','Protection surrounds you during a difficult passage. You are not as alone as you feel.'],
+     warn:'Don\'t confuse endurance with stubbornness. Know what\'s worth outlasting.',
+     power:'Provides deep protection and endurance through life\'s transitions. A powerful guardian talisman.',
+     l:'The Yew tree — continuity, protection, and the ability to endure life\'s great transitions.'},
+    {g:'ᛈ',n:'Perthro', m:'Destiny',
+     predict:['Something unexpected will happen that changes the odds in your favour.','A secret or hidden truth is about to be revealed. Be open to what it shows you.','What seems like chance is not. Forces are at work that you can\'t fully see yet.'],
+     warn:'Don\'t try to control what is governed by fate. Play the hand you\'re dealt wisely.',
+     power:'Aligns you with fortunate probability and hidden opportunity. For luck and revelation.',
+     l:'The dice cup of the Norns — hidden laws of probability and the mysteries yet to be revealed.'},
+    {g:'ᛉ',n:'Algiz',   m:'Guard',
+     predict:['Someone or something threatens your peace. Your instincts about them are correct.','A period of vulnerability is ending. You are stronger and safer than you were.','Trust who you feel safe with. Your read on people right now is accurate.'],
+     warn:'Don\'t lower your guard out of politeness. Not everyone has earned your trust.',
+     power:'The strongest protection rune. Guards against physical harm, negative energy, and ill intent.',
+     l:'The elk-sedge shield — protective instinct that guards from physical and spiritual harm.'},
+    {g:'ᛊ',n:'Sowilo',  m:'Success',
+     predict:['A goal you\'ve been working toward is within reach. Drive forward with full confidence.','Victory is coming — but it requires your full energy, not half measures.','The light is on your side right now. Make the most of this window.'],
+     warn:'Don\'t burn out chasing success. Even the sun sets.',
+     power:'Ignites confidence, success, and vital energy. Carry when you need momentum or victory.',
+     l:'The sun\'s rays — vitality and the light that burns away shadows. Energy to complete any task.'},
+    {g:'ᛏ',n:'Tiwaz',   m:'Honor',
+     predict:['A sacrifice of time, comfort, or pride will be required of you soon. Make it willingly.','A dispute or legal matter will resolve in your favour if you\'ve acted with integrity.','Someone is watching your actions closely. Be exactly who you say you are.'],
+     warn:'Don\'t confuse stubbornness for integrity. Honour means knowing when you\'re wrong.',
+     power:'Grants courage, justice, and protection in conflict. For legal battles, disputes, and challenges.',
+     l:'The warrior\'s spear — sacrifice for the greater good, integrity, and the courage to act justly.'},
+    {g:'ᛒ',n:'Berkano', m:'Growth',
+     predict:['Something new is being born in your life. Give it time and care before exposing it.','A relationship or creative project is entering a tender, formative phase. Protect it.','Healing is happening — slower than you\'d like, but steadily and truly.'],
+     warn:'Don\'t rush new beginnings. What is still growing can\'t be forced open.',
+     power:'Nurtures new beginnings, healing, and creative growth. For new ventures, recovery, and fertility.',
+     l:'The birch tree — the energy of the womb, nurturing new life and creative ideas into bloom.'},
+    {g:'ᛖ',n:'Ehwaz',   m:'Synergy',
+     predict:['A partnership or collaboration is about to become more powerful than either party alone.','Trust the person beside you. Progress comes from working together, not independently.','A transition is coming — a move, a change of role, or a new direction. It will go smoothly.'],
+     warn:'Don\'t try to control the partnership. Both sides must have room to move.',
+     power:'Strengthens teamwork, partnerships, and smooth transitions. For collaborations and new phases.',
+     l:'The horse and rider — progress through mutual trust and the movement of two forces as one.'},
+    {g:'ᛗ',n:'Mannaz',  m:'Identity',
+     predict:['How others see you matters right now. Make sure your actions match your values.','A community or group you belong to needs your contribution. Show up fully.','You are in a period of self-discovery. The question you keep avoiding holds your answer.'],
+     warn:'Don\'t lose yourself in what others expect. Know the difference between fitting in and belonging.',
+     power:'Strengthens self-knowledge and social bonds. For clarity of identity and community connection.',
+     l:'The individual within the tribe — human consciousness, social bonds, and knowing your true self.'},
+    {g:'ᛚ',n:'Laguz',   m:'Intuition',
+     predict:['Your gut feeling about a situation is right. Stop second-guessing it.','Emotions you\'ve been pushing down are rising. Let them surface — they carry information.','Something hidden beneath the surface of a relationship or situation is about to become visible.'],
+     warn:'Don\'t let emotion become delusion. Feel deeply, but keep one foot on solid ground.',
+     power:'Heightens intuition and emotional intelligence. For dreamwork, creativity, and emotional healing.',
+     l:'The flow of water — deep emotions and the subconscious mind. Reality is fluid and ever-changing.'},
+    {g:'ᛜ',n:'Ingwaz',  m:'Potential',
+     predict:['An idea or project needs more time in the dark before it\'s ready. Don\'t rush the reveal.','A period of rest is not laziness — it is preparation. Use this quiet time well.','Something is stored up inside you that is ready to burst into form. The moment is almost here.'],
+     warn:'Don\'t scatter your energy. Protect what\'s growing until it can stand on its own.',
+     power:'Stores and protects potential energy. For ideas in early stages, pregnancy, or creative incubation.',
+     l:'The seed — stored potential waiting for the right moment to burst into unstoppable life.'},
+    {g:'ᛞ',n:'Dagaz',   m:'Awakening',
+     predict:['A moment of sudden, complete clarity is coming. Everything you\'ve been confused about will resolve.','You are at a threshold — what lies ahead is fundamentally different from what came before. Step through.','A breakthrough is imminent. The struggle is ending.'],
+     warn:'Don\'t cling to who you were. The awakening requires you to let go of your old perspective.',
+     power:'Triggers breakthrough and radical transformation. Use when you need to turn a corner decisively.',
+     l:'The light of dawn — a total transformation of perspective that leads to absolute clarity.'},
+    {g:'ᛟ',n:'Othala',  m:'Legacy',
+     predict:['Your roots and your past are relevant right now — look there for the answer you need.','Something inherited — money, wisdom, or a trait — is about to prove its value.','What you build now will outlast you. Make it worthy.'],
+     warn:'Don\'t let tradition become a prison. Honour your roots without being trapped by them.',
+     power:'Connects you to ancestral protection and grounds your energy in what endures.',
+     l:'Ancestral home — the foundations we build and the lasting inheritances we leave behind.'},
+    {g:'◯',n:'Wyrd',    m:'Fate',
+     predict:['The answer you seek is not yet knowable. Something must unfold before clarity is possible.','You are standing at a genuinely open crossroads. What happens next is being written right now.','Let go of the need to know. The path will reveal itself when you stop demanding a map.'],
+     warn:'Don\'t let the unknown become paralysing. You can act well without certainty.',
+     power:'Embraces the unwritten. For moments when you must trust the unknown and step forward anyway.',
+     l:'The Blank Rune — the unknowable void and the destiny that has not yet been written.'}
 ];
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -316,6 +462,12 @@ let talismans = JSON.parse(localStorage.getItem('rune_tali')  || '[]');
     document.getElementById('rotd-g').textContent = rotd.g;
     document.getElementById('rotd-n').textContent = rotd.n;
     document.getElementById('rotd-m').textContent = rotd.m;
+    // Show today's prediction for the rune of the day
+    const rotdPreds = rotd.predict || [];
+    const rotdSeed = now.getFullYear()*10000 + (now.getMonth()+1)*100 + now.getDate();
+    const rotdPred = rotdPreds.length > 0 ? rotdPreds[rotdSeed % rotdPreds.length] : '';
+    const rotdMsgEl = document.getElementById('rotd-msg');
+    if (rotdMsgEl) rotdMsgEl.textContent = rotdPred;
 
     navTo('home');
 })();
@@ -408,7 +560,7 @@ function startCast() {
 function submitManual() { processReading(manualSet); }
 
 function processReading(runes) {
-    readingActive = true;  // ★ mark reading as in progress
+    readingActive = true;
 
     document.getElementById('draw-ui').style.display   = 'none';
     document.getElementById('manual-ui').style.display = 'none';
@@ -426,13 +578,47 @@ function processReading(runes) {
     });
     localStorage.setItem('rune_stats', JSON.stringify(stats));
 
-    const dateStr = new Date().toLocaleDateString('en-GB', {day:'numeric', month:'short'}).toUpperCase();
-    const textStr = `The presence of ${runes[0].n} (${runes[0].m}) suggests a deep foundation is currently established in your life. The energy of ${runes[1].n} (${runes[1].m}) acts as the necessary catalyst for change, which will eventually manifest in the clarity offered by ${runes[2].n} (${runes[2].m}). Trust the unfolding process as the Norns weave your path.`;
+    // Build reading from structured predict/warn fields
+    // Positions: Past · Present · Future
+    const positions = ['Past', 'Present', 'Future'];
+    const labels    = ['What has shaped you', 'What is active now', 'What is coming'];
 
+    // Pick a deterministic-but-varied prediction index per rune per day
+    const today = new Date();
+    const seed = today.getFullYear()*10000 + (today.getMonth()+1)*100 + today.getDate();
+
+    const parts = runes.map((r, i) => {
+        const preds = r.predict || [`${r.m} is present.`];
+        const idx = (seed + i * 7 + (r.n.charCodeAt(0) || 0)) % preds.length;
+        return { r, pos: positions[i], label: labels[i], prediction: preds[idx] };
+    });
+
+    // Warning comes from the middle rune (most active)
+    const warnRune = runes[1];
+    const warnText = warnRune.warn || '';
+
+    // Build HTML reading
+    const html = parts.map(p => `
+        <div style="margin-bottom:28px; text-align:left; border-left:2px solid rgba(201,169,110,0.25); padding-left:16px;">
+            <div style="font-size:9px; letter-spacing:0.35em; text-transform:uppercase; color:var(--accent); -webkit-text-fill-color:var(--accent); margin-bottom:4px;">${p.pos} — ${p.label}</div>
+            <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.2em; color:var(--dim2); -webkit-text-fill-color:var(--dim2); margin-bottom:8px;">${p.r.n} · ${p.r.m}</div>
+            <div style="font-size:17px; font-style:italic; line-height:1.7; color:var(--fg); -webkit-text-fill-color:var(--fg);">${p.prediction}</div>
+        </div>`).join('');
+
+    const warnHtml = warnText ? `
+        <div style="margin-top:8px; padding:14px 16px; background:rgba(201,169,110,0.06); border-radius:8px; border:1px solid rgba(201,169,110,0.12);">
+            <div style="font-size:9px; letter-spacing:0.35em; text-transform:uppercase; color:var(--dim2); -webkit-text-fill-color:var(--dim2); margin-bottom:6px;">Heed</div>
+            <div style="font-size:15px; font-style:italic; line-height:1.6; color:var(--fg2); -webkit-text-fill-color:var(--fg2);">${warnText}</div>
+        </div>` : '';
+
+    const revealDiv = document.getElementById('reveal-text');
+    revealDiv.innerHTML = html + warnHtml;
+
+    const dateStr = new Date().toLocaleDateString('en-GB', {day:'numeric', month:'short'}).toUpperCase();
+    const textStr = parts.map(p => `${p.pos}: ${p.prediction}`).join(' ');
     history.unshift({ date: dateStr, names: runes.map(r => r.n), glyphs: runes.map(r => r.g).join(' · '), text: textStr });
     localStorage.setItem('rune_hist', JSON.stringify(history.slice(0, 30)));
 
-    document.getElementById('reveal-text').textContent = textStr;
     document.getElementById('reveal-ui').style.display = 'block';
 }
 
@@ -642,7 +828,11 @@ function bindTalisman() {
     const glyphs = forgeSet.map(r => r.g).join('');
     const names  = forgeSet.map(r => r.n);
     const meanings = forgeSet.map(r => r.m.toLowerCase());
-    const incantation = `By the binding of ${names.slice(0,-1).join(', ')} and ${names[names.length-1]}, this talisman carries the ${meanings[0]} of ${names[0]} and the ${meanings[1]} of ${names[1]}${names[2] ? ', tempered by the ' + meanings[2] + ' of ' + names[2] : ''}${names[3] ? ' and the ' + meanings[3] + ' of ' + names[3] : ''}.`;
+    // Build a talisman description from the power fields
+    const powers = forgeSet.map(r => r.power || `The power of ${r.m.toLowerCase()}.`);
+    const incantation = powers.length === 1
+        ? powers[0]
+        : `A talisman of ${names.join(' and ')}: ${powers.map((p,i) => p.replace(/\.$/, '')).join('. ')}. Carry this seal as your protection and your intent.`;
 
     // Redraw onto a fresh canvas that has never had getImageData called on it
     // — guarantees toDataURL works on iOS Safari
@@ -710,34 +900,6 @@ function bindTalisman() {
     renderTalismans();
 }
 
-function renderTalismans() {
-    const list = document.getElementById('talisman-list');
-    list.innerHTML = '';
-    if (talismans.length === 0) {
-        list.innerHTML = '<p style="font-size:13px; color:var(--dim2); -webkit-text-fill-color:var(--dim2); font-style:italic; text-align:center; padding:20px 0;">No talismans bound yet</p>';
-        return;
-    }
-    talismans.forEach((t, idx) => {
-        const card = document.createElement('div'); card.className = 'talisman-card';
-        const preview = t.snap && t.snap.startsWith('data:')
-            ? `<img src="${t.snap}" style="width:80px;height:80px;border-radius:50%;display:block;margin:0 auto 15px;">`
-            : `<div style="font-size:36px;letter-spacing:-6px;color:var(--accent);-webkit-text-fill-color:var(--accent);margin-bottom:12px;text-align:center;">${t.glyphs}</div>`;
-        card.innerHTML = `
-            ${preview}
-            <div class="talisman-power">${t.incantation}</div>
-            <div style="text-align:right;margin-top:15px;">
-                <span style="font-size:9px;color:#ff9999;-webkit-text-fill-color:#ff9999;cursor:pointer;" onclick="deleteTalisman(${idx})">UNBIND</span>
-            </div>`;
-        list.appendChild(card);
-    });
-}
-
-function deleteTalisman(idx) {
-    talismans.splice(idx, 1);
-    localStorage.setItem('rune_tali', JSON.stringify(talismans));
-    renderTalismans();
-}
-
 // ── Stats & History ───────────────────────────────────────────────────────────
 function renderStats() {
     const census = document.getElementById('full-rune-stats');
@@ -754,33 +916,112 @@ function renderStats() {
 
     const hList = document.getElementById('history-list');
     hList.innerHTML = '';
+    if (history.length === 0) {
+        hList.innerHTML = '<p style="font-size:13px;color:var(--dim2);-webkit-text-fill-color:var(--dim2);font-style:italic;padding:20px 0;">No readings yet.</p>';
+        return;
+    }
+
     history.forEach((h, idx) => {
-        const item = document.createElement('div'); item.className = 'history-item';
+        const item = document.createElement('div');
+        item.className = 'history-item';
         item.innerHTML = `
-            <div class="history-delete" onclick="deleteHistory(${idx})">Delete</div>
+            <div class="history-delete-bg">Delete</div>
             <div class="history-content">
-                <div style="font-size:10px; color:var(--accent); -webkit-text-fill-color:var(--accent); margin-bottom:5px;">${h.date}</div>
-                <div style="font-size:20px; letter-spacing:6px; margin-bottom:10px;">${h.glyphs}</div>
-                <div style="font-size:14px; font-style:italic; opacity:0.7; line-height:1.5;">${h.text}</div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <div style="font-size:10px;color:var(--accent);-webkit-text-fill-color:var(--accent);letter-spacing:0.2em;">${h.date}</div>
+                    <div style="font-size:22px;letter-spacing:4px;">${h.glyphs}</div>
+                </div>
+                <div style="font-size:14px;font-style:italic;color:var(--fg2);-webkit-text-fill-color:var(--fg2);line-height:1.5;opacity:0.8;">${(h.text || '').split('.')[0]}.</div>
             </div>`;
-        let startX = 0;
+
+        // ── Swipe to delete ────────────────────────────────────────────────
         const content = item.querySelector('.history-content');
-        content.addEventListener('touchstart', e => startX = e.touches[0].clientX, {passive:true});
-        content.addEventListener('touchmove',  e => {
-            const diff = e.touches[0].clientX - startX;
-            if (diff < 0 && diff > -100) content.style.transform = `translateX(${diff}px)`;
-        }, {passive:true});
-        content.addEventListener('touchend',   e => {
-            const diff = e.touches[0].clientX - startX;
-            content.style.transform = diff < -50 ? 'translateX(-100px)' : 'translateX(0)';
+        let startX = 0, startY = 0, currentX = 0, dragging = false, swiped = false;
+
+        content.addEventListener('touchstart', e => {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            currentX = 0;
+            dragging = true;
+            content.style.transition = 'none';
+        }, {passive: true});
+
+        content.addEventListener('touchmove', e => {
+            if (!dragging) return;
+            const dx = e.touches[0].clientX - startX;
+            const dy = e.touches[0].clientY - startY;
+            // Only track horizontal swipes
+            if (Math.abs(dy) > Math.abs(dx) && Math.abs(currentX) < 5) return;
+            currentX = dx;
+            if (dx < 0) {
+                // Swipe left: slide content to reveal delete
+                const travel = Math.min(Math.abs(dx), window.innerWidth * 0.85);
+                content.style.transform = `translateX(${-travel}px)`;
+            } else if (swiped && dx > 0) {
+                // Swipe right to close when already open
+                const travel = Math.max(0, 90 - dx);
+                content.style.transform = `translateX(-${travel}px)`;
+            }
+        }, {passive: true});
+
+        content.addEventListener('touchend', e => {
+            dragging = false;
+            content.style.transition = 'transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)';
+            const travel = Math.abs(currentX);
+
+            if (currentX < 0) {
+                if (travel > window.innerWidth * 0.5) {
+                    // Swiped more than halfway — delete it
+                    content.style.transform = `translateX(-${window.innerWidth}px)`;
+                    item.style.transition = 'max-height 0.35s ease, opacity 0.35s ease';
+                    item.style.overflow = 'hidden';
+                    setTimeout(() => {
+                        item.style.maxHeight = item.offsetHeight + 'px';
+                        requestAnimationFrame(() => {
+                            item.style.maxHeight = '0';
+                            item.style.opacity = '0';
+                        });
+                        setTimeout(() => deleteHistory(idx), 350);
+                    }, 200);
+                } else if (travel > 40) {
+                    // Partial swipe — snap open to show delete
+                    content.style.transform = 'translateX(-90px)';
+                    swiped = true;
+                } else {
+                    content.style.transform = 'translateX(0)';
+                    swiped = false;
+                }
+            } else if (swiped) {
+                content.style.transform = 'translateX(0)';
+                swiped = false;
+            }
         });
+
+        // Tap the delete bg to confirm delete when swiped open
+        item.querySelector('.history-delete-bg').addEventListener('click', () => {
+            content.style.transition = 'transform 0.2s ease';
+            content.style.transform = `translateX(-${window.innerWidth}px)`;
+            setTimeout(() => deleteHistory(idx), 220);
+        });
+
+        // Tap content to open detail — only if not mid-swipe
+        content.addEventListener('click', e => {
+            if (swiped) {
+                content.style.transform = 'translateX(0)';
+                content.style.transition = 'transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)';
+                swiped = false;
+                return;
+            }
+            openReadingDetail(h);
+        });
+
         hList.appendChild(item);
     });
 }
 
 function deleteHistory(idx) {
     const item = history[idx];
-    if (item.names) item.names.forEach(n => { if (stats[n] > 0) stats[n]--; });
+    if (item && item.names) item.names.forEach(n => { if (stats[n] > 0) stats[n]--; });
     history.splice(idx, 1);
     localStorage.setItem('rune_hist',  JSON.stringify(history));
     localStorage.setItem('rune_stats', JSON.stringify(stats));
@@ -797,6 +1038,107 @@ function purgeHistory() {
     }
 }
 
+// ── Detail modals ─────────────────────────────────────────────────────────────
+function openReadingDetail(h) {
+    const modal = document.getElementById('detail-modal');
+    // Rebuild the rune objects from stored names
+    const runes = (h.names || []).map(n => RUNES.find(r => r.n === n)).filter(Boolean);
+    const positions = ['Past', 'Present', 'Future'];
+
+    const runeHTML = runes.map((r, i) => `
+        <div style="margin-bottom:30px;text-align:left;border-left:2px solid rgba(201,169,110,0.3);padding-left:18px;">
+            <div style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:var(--accent);-webkit-text-fill-color:var(--accent);margin-bottom:6px;">${positions[i] || 'Rune ' + (i+1)}</div>
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
+                <span style="font-size:52px;color:var(--fg);-webkit-text-fill-color:var(--fg);">${r.g}</span>
+                <div>
+                    <div style="font-size:18px;letter-spacing:0.15em;text-transform:uppercase;">${r.n}</div>
+                    <div style="font-size:12px;color:var(--dim2);-webkit-text-fill-color:var(--dim2);font-style:italic;">${r.m}</div>
+                </div>
+            </div>
+            <div style="font-size:16px;font-style:italic;line-height:1.7;color:var(--fg);-webkit-text-fill-color:var(--fg);">${r.predict ? r.predict[0] : r.l}</div>
+            ${r.warn ? `<div style="margin-top:12px;font-size:13px;color:var(--dim2);-webkit-text-fill-color:var(--dim2);font-style:italic;"><span style="color:var(--accent);-webkit-text-fill-color:var(--accent);">Heed — </span>${r.warn}</div>` : ''}
+        </div>`).join('');
+
+    modal.innerHTML = `
+        <div class="detail-modal">
+            <div class="detail-modal-close"><button onclick="closeModal()">✕</button></div>
+            <div style="padding:0 24px 40px;">
+                <div style="font-size:10px;letter-spacing:0.4em;text-transform:uppercase;color:var(--dim2);-webkit-text-fill-color:var(--dim2);margin-bottom:6px;">${h.date}</div>
+                <div style="font-size:28px;letter-spacing:8px;margin-bottom:30px;">${h.glyphs}</div>
+                ${runeHTML}
+            </div>
+        </div>`;
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+function openTalismanDetail(idx) {
+    const t = talismans[idx];
+    if (!t) return;
+    const modal = document.getElementById('detail-modal');
+
+    const preview = t.snap && t.snap.startsWith('data:')
+        ? `<img src="${t.snap}" style="width:180px;height:180px;border-radius:50%;display:block;margin:0 auto 30px;box-shadow:0 0 40px rgba(201,169,110,0.2);">`
+        : `<div style="font-size:60px;letter-spacing:-8px;text-align:center;margin-bottom:30px;">${t.glyphs || ''}</div>`;
+
+    modal.innerHTML = `
+        <div class="detail-modal">
+            <div class="detail-modal-close"><button onclick="closeModal()">✕</button></div>
+            <div style="padding:0 24px 40px;text-align:center;">
+                ${preview}
+                <div style="font-size:9px;letter-spacing:0.4em;text-transform:uppercase;color:var(--accent);-webkit-text-fill-color:var(--accent);margin-bottom:20px;">Talisman of ${t.glyphs || ''}</div>
+                <div style="font-size:17px;font-style:italic;line-height:1.8;color:var(--fg);-webkit-text-fill-color:var(--fg);text-align:left;padding:20px;background:rgba(201,169,110,0.05);border-radius:12px;border:1px solid rgba(201,169,110,0.1);">${t.incantation}</div>
+                <div style="margin-top:24px;text-align:right;">
+                    <span style="font-size:9px;color:#ff9999;-webkit-text-fill-color:#ff9999;cursor:pointer;letter-spacing:0.2em;text-transform:uppercase;" onclick="closeModal();deleteTalisman(${idx})">Unbind</span>
+                </div>
+            </div>
+        </div>`;
+    modal.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+    const modal = document.getElementById('detail-modal');
+    modal.style.display = 'none';
+    modal.innerHTML = '';
+    document.body.style.overflow = '';
+}
+
+// Close modal on background tap
+document.getElementById('detail-modal').addEventListener('click', e => {
+    if (e.target === document.getElementById('detail-modal')) closeModal();
+});
+
+function renderTalismans() {
+    const list = document.getElementById('talisman-list');
+    list.innerHTML = '';
+    if (talismans.length === 0) {
+        list.innerHTML = '<p style="font-size:13px;color:var(--dim2);-webkit-text-fill-color:var(--dim2);font-style:italic;text-align:center;padding:20px 0;">No talismans bound yet</p>';
+        return;
+    }
+    talismans.forEach((t, idx) => {
+        const card = document.createElement('div');
+        card.className = 'talisman-card';
+        card.style.cursor = 'pointer';
+        const preview = t.snap && t.snap.startsWith('data:')
+            ? `<img src="${t.snap}" style="width:70px;height:70px;border-radius:50%;display:block;float:right;margin-left:15px;">`
+            : `<div style="font-size:28px;letter-spacing:-4px;float:right;margin-left:15px;">${t.glyphs || ''}</div>`;
+        card.innerHTML = `
+            ${preview}
+            <div style="font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--accent);-webkit-text-fill-color:var(--accent);margin-bottom:8px;">Talisman</div>
+            <div class="talisman-power" style="font-size:13px;">${(t.incantation || '').substring(0, 90)}${t.incantation && t.incantation.length > 90 ? '…' : ''}</div>
+            <div style="clear:both;"></div>`;
+        card.onclick = () => openTalismanDetail(idx);
+        list.appendChild(card);
+    });
+}
+
+function deleteTalisman(idx) {
+    talismans.splice(idx, 1);
+    localStorage.setItem('rune_tali', JSON.stringify(talismans));
+    renderTalismans();
+}
+
 // ── Stave Guide ───────────────────────────────────────────────────────────────
 function renderGuide() {
     const cont = document.getElementById('guide-list');
@@ -811,7 +1153,11 @@ function renderGuide() {
                     <div style="font-size:12px; color:var(--dim2); -webkit-text-fill-color:var(--dim2);">${r.m}</div>
                 </div>
             </div>
-            <div class="guide-desc">${r.l}</div>`;
+            <div class="guide-desc">
+                <p style="margin-bottom:14px;">${r.l}</p>
+                ${r.warn ? `<p style="margin-bottom:8px;"><span style="font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--accent);-webkit-text-fill-color:var(--accent);">Heed — </span>${r.warn}</p>` : ''}
+                ${r.power ? `<p style="padding:10px 12px;background:rgba(201,169,110,0.06);border-radius:6px;border:1px solid rgba(201,169,110,0.12);"><span style="font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--accent);-webkit-text-fill-color:var(--accent);">In the Forge — </span>${r.power}</p>` : ''}
+            </div>`;
         cont.appendChild(div);
     });
 }
