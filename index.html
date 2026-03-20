@@ -1049,6 +1049,7 @@ function bindTalisman() {
     if (forgeSet.length !== 2) return;
     const names  = forgeSet.map(r => r.n);
     const powers = forgeSet.map(r => r.power || `The power of ${r.m.toLowerCase()}.`);
+    const glyphs = forgeSet.map(r => r.g).join('');
     const incantation = `A talisman of ${names.join(' and ')}: ${powers.map(p => p.replace(/\.$/, '')).join('. ')}. Carry this seal as your protection and your intent.`;
 
     // Snapshot: use the live canvas (stroke-based, no getImageData — always clean)
