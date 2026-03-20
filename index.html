@@ -1,470 +1,435 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rune Guide & Oracle</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
-    <!-- Noto Sans Runic via Fontsource CDN — clean geometric runic glyphs -->
-    <style>
-    @font-face {
-        font-family: 'Noto Sans Runic';
-        font-style: normal;
-        font-display: swap;
-        font-weight: 400;
-        src: url(https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-runic@latest/runic-400-normal.woff2) format('woff2'),
-             url(https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-runic@latest/runic-400-normal.woff) format('woff');
-    }
-    </style>
-    <style>
-        :root {
-            --bg: #0d0d12; --fg: #ede9e0; --accent: #c9a96e;
-            --dim: #1a1a24; --dim2: #8a8070; --card: #15151e;
-            --fg2: #b8b4aa; --red-dim: #551a1a;
-        }
-
-```
-    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-    /* ── iOS Safari colour fixes ── */
-    button, a {
-        -webkit-appearance: none; appearance: none;
-        color: inherit; -webkit-text-fill-color: inherit;
-        font-family: 'Cormorant Garamond', serif;
-    }
-
-    body {
-        background: var(--bg); color: var(--fg);
-        font-family: 'Cormorant Garamond', serif;
-        overscroll-behavior: none; overflow-x: hidden;
-        -webkit-text-fill-color: var(--fg);
-    }
-
-    /* Navigation */
-    #nav { position: fixed; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; z-index: 2000; padding-bottom: env(safe-area-inset-bottom); }
-    .nav-pill { background: rgba(26,26,36,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(201,169,110,0.15); border-radius: 50px; display: flex; padding: 8px 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
-    .nav-btn { width: 65px; height: 55px; background: none; border: none; color: var(--dim2); -webkit-text-fill-color: var(--dim2); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer; }
-    .nav-btn.active { color: var(--accent); -webkit-text-fill-color: var(--accent); }
-    .nav-btn .icon { font-size: 20px; margin-bottom: 2px; color: inherit; -webkit-text-fill-color: inherit; }
-    .nav-btn .txt { font-size: 8px; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 300; color: inherit; -webkit-text-fill-color: inherit; }
-
-    .page { display: none; flex-direction: column; min-height: 100dvh; padding-bottom: 160px; opacity: 0; }
-    .page.active { display: flex; opacity: 1; animation: fadeIn 0.5s forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-    /* Home */
-    .home-hero { text-align: center; padding: 60px 24px 40px; }
-    .date-display { font-size: 11px; letter-spacing: 0.5em; color: var(--fg); -webkit-text-fill-color: var(--fg); text-transform: uppercase; margin-bottom: 50px; opacity: 0.8; }
-    .rotd-glyph { font-size: 110px; color: var(--fg); -webkit-text-fill-color: var(--fg); margin-bottom: 15px; text-shadow: 0 0 30px rgba(201,169,110,0.2); }
-    .rotd-name { font-size: 18px; color: var(--accent); -webkit-text-fill-color: var(--accent); text-transform: uppercase; letter-spacing: 0.5em; margin-bottom: 8px; }
-    .rotd-meaning { font-size: 14px; font-style: italic; color: var(--dim2); -webkit-text-fill-color: var(--dim2); margin-bottom: 40px; }
-
-    .action-card { background: var(--dim); border: 1px solid rgba(255,255,255,0.05); border-radius: 18px; margin: 0 20px 15px; padding: 30px 25px; cursor: pointer; transition: transform 0.2s; }
-    .action-card:active { transform: scale(0.97); }
-    .action-title { text-transform: uppercase; letter-spacing: 3px; font-size: 14px; color: var(--accent); -webkit-text-fill-color: var(--accent); margin-bottom: 4px; }
-    .action-sub { font-size: 11px; color: var(--dim2); -webkit-text-fill-color: var(--dim2); font-style: italic; }
-
-    /* Reader */
-    .reel-container { display: flex; justify-content: center; gap: 15px; margin: 40px 0; height: 130px; }
-    .slot { width: 95px; height: 130px; background: var(--dim); border: 1px solid rgba(201,169,110,0.1); border-radius: 12px; overflow: hidden; position: relative; }
-    .reel { transition-property: transform; transition-timing-function: cubic-bezier(0.15, 0, 0.05, 1); }
-    .reel-unit { height: 130px; display: flex; align-items: center; justify-content: center; font-size: 52px; color: var(--fg); -webkit-text-fill-color: var(--fg); }
-
-    .manual-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
-    .manual-item { background: var(--dim); border: 1px solid transparent; border-radius: 10px; padding: 18px 5px; text-align: center; transition: 0.3s; font-size: 24px; color: var(--fg); -webkit-text-fill-color: var(--fg); cursor: pointer; }
-    .manual-item.selected { border-color: var(--accent); background: rgba(201,169,110,0.15); }
-
-    /* ── FORGE ── */
-    .forge-container {
-        position: relative; width: 300px; height: 300px;
-        margin: 20px auto;
-    }
-    .forge-container svg { width: 100%; height: 100%; }
-
-    /* Forge picker */
-    .forge-picker { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 20px; }
-    .forge-pick-btn {
-        background: var(--dim); padding: 10px; border-radius: 8px;
-        text-align: center; font-size: 20px; cursor: pointer;
-        border: 1px solid transparent; transition: border-color 0.2s, background 0.2s;
-        color: var(--fg); -webkit-text-fill-color: var(--fg);
-        font-family: 'Noto Sans Runic', 'Segoe UI Historic', 'Segoe UI Symbol', serif;
-    }
-    .forge-pick-btn.chosen { border-color: var(--accent); background: rgba(201,169,110,0.12); }
-
-    /* Stats / History */
-    .talisman-card { background: var(--dim); border: 1px solid rgba(201,169,110,0.1); border-radius: 15px; padding: 25px; margin-bottom: 20px; }
-    .talisman-power { font-size: 14px; font-style: italic; line-height: 1.6; color: var(--fg2); -webkit-text-fill-color: var(--fg2); }
-    .stats-section { padding: 0 20px; margin-bottom: 30px; }
-    .stat-label { font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--dim2); -webkit-text-fill-color: var(--dim2); margin-bottom: 15px; display: block; }
-    .full-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 40px; }
-    .grid-stat-box { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
-    .history-item { position: relative; width: 100%; overflow: hidden; background: var(--bg); border-bottom: 1px solid var(--dim); }
-    .history-content { position: relative; z-index: 10; background: var(--bg); padding: 25px 20px; transition: transform 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
-    .history-delete { position: absolute; right: 0; top: 0; bottom: 0; width: 100px; background: var(--red-dim); color: #ff9999; -webkit-text-fill-color: #ff9999; display: flex; align-items: center; justify-content: center; font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; z-index: 1; cursor: pointer; }
-
-    /* Guide */
-    .guide-item { border-bottom: 1px solid var(--dim); padding: 25px 20px; }
-    .guide-header { display: flex; align-items: center; gap: 25px; cursor: pointer; }
-    .guide-desc { max-height: 0; overflow: hidden; transition: max-height 0.5s ease; color: var(--fg2); -webkit-text-fill-color: var(--fg2); line-height: 1.7; font-size: 15px; }
-    .guide-item.open .guide-desc { max-height: 600px; margin-top: 20px; }
-
-    /* History swipe */
-    .history-item {
-        position: relative; overflow: hidden;
-        background: var(--bg); border-bottom: 1px solid var(--dim);
-        touch-action: pan-y;
-    }
-    .history-delete-bg {
-        position: absolute; right: 0; top: 0; bottom: 0; width: 100%;
-        background: #5c1a1a;
-        display: flex; align-items: center; justify-content: flex-end;
-        padding-right: 28px;
-        font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em;
-        color: #ff9999; -webkit-text-fill-color: #ff9999;
-    }
-    .history-content {
-        position: relative; z-index: 2; background: var(--bg);
-        padding: 22px 20px; cursor: pointer;
-        transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        will-change: transform;
-    }
-    .history-item.swiped .history-content { transform: translateX(-90px); }
-
-    /* Full-screen detail modal */
-    .detail-modal {
-        position: fixed; inset: 0; z-index: 5000;
-        background: rgba(13,13,18,0.97);
-        display: flex; flex-direction: column;
-        padding: env(safe-area-inset-top, 20px) 0 env(safe-area-inset-bottom, 20px);
-        animation: fadeIn 0.25s forwards;
-        overflow-y: auto;
-    }
-    .detail-modal-close {
-        position: sticky; top: 0; z-index: 10;
-        display: flex; justify-content: flex-end;
-        padding: 16px 20px;
-    }
-    .detail-modal-close button {
-        background: rgba(255,255,255,0.07); border: none;
-        color: var(--fg2); -webkit-text-fill-color: var(--fg2);
-        font-size: 20px; width: 40px; height: 40px;
-        border-radius: 50%; cursor: pointer; display: flex;
-        align-items: center; justify-content: center;
-    }
-
-    .btn-main {
-        width: calc(100% - 40px); background: none;
-        border: 1px solid var(--accent); color: var(--accent); -webkit-text-fill-color: var(--accent);
-        padding: 22px; text-transform: uppercase; letter-spacing: 0.4em;
-        font-size: 11px; margin: 20px; cursor: pointer; border-radius: 4px;
-        font-family: 'Cormorant Garamond', serif;
-    }
-    .btn-main:disabled { opacity: 0.2; pointer-events: none; }
-    .btn-danger { border-color: var(--red-dim); color: #ff9999; -webkit-text-fill-color: #ff9999; margin-top: 40px; }
-    .btn-subtle { border: none; color: var(--dim2); -webkit-text-fill-color: var(--dim2); text-decoration: underline; font-size: 9px; margin-top: -10px; }
-
-    .toast { position: fixed; top: 40px; left: 50%; transform: translateX(-50%); background: var(--accent); color: var(--bg); -webkit-text-fill-color: var(--bg); padding: 12px 25px; border-radius: 30px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; z-index: 3000; opacity: 0; transition: 0.4s; pointer-events: none; }
-
-    /* Reading result rune display */
-    .reveal-rune { font-size: 50px; color: var(--fg); -webkit-text-fill-color: var(--fg); }
-    .reveal-name { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); -webkit-text-fill-color: var(--accent); margin-top: 4px; text-align: center; }
-
-    /* ── FORGE ── */
-    .forge-container {
-        position: relative; width: 300px; height: 300px;
-        margin: 20px auto; border-radius: 50%; overflow: hidden;
-        background: #0d0d12;
-        border: 1px solid rgba(201,169,110,0.15);
-        box-shadow: 0 0 40px rgba(201,169,110,0.06), inset 0 0 30px rgba(0,0,0,0.5);
-    }
-    #forge-canvas-el {
-        width: 100%; height: 100%; display: block; border-radius: 50%;
-    }
-    #forge-placeholder-text {
-        position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-        font-size: 11px; letter-spacing: 0.35em; text-transform: uppercase;
-        color: rgba(138,128,112,0.35); pointer-events: none;
-    }
-    .forge-pick-btn {
-        background: var(--dim); padding: 10px; border-radius: 8px;
-        text-align: center; font-size: 20px; cursor: pointer;
-        border: 1px solid transparent; transition: border-color 0.2s, background 0.2s;
-        color: var(--fg); -webkit-text-fill-color: var(--fg);
-        font-family: 'Noto Sans Runic', 'Segoe UI Historic', 'Segoe UI Symbol', serif;
-    }
-    .forge-pick-btn.chosen { border-color: var(--accent); background: rgba(201,169,110,0.12); }
-    .btn-recast {
-        border-color: rgba(201,169,110,0.35); color: var(--dim2); -webkit-text-fill-color: var(--dim2);
-        font-size: 12px; margin-top: 4px;
-    }
-    .btn-recast:not([disabled]):hover, .btn-recast:not([disabled]):active {
-        border-color: var(--accent); color: var(--accent); -webkit-text-fill-color: var(--accent);
-    }
-    /* Runic glyph font — applied to all rune character displays */
-    .rune-glyph, .reveal-rune, .rotd-glyph, .reel-unit, .manual-item,
-    .guide-header span, .nav-btn .icon {
-        font-family: 'Noto Sans Runic', 'Segoe UI Historic', 'Segoe UI Symbol', serif !important;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Rune Guide & Oracle</title>
+<link href="https://fonts.googleapis.com/css2?family=Junicode:ital,wght@0,300;0,400;0,700;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+@font-face {
+font-family: 'Noto Sans Runic';
+font-style: normal;
+font-display: swap;
+font-weight: 400;
+src: url(https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-runic@latest/runic-400-normal.woff2) format('woff2'),
+url(https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-runic@latest/runic-400-normal.woff) format('woff');
+}
 </style>
-```
+<style>
+:root {
+--bg: #0d0d12; --fg: #ede9e0; --accent: #c9a96e;
+--dim: #1a1a24; --dim2: #8a8070; --card: #15151e;
+--fg2: #b8b4aa; --red-dim: #551a1a;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+/* ── iOS Safari colour fixes ── */
+button, a {
+    -webkit-appearance: none; appearance: none;
+    color: inherit; -webkit-text-fill-color: inherit;
+    font-family: 'Junicode', serif;
+}
+
+body {
+    background: var(--bg); color: var(--fg);
+    font-family: 'Junicode', serif;
+    overscroll-behavior: none; overflow-x: hidden;
+    -webkit-text-fill-color: var(--fg);
+}
+
+/* Navigation */
+#nav { position: fixed; bottom: 30px; left: 0; right: 0; display: flex; justify-content: center; z-index: 2000; padding-bottom: env(safe-area-inset-bottom); }
+.nav-pill { background: rgba(26,26,36,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(201,169,110,0.15); border-radius: 50px; display: flex; padding: 8px 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+.nav-btn { width: 65px; height: 55px; background: none; border: none; color: var(--dim2); -webkit-text-fill-color: var(--dim2); display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.3s; cursor: pointer; }
+.nav-btn.active { color: var(--accent); -webkit-text-fill-color: var(--accent); }
+.nav-btn .icon { font-size: 20px; margin-bottom: 2px; color: inherit; -webkit-text-fill-color: inherit; }
+.nav-btn .txt { font-size: 8px; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 300; color: inherit; -webkit-text-fill-color: inherit; }
+
+.page { display: none; flex-direction: column; min-height: 100dvh; padding-bottom: 160px; opacity: 0; }
+.page.active { display: flex; opacity: 1; animation: fadeIn 0.5s forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Home */
+.home-hero { text-align: center; padding: 60px 24px 40px; }
+.date-display { font-size: 11px; letter-spacing: 0.5em; color: var(--fg); -webkit-text-fill-color: var(--fg); text-transform: uppercase; margin-bottom: 50px; opacity: 0.8; }
+.rotd-glyph { font-size: 110px; color: var(--fg); -webkit-text-fill-color: var(--fg); margin-bottom: 15px; text-shadow: 0 0 30px rgba(201,169,110,0.2); }
+.rotd-name { font-size: 18px; color: var(--accent); -webkit-text-fill-color: var(--accent); text-transform: uppercase; letter-spacing: 0.5em; margin-bottom: 8px; }
+.rotd-meaning { font-size: 14px; font-style: italic; color: var(--dim2); -webkit-text-fill-color: var(--dim2); margin-bottom: 40px; }
+
+.action-card { background: var(--dim); border: 1px solid rgba(255,255,255,0.05); border-radius: 18px; margin: 0 20px 15px; padding: 30px 25px; cursor: pointer; transition: transform 0.2s; }
+.action-card:active { transform: scale(0.97); }
+.action-title { text-transform: uppercase; letter-spacing: 3px; font-size: 14px; color: var(--accent); -webkit-text-fill-color: var(--accent); margin-bottom: 4px; }
+.action-sub { font-size: 11px; color: var(--dim2); -webkit-text-fill-color: var(--dim2); font-style: italic; }
+
+/* Reader */
+.reel-container { display: flex; justify-content: center; gap: 15px; margin: 40px 0; height: 130px; }
+.slot { width: 95px; height: 130px; background: var(--dim); border: 1px solid rgba(201,169,110,0.1); border-radius: 12px; overflow: hidden; position: relative; }
+.reel { transition-property: transform; transition-timing-function: cubic-bezier(0.15, 0, 0.05, 1); }
+.reel-unit { height: 130px; display: flex; align-items: center; justify-content: center; font-size: 52px; color: var(--fg); -webkit-text-fill-color: var(--fg); }
+
+.manual-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 20px; }
+.manual-item { background: var(--dim); border: 1px solid transparent; border-radius: 10px; padding: 18px 5px; text-align: center; transition: 0.3s; font-size: 24px; color: var(--fg); -webkit-text-fill-color: var(--fg); cursor: pointer; }
+.manual-item.selected { border-color: var(--accent); background: rgba(201,169,110,0.15); }
+
+/* ── FORGE ── */
+.forge-container {
+    position: relative; width: 300px; height: 300px;
+    margin: 20px auto;
+}
+.forge-container svg { width: 100%; height: 100%; }
+
+/* Forge picker */
+.forge-picker { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 20px; }
+.forge-pick-btn {
+    background: var(--dim); padding: 10px; border-radius: 8px;
+    text-align: center; font-size: 20px; cursor: pointer;
+    border: 1px solid transparent; transition: border-color 0.2s, background 0.2s;
+    color: var(--fg); -webkit-text-fill-color: var(--fg);
+    font-family: 'Junicode', serif;
+}
+.forge-pick-btn.chosen { border-color: var(--accent); background: rgba(201,169,110,0.12); }
+
+/* Stats / History */
+.talisman-card { background: var(--dim); border: 1px solid rgba(201,169,110,0.1); border-radius: 15px; padding: 25px; margin-bottom: 20px; }
+.talisman-power { font-size: 14px; font-style: italic; line-height: 1.6; color: var(--fg2); -webkit-text-fill-color: var(--fg2); }
+.stats-section { padding: 0 20px; margin-bottom: 30px; }
+.stat-label { font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--dim2); -webkit-text-fill-color: var(--dim2); margin-bottom: 15px; display: block; }
+.full-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 40px; }
+.grid-stat-box { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; }
+.history-item { position: relative; width: 100%; overflow: hidden; background: var(--bg); border-bottom: 1px solid var(--dim); }
+.history-content { position: relative; z-index: 10; background: var(--bg); padding: 25px 20px; transition: transform 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); }
+.history-delete { position: absolute; right: 0; top: 0; bottom: 0; width: 100px; background: var(--red-dim); color: #ff9999; -webkit-text-fill-color: #ff9999; display: flex; align-items: center; justify-content: center; font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em; z-index: 1; cursor: pointer; }
+
+/* Guide */
+.guide-item { border-bottom: 1px solid var(--dim); padding: 25px 20px; }
+.guide-header { display: flex; align-items: center; gap: 25px; cursor: pointer; }
+.guide-desc { max-height: 0; overflow: hidden; transition: max-height 0.5s ease; color: var(--fg2); -webkit-text-fill-color: var(--fg2); line-height: 1.7; font-size: 15px; }
+.guide-item.open .guide-desc { max-height: 600px; margin-top: 20px; }
+
+/* History swipe */
+.history-item {
+    position: relative; overflow: hidden;
+    background: var(--bg); border-bottom: 1px solid var(--dim);
+    touch-action: pan-y;
+}
+.history-delete-bg {
+    position: absolute; right: 0; top: 0; bottom: 0; width: 100%;
+    background: #5c1a1a;
+    display: flex; align-items: center; justify-content: flex-end;
+    padding-right: 28px;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.2em;
+    color: #ff9999; -webkit-text-fill-color: #ff9999;
+}
+.history-content {
+    position: relative; z-index: 2; background: var(--bg);
+    padding: 22px 20px; cursor: pointer;
+    transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: transform;
+}
+.history-item.swiped .history-content { transform: translateX(-90px); }
+
+/* Full-screen detail modal */
+.detail-modal {
+    position: fixed; inset: 0; z-index: 5000;
+    background: rgba(13,13,18,0.97);
+    display: flex; flex-direction: column;
+    padding: env(safe-area-inset-top, 20px) 0 env(safe-area-inset-bottom, 20px);
+    animation: fadeIn 0.25s forwards;
+    overflow-y: auto;
+}
+.detail-modal-close {
+    position: sticky; top: 0; z-index: 10;
+    display: flex; justify-content: flex-end;
+    padding: 16px 20px;
+}
+.detail-modal-close button {
+    background: rgba(255,255,255,0.07); border: none;
+    color: var(--fg2); -webkit-text-fill-color: var(--fg2);
+    font-size: 20px; width: 40px; height: 40px;
+    border-radius: 50%; cursor: pointer; display: flex;
+    align-items: center; justify-content: center;
+}
+
+.btn-main {
+    width: calc(100% - 40px); background: none;
+    border: 1px solid var(--accent); color: var(--accent); -webkit-text-fill-color: var(--accent);
+    padding: 22px; text-transform: uppercase; letter-spacing: 0.4em;
+    font-size: 11px; margin: 20px; cursor: pointer; border-radius: 4px;
+    font-family: 'Junicode', serif;
+}
+.btn-main:disabled { opacity: 0.2; pointer-events: none; }
+.btn-danger { border-color: var(--red-dim); color: #ff9999; -webkit-text-fill-color: #ff9999; margin-top: 40px; }
+.btn-subtle { border: none; color: var(--dim2); -webkit-text-fill-color: var(--dim2); text-decoration: underline; font-size: 9px; margin-top: -10px; }
+
+.toast { position: fixed; top: 40px; left: 50%; transform: translateX(-50%); background: var(--accent); color: var(--bg); -webkit-text-fill-color: var(--bg); padding: 12px 25px; border-radius: 30px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; z-index: 3000; opacity: 0; transition: 0.4s; pointer-events: none; }
+
+/* Reading result rune display */
+.reveal-rune { font-size: 50px; color: var(--fg); -webkit-text-fill-color: var(--fg); }
+.reveal-name { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); -webkit-text-fill-color: var(--accent); margin-top: 4px; text-align: center; }
+
+/* ── FORGE ── */
+.forge-container {
+    position: relative; width: 300px; height: 300px;
+    margin: 20px auto; border-radius: 50%; overflow: hidden;
+    background: #0d0d12;
+    border: 1px solid rgba(201,169,110,0.15);
+    box-shadow: 0 0 40px rgba(201,169,110,0.06), inset 0 0 30px rgba(0,0,0,0.5);
+}
+#forge-canvas-el {
+    width: 100%; height: 100%; display: block; border-radius: 50%;
+}
+#forge-placeholder-text {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; letter-spacing: 0.35em; text-transform: uppercase;
+    color: rgba(138,128,112,0.35); pointer-events: none;
+}
+.forge-pick-btn {
+    background: var(--dim); padding: 10px; border-radius: 8px;
+    text-align: center; font-size: 20px; cursor: pointer;
+    border: 1px solid transparent; transition: border-color 0.2s, background 0.2s;
+    color: var(--fg); -webkit-text-fill-color: var(--fg);
+    font-family: 'Junicode', serif;
+}
+.forge-pick-btn.chosen { border-color: var(--accent); background: rgba(201,169,110,0.12); }
+.btn-recast {
+    border-color: rgba(201,169,110,0.35); color: var(--dim2); -webkit-text-fill-color: var(--dim2);
+    font-size: 12px; margin-top: 4px;
+}
+.btn-recast:not([disabled]):hover, .btn-recast:not([disabled]):active {
+    border-color: var(--accent); color: var(--accent); -webkit-text-fill-color: var(--accent);
+}
+/* Runic glyph font — applied to all rune character displays */
+.rune-glyph, .reveal-rune, .rotd-glyph, .reel-unit, .manual-item,
+.guide-header span, .nav-btn .icon {
+    font-family: 'Junicode', serif !important;
+}
+
+</style>
 </head>
 <body>
-
 <div id="toast" class="toast"></div>
 <div id="detail-modal" style="display:none;"></div>
-
-<!-- HOME -->
-
 <div class="page" id="page-home">
-    <div class="home-hero">
-        <div class="date-display" id="date-now"></div>
-        <div class="rotd-glyph" id="rotd-g"></div>
-        <div class="rotd-name" id="rotd-n"></div>
-        <div class="rotd-meaning" id="rotd-m"></div>
-        <div id="rotd-msg" style="font-size:16px; font-style:italic; line-height:1.7; color:var(--fg); -webkit-text-fill-color:var(--fg); max-width:280px; margin:0 auto 40px; text-align:center;"></div>
-    </div>
-    <div class="action-card" onclick="navTo('reading'); setReadMode('draw')">
-        <div class="action-title">Draw Staves</div>
-        <div class="action-sub">Let the Norns guide your hand</div>
-    </div>
-    <div class="action-card" onclick="navTo('reading'); setReadMode('manual')">
-        <div class="action-title">Manual Choice</div>
-        <div class="action-sub">Select with conscious intent</div>
-    </div>
+<div class="home-hero">
+<div class="date-display" id="date-now"></div>
+<div class="rotd-glyph" id="rotd-g"></div>
+<div class="rotd-name" id="rotd-n"></div>
+<div class="rotd-meaning" id="rotd-m"></div>
+<div id="rotd-msg" style="font-size:16px; font-style:italic; line-height:1.7; color:var(--fg); -webkit-text-fill-color:var(--fg); max-width:280px; margin:0 auto 40px; text-align:center;"></div>
 </div>
-
-<!-- READING -->
-
+<div class="action-card" onclick="navTo('reading'); setReadMode('draw')">
+<div class="action-title">Draw Staves</div>
+<div class="action-sub">Let the Norns guide your hand</div>
+</div>
+<div class="action-card" onclick="navTo('reading'); setReadMode('manual')">
+<div class="action-title">Manual Choice</div>
+<div class="action-sub">Select with conscious intent</div>
+</div>
+</div>
 <div class="page" id="page-reading">
-    <div style="padding: 60px 20px 0; text-align:center;">
-        <h2 id="read-title" style="font-size:12px; letter-spacing:0.5em; text-transform:uppercase; color:var(--accent); -webkit-text-fill-color:var(--accent); margin-bottom:40px;">The Oracle</h2>
-
-```
-    <div id="draw-ui">
-        <div class="reel-container" id="reel-wrap"></div>
-        <button class="btn-main" id="cast-btn" onclick="startCast()">Cast the Runes</button>
-    </div>
-
-    <div id="manual-ui" style="display:none;">
-        <div class="manual-grid" id="manual-grid"></div>
-        <button class="btn-main" id="manual-submit" onclick="submitManual()" disabled>Select 3 Staves</button>
-    </div>
-
-    <div id="reveal-ui" style="display:none;">
-        <div id="reveal-glyphs" style="display:flex; justify-content:center; gap:24px; margin-bottom:40px; flex-wrap:wrap;"></div>
-        <div id="reveal-text" style="font-size:18px; font-style:italic; line-height:1.8; color:var(--fg2); -webkit-text-fill-color:var(--fg2); padding:0 20px; margin-bottom:40px;"></div>
-        <button class="btn-main" onclick="resetReader()">New Reading</button>
-    </div>
+<div style="padding: 60px 20px 0; text-align:center;">
+<h2 id="read-title" style="font-size:12px; letter-spacing:0.5em; text-transform:uppercase; color:var(--accent); -webkit-text-fill-color:var(--accent); margin-bottom:40px;">The Oracle</h2>
+<div id="draw-ui">
+<div class="reel-container" id="reel-wrap"></div>
+<button class="btn-main" id="cast-btn" onclick="startCast()">Cast the Runes</button>
 </div>
-```
-
+<div id="manual-ui" style="display:none;">
+    <div class="manual-grid" id="manual-grid"></div>
+    <button class="btn-main" id="manual-submit" onclick="submitManual()" disabled>Select 3 Staves</button>
 </div>
 
-<!-- FORGE -->
+<div id="reveal-ui" style="display:none;">
+    <div id="reveal-glyphs" style="display:flex; justify-content:center; gap:24px; margin-bottom:40px; flex-wrap:wrap;"></div>
+    <div id="reveal-text" style="font-size:18px; font-style:italic; line-height:1.8; color:var(--fg2); -webkit-text-fill-color:var(--fg2); padding:0 20px; margin-bottom:40px;"></div>
+    <button class="btn-main" onclick="resetReader()">New Reading</button>
+</div>
 
+</div>
+</div>
 <div class="page" id="page-forge">
-    <div style="padding: 60px 20px 0; text-align:center;">
-        <h2 style="font-size:12px; letter-spacing:0.5em; text-transform:uppercase; color:var(--accent); -webkit-text-fill-color:var(--accent); margin-bottom:8px;">Bindrune Forge</h2>
-        <p style="font-size:13px; color:var(--dim2); -webkit-text-fill-color:var(--dim2); font-style:italic; margin-bottom:20px;">Select 2 runes to forge a bind rune</p>
-
-```
-    <!-- Forge canvas: pure HTML5 Canvas, no wedge clipping -->
-    <div class="forge-container" id="forge-canvas">
-        <canvas id="forge-canvas-el" width="300" height="300"></canvas>
-        <div id="forge-placeholder-text">SELECT RUNES</div>
-    </div>
-
-    <button class="btn-main btn-recast" id="recast-btn" onclick="recastForge()" disabled>
-        ᛜ &nbsp; Rethrow the Bones
-    </button>
-    <div id="forge-quality" style="
-        font-size:11px; letter-spacing:0.3em; text-transform:uppercase;
-        color:var(--accent); -webkit-text-fill-color:var(--accent);
-        text-align:center; height:20px; margin-top:-8px; margin-bottom:4px;
-        transition:opacity 0.5s;
-    "></div>
-
-    <div class="forge-picker" id="forge-picker"></div>
-
-    <button class="btn-main" id="bind-btn" onclick="bindTalisman()" disabled>Bind to Library</button>
-    <button class="btn-main btn-subtle" onclick="forgeSet=[]; document.querySelectorAll('.forge-pick-btn.chosen').forEach(b=>b.classList.remove('chosen')); updateForge();">Clear Forge</button>
-
-    <div style="padding:40px 20px; text-align:left;">
-        <span class="stat-label">Talisman Library</span>
-        <div id="talisman-list"></div>
-    </div>
+<div style="padding: 60px 20px 0; text-align:center;">
+<h2 style="font-size:12px; letter-spacing:0.5em; text-transform:uppercase; color:var(--accent); -webkit-text-fill-color:var(--accent); margin-bottom:8px;">Bindrune Forge</h2>
+<p style="font-size:13px; color:var(--dim2); -webkit-text-fill-color:var(--dim2); font-style:italic; margin-bottom:20px;">Select 2 runes to forge a bind rune</p>
+<div class="forge-container" id="forge-canvas">
+<canvas id="forge-canvas-el" width="300" height="300"></canvas>
+<div id="forge-placeholder-text">SELECT RUNES</div>
 </div>
-```
+<button class="btn-main btn-recast" id="recast-btn" onclick="recastForge()" disabled>
+    ᛜ &nbsp; Rethrow the Bones
+</button>
+<div id="forge-quality" style="
+    font-size:11px; letter-spacing:0.3em; text-transform:uppercase;
+    color:var(--accent); -webkit-text-fill-color:var(--accent);
+    text-align:center; height:20px; margin-top:-8px; margin-bottom:4px;
+    transition:opacity 0.5s;
+"></div>
 
+<div class="forge-picker" id="forge-picker"></div>
+
+<button class="btn-main" id="bind-btn" onclick="bindTalisman()" disabled>Bind to Library</button>
+<button class="btn-main btn-subtle" onclick="forgeSet=[]; document.querySelectorAll('.forge-pick-btn.chosen').forEach(b=>b.classList.remove('chosen')); updateForge();">Clear Forge</button>
+
+<div style="padding:40px 20px; text-align:left;">
+    <span class="stat-label">Talisman Library</span>
+    <div id="talisman-list"></div>
 </div>
 
-<!-- HISTORY / STATS -->
-
+</div>
+</div>
 <div class="page" id="page-history">
-    <div style="padding-top:60px;">
-        <div class="stats-section">
-            <span class="stat-label">Full Futhark Census</span>
-            <div class="full-grid" id="full-rune-stats"></div>
-        </div>
-        <div class="stats-section">
-            <span class="stat-label">Reading History — Swipe to Delete</span>
-            <div id="history-list"></div>
-            <button class="btn-main btn-danger" onclick="purgeHistory()">Purge All Records</button>
-        </div>
-    </div>
+<div style="padding-top:60px;">
+<div class="stats-section">
+<span class="stat-label">Full Futhark Census</span>
+<div class="full-grid" id="full-rune-stats"></div>
 </div>
-
-<!-- GUIDE -->
-
+<div class="stats-section">
+<span class="stat-label">Reading History — Swipe to Delete</span>
+<div id="history-list"></div>
+<button class="btn-main btn-danger" onclick="purgeHistory()">Purge All Records</button>
+</div>
+</div>
+</div>
 <div class="page" id="page-library">
-    <div id="guide-list" style="padding:60px 0;"></div>
+<div id="guide-list" style="padding:60px 0;"></div>
 </div>
-
-<!-- NAV -->
-
 <div id="nav">
-    <div class="nav-pill">
-        <button class="nav-btn active" data-id="home"    onclick="navTo('home')">   <span class="icon">ᚹ</span><span class="txt">Home</span></button>
-        <button class="nav-btn"        data-id="reading" onclick="navTo('reading')"><span class="icon">ᚱ</span><span class="txt">Read</span></button>
-        <button class="nav-btn"        data-id="forge"   onclick="navTo('forge')">  <span class="icon">ᛉ</span><span class="txt">Forge</span></button>
-        <button class="nav-btn"        data-id="history" onclick="navTo('history')"><span class="icon">ᚻ</span><span class="txt">Stats</span></button>
-        <button class="nav-btn"        data-id="library" onclick="navTo('library')"><span class="icon">ᛒ</span><span class="txt">Guide</span></button>
-    </div>
+<div class="nav-pill">
+<button class="nav-btn active" data-id="home"    onclick="navTo('home')">   <span class="icon">ᚹ</span><span class="txt">Home</span></button>
+<button class="nav-btn"        data-id="reading" onclick="navTo('reading')"><span class="icon">ᚱ</span><span class="txt">Read</span></button>
+<button class="nav-btn"        data-id="forge"   onclick="navTo('forge')">  <span class="icon">ᛉ</span><span class="txt">Forge</span></button>
+<button class="nav-btn"        data-id="history" onclick="navTo('history')"><span class="icon">ᚻ</span><span class="txt">Stats</span></button>
+<button class="nav-btn"        data-id="library" onclick="navTo('library')"><span class="icon">ᛒ</span><span class="txt">Guide</span></button>
 </div>
-
+</div>
 <script>
 // ── Data ──────────────────────────────────────────────────────────────────────
 const RUNES = [
-    {g:'ᚠ',n:'Fehu',    m:'Wealth',
-     predict:['Money or opportunity is moving toward you — act quickly, it won\'t wait.','A financial decision made now will shape the next six months. Trust your instincts.','Something you\'ve invested in is about to pay off. Watch for it.'],
-     warn:'Don\'t hoard what should flow. Share what you have before it stagnates.',
-     power:'Draws wealth and opportunity. Carry this talisman when seeking new income or starting a venture.',
-     l:'Wealth and creative fire — prosperity in motion, not hoarded. Act while the energy flows.'},
-    {g:'ᚢ',n:'Uruz',    m:'Vitality',
-     predict:['Your body and will are stronger than you think. Push through what\'s been holding you back.','A health challenge is coming to an end. Recovery is close.','Raw energy is available to you right now. Use it boldly.'],
-     warn:'Avoid being reckless with your strength. Power spent without aim is wasted.',
-     power:'Restores physical vitality and inner strength. Wear when you need endurance or healing.',
-     l:'The primal strength of the wild ox — raw potential and courage to face change head-on.'},
-    {g:'ᚦ',n:'Thurisaz',m:'Force',
-     predict:['A conflict or challenge is approaching. You are more prepared than you feel.','Someone is testing your limits. Hold your ground firmly.','A difficult decision needs to be made. The uncomfortable choice is the right one.'],
-     warn:'Don\'t strike first without cause. This rune defends — it does not attack.',
-     power:'Protection against aggression and enemies. Keep this talisman close in hostile situations.',
-     l:'The thorn — reactive power, defense, and necessary force. A boundary-setter against harm.'},
-    {g:'ᚨ',n:'Ansuz',   m:'Insight',
-     predict:['Pay close attention to what someone tells you in the next few days. It matters more than it seems.','An answer you\'ve been seeking will come through a conversation or unexpected message.','Trust the thought that keeps returning. Your intuition is speaking clearly.'],
-     warn:'Be careful what you say. Words spoken now carry unusual weight.',
-     power:'Sharpens communication and opens the mind to hidden truths. For writers, speakers, and seekers.',
-     l:'The breath of the gods — communication, signals, and ancestral wisdom. Listen for omens.'},
-    {g:'ᚱ',n:'Raidho',  m:'Direction',
-     predict:['A journey — physical or emotional — is about to begin. Embrace it rather than resist.','The path you\'re on is correct. Keep moving forward without second-guessing.','A situation that felt stuck is about to start moving again.'],
-     warn:'Don\'t rush. The right pace matters as much as the right direction.',
-     power:'Protects travellers and guides decisions. Carry when navigating change or long journeys.',
-     l:'The wheel and the journey — rhythm, justice, and the soul moving toward its destination.'},
-    {g:'ᚲ',n:'Kenaz',   m:'Clarity',
-     predict:['Confusion around a situation is about to lift. Clarity arrives within days.','A skill or creative ability you have will open a door unexpectedly.','Something hidden will be brought into the light. Be ready to see it clearly.'],
-     warn:'Don\'t ignore warning signs. The torch also reveals what you might prefer not to see.',
-     power:'Brings mental clarity and creative power. For artists, students, and problem-solvers.',
-     l:'The controlled torch — technical skill and the artistic spark that illuminates dark places.'},
-    {g:'ᚷ',n:'Gebo',    m:'Exchange',
-     predict:['A meaningful connection or partnership is forming. Nurture it carefully.','Something given freely to you will return multiplied. Accept it with grace.','A balanced exchange is needed. Give as much as you\'ve taken.'],
-     warn:'Avoid unequal relationships. If you give everything and receive nothing, walk away.',
-     power:'Strengthens partnerships and bonds. For relationships, contracts, and creative collaborations.',
-     l:'A gift for a gift — sacred balance between people. Harmony requires equal exchange.'},
-    {g:'ᚹ',n:'Wunjo',   m:'Harmony',
-     predict:['A period of genuine contentment is approaching. Let yourself enjoy it.','Something you\'ve been working toward is finally aligning. You\'re nearly there.','Joy is available to you right now, if you stop looking past it.'],
-     warn:'Don\'t let happiness make you complacent. Tend what you\'ve built.',
-     power:'Draws joy, wellbeing, and alignment into your life. A powerful talisman for emotional health.',
-     l:'The peak of well-being — the moment your inner will aligns perfectly with the outer world.'},
-    {g:'ᚺ',n:'Hagalaz', m:'Evolution',
-     predict:['Something is about to be disrupted or broken apart. This is necessary, not catastrophic.','A sudden change you didn\'t choose is clearing space for something better.','What falls apart now was already too fragile to serve you.'],
-     warn:'Don\'t try to hold on to what\'s breaking down. Let it go cleanly.',
-     power:'Breaks stagnant patterns and forces necessary change. Use when you need transformation.',
-     l:'The hailstone — necessary disruption that clears old patterns for a stronger formation.'},
-    {g:'ᚾ',n:'Naudhiz', m:'Resilience',
-     predict:['A period of pressure and restriction is testing you. You will come through it stronger.','The difficulty you\'re facing is forging something in you that couldn\'t form any other way.','Innovation is coming from necessity. The solution is hiding in the problem.'],
-     warn:'Don\'t give up when it\'s hardest. This is precisely when your effort counts most.',
-     power:'Builds resilience and adaptability under pressure. Wear during hardship or difficult trials.',
-     l:'Need-fire — strength born of friction. The force that makes us adapt and overcome our limits.'},
-    {g:'ᛁ',n:'Isa',     m:'Stillness',
-     predict:['Progress will be slow or stopped for a time. This is not failure — it\'s preservation.','You need to pause and think before moving forward. Rushing now will cost you.','Something is frozen that needs to thaw naturally. Don\'t force it.'],
-     warn:'Isolation can become a trap. Don\'t confuse stillness with retreat.',
-     power:'Brings focus and mental clarity. Use when you need to think clearly or calm a chaotic mind.',
-     l:'The ice — total stillness so that internal clarity and concentration can crystallise.'},
-    {g:'ᛃ',n:'Jera',    m:'Cycles',
-     predict:['Patient effort you\'ve put in is about to bear visible results. The harvest is coming.','A natural cycle is completing. What you planted is ready to be gathered.','This is not the time to start new things — it\'s time to receive what\'s already growing.'],
-     warn:'Don\'t rush the season. Forcing the harvest ruins it.',
-     power:'Brings the reward of patient effort to fruition. For long-term projects and goals.',
-     l:'The harvest — patient effort in the right season leads to inevitable and fruitful results.'},
-    {g:'ᛇ',n:'Eihwaz',  m:'Endurance',
-     predict:['You will face something that tests your staying power. You have more than enough.','A situation that looks like an ending is actually a transition. Keep going.','Protection surrounds you during a difficult passage. You are not as alone as you feel.'],
-     warn:'Don\'t confuse endurance with stubbornness. Know what\'s worth outlasting.',
-     power:'Provides deep protection and endurance through life\'s transitions. A powerful guardian talisman.',
-     l:'The Yew tree — continuity, protection, and the ability to endure life\'s great transitions.'},
-    {g:'ᛈ',n:'Perthro', m:'Destiny',
-     predict:['Something unexpected will happen that changes the odds in your favour.','A secret or hidden truth is about to be revealed. Be open to what it shows you.','What seems like chance is not. Forces are at work that you can\'t fully see yet.'],
-     warn:'Don\'t try to control what is governed by fate. Play the hand you\'re dealt wisely.',
-     power:'Aligns you with fortunate probability and hidden opportunity. For luck and revelation.',
-     l:'The dice cup of the Norns — hidden laws of probability and the mysteries yet to be revealed.'},
-    {g:'ᛉ',n:'Algiz',   m:'Guard',
-     predict:['Someone or something threatens your peace. Your instincts about them are correct.','A period of vulnerability is ending. You are stronger and safer than you were.','Trust who you feel safe with. Your read on people right now is accurate.'],
-     warn:'Don\'t lower your guard out of politeness. Not everyone has earned your trust.',
-     power:'The strongest protection rune. Guards against physical harm, negative energy, and ill intent.',
-     l:'The elk-sedge shield — protective instinct that guards from physical and spiritual harm.'},
-    {g:'ᛊ',n:'Sowilo',  m:'Success',
-     predict:['A goal you\'ve been working toward is within reach. Drive forward with full confidence.','Victory is coming — but it requires your full energy, not half measures.','The light is on your side right now. Make the most of this window.'],
-     warn:'Don\'t burn out chasing success. Even the sun sets.',
-     power:'Ignites confidence, success, and vital energy. Carry when you need momentum or victory.',
-     l:'The sun\'s rays — vitality and the light that burns away shadows. Energy to complete any task.'},
-    {g:'ᛏ',n:'Tiwaz',   m:'Honor',
-     predict:['A sacrifice of time, comfort, or pride will be required of you soon. Make it willingly.','A dispute or legal matter will resolve in your favour if you\'ve acted with integrity.','Someone is watching your actions closely. Be exactly who you say you are.'],
-     warn:'Don\'t confuse stubbornness for integrity. Honour means knowing when you\'re wrong.',
-     power:'Grants courage, justice, and protection in conflict. For legal battles, disputes, and challenges.',
-     l:'The warrior\'s spear — sacrifice for the greater good, integrity, and the courage to act justly.'},
-    {g:'ᛒ',n:'Berkano', m:'Growth',
-     predict:['Something new is being born in your life. Give it time and care before exposing it.','A relationship or creative project is entering a tender, formative phase. Protect it.','Healing is happening — slower than you\'d like, but steadily and truly.'],
-     warn:'Don\'t rush new beginnings. What is still growing can\'t be forced open.',
-     power:'Nurtures new beginnings, healing, and creative growth. For new ventures, recovery, and fertility.',
-     l:'The birch tree — the energy of the womb, nurturing new life and creative ideas into bloom.'},
-    {g:'ᛖ',n:'Ehwaz',   m:'Synergy',
-     predict:['A partnership or collaboration is about to become more powerful than either party alone.','Trust the person beside you. Progress comes from working together, not independently.','A transition is coming — a move, a change of role, or a new direction. It will go smoothly.'],
-     warn:'Don\'t try to control the partnership. Both sides must have room to move.',
-     power:'Strengthens teamwork, partnerships, and smooth transitions. For collaborations and new phases.',
-     l:'The horse and rider — progress through mutual trust and the movement of two forces as one.'},
-    {g:'ᛗ',n:'Mannaz',  m:'Identity',
-     predict:['How others see you matters right now. Make sure your actions match your values.','A community or group you belong to needs your contribution. Show up fully.','You are in a period of self-discovery. The question you keep avoiding holds your answer.'],
-     warn:'Don\'t lose yourself in what others expect. Know the difference between fitting in and belonging.',
-     power:'Strengthens self-knowledge and social bonds. For clarity of identity and community connection.',
-     l:'The individual within the tribe — human consciousness, social bonds, and knowing your true self.'},
-    {g:'ᛚ',n:'Laguz',   m:'Intuition',
-     predict:['Your gut feeling about a situation is right. Stop second-guessing it.','Emotions you\'ve been pushing down are rising. Let them surface — they carry information.','Something hidden beneath the surface of a relationship or situation is about to become visible.'],
-     warn:'Don\'t let emotion become delusion. Feel deeply, but keep one foot on solid ground.',
-     power:'Heightens intuition and emotional intelligence. For dreamwork, creativity, and emotional healing.',
-     l:'The flow of water — deep emotions and the subconscious mind. Reality is fluid and ever-changing.'},
-    {g:'ᛜ',n:'Ingwaz',  m:'Potential',
-     predict:['An idea or project needs more time in the dark before it\'s ready. Don\'t rush the reveal.','A period of rest is not laziness — it is preparation. Use this quiet time well.','Something is stored up inside you that is ready to burst into form. The moment is almost here.'],
-     warn:'Don\'t scatter your energy. Protect what\'s growing until it can stand on its own.',
-     power:'Stores and protects potential energy. For ideas in early stages, pregnancy, or creative incubation.',
-     l:'The seed — stored potential waiting for the right moment to burst into unstoppable life.'},
-    {g:'ᛞ',n:'Dagaz',   m:'Awakening',
-     predict:['A moment of sudden, complete clarity is coming. Everything you\'ve been confused about will resolve.','You are at a threshold — what lies ahead is fundamentally different from what came before. Step through.','A breakthrough is imminent. The struggle is ending.'],
-     warn:'Don\'t cling to who you were. The awakening requires you to let go of your old perspective.',
-     power:'Triggers breakthrough and radical transformation. Use when you need to turn a corner decisively.',
-     l:'The light of dawn — a total transformation of perspective that leads to absolute clarity.'},
-    {g:'ᛟ',n:'Othala',  m:'Legacy',
-     predict:['Your roots and your past are relevant right now — look there for the answer you need.','Something inherited — money, wisdom, or a trait — is about to prove its value.','What you build now will outlast you. Make it worthy.'],
-     warn:'Don\'t let tradition become a prison. Honour your roots without being trapped by them.',
-     power:'Connects you to ancestral protection and grounds your energy in what endures.',
-     l:'Ancestral home — the foundations we build and the lasting inheritances we leave behind.'},
-    {g:'◯',n:'Wyrd',    m:'Fate',
-     predict:['The answer you seek is not yet knowable. Something must unfold before clarity is possible.','You are standing at a genuinely open crossroads. What happens next is being written right now.','Let go of the need to know. The path will reveal itself when you stop demanding a map.'],
-     warn:'Don\'t let the unknown become paralysing. You can act well without certainty.',
-     power:'Embraces the unwritten. For moments when you must trust the unknown and step forward anyway.',
-     l:'The Blank Rune — the unknowable void and the destiny that has not yet been written.'}
+{g:'ᚠ',n:'Fehu',    m:'Wealth',
+predict:['Money or opportunity is moving toward you — act quickly, it won&#39;t wait.','A financial decision made now will shape the next six months. Trust your instincts.','Something you&#39;ve invested in is about to pay off. Watch for it.'],
+warn:'Don&#39;t hoard what should flow. Share what you have before it stagnates.',
+power:'Draws wealth and opportunity. Carry this talisman when seeking new income or starting a venture.',
+l:'Wealth and creative fire — prosperity in motion, not hoarded. Act while the energy flows.'},
+{g:'ᚢ',n:'Uruz',    m:'Vitality',
+predict:['Your body and will are stronger than you think. Push through what&#39;s been holding you back.','A health challenge is coming to an end. Recovery is close.','Raw energy is available to you right now. Use it boldly.'],
+warn:'Avoid being reckless with your strength. Power spent without aim is wasted.',
+power:'Restores physical vitality and inner strength. Wear when you need endurance or healing.',
+l:'The primal strength of the wild ox — raw potential and courage to face change head-on.'},
+{g:'ᚦ',n:'Thurisaz',m:'Force',
+predict:['A conflict or challenge is approaching. You are more prepared than you feel.','Someone is testing your limits. Hold your ground firmly.','A difficult decision needs to be made. The uncomfortable choice is the right one.'],
+warn:'Don&#39;t strike first without cause. This rune defends — it does not attack.',
+power:'Protection against aggression and enemies. Keep this talisman close in hostile situations.',
+l:'The thorn — reactive power, defense, and necessary force. A boundary-setter against harm.'},
+{g:'ᚨ',n:'Ansuz',   m:'Insight',
+predict:['Pay close attention to what someone tells you in the next few days. It matters more than it seems.','An answer you&#39;ve been seeking will come through a conversation or unexpected message.','Trust the thought that keeps returning. Your intuition is speaking clearly.'],
+warn:'Be careful what you say. Words spoken now carry unusual weight.',
+power:'Sharpens communication and opens the mind to hidden truths. For writers, speakers, and seekers.',
+l:'The breath of the gods — communication, signals, and ancestral wisdom. Listen for omens.'},
+{g:'ᚱ',n:'Raidho',  m:'Direction',
+predict:['A journey — physical or emotional — is about to begin. Embrace it rather than resist.','The path you&#39;re on is correct. Keep moving forward without second-guessing.','A situation that felt stuck is about to start moving again.'],
+warn:'Don&#39;t rush. The right pace matters as much as the right direction.',
+power:'Protects travellers and guides decisions. Carry when navigating change or long journeys.',
+l:'The wheel and the journey — rhythm, justice, and the soul moving toward its destination.'},
+{g:'ᚲ',n:'Kenaz',   m:'Clarity',
+predict:['Confusion around a situation is about to lift. Clarity arrives within days.','A skill or creative ability you have will open a door unexpectedly.','Something hidden will be brought into the light. Be ready to see it clearly.'],
+warn:'Don&#39;t ignore warning signs. The torch also reveals what you might prefer not to see.',
+power:'Brings mental clarity and creative power. For artists, students, and problem-solvers.',
+l:'The controlled torch — technical skill and the artistic spark that illuminates dark places.'},
+{g:'ᚷ',n:'Gebo',    m:'Exchange',
+predict:['A meaningful connection or partnership is forming. Nurture it carefully.','Something given freely to you will return multiplied. Accept it with grace.','A balanced exchange is needed. Give as much as you&#39;ve taken.'],
+warn:'Avoid unequal relationships. If you give everything and receive nothing, walk away.',
+power:'Strengthens partnerships and bonds. For relationships, contracts, and creative collaborations.',
+l:'A gift for a gift — sacred balance between people. Harmony requires equal exchange.'},
+{g:'ᚹ',n:'Wunjo',   m:'Harmony',
+predict:['A period of genuine contentment is approaching. Let yourself enjoy it.','Something you&#39;ve been working toward is finally aligning. You&#39;re nearly there.','Joy is available to you right now, if you stop looking past it.'],
+warn:'Don&#39;t let happiness make you forgot. Tend what you&#39;ve built.',
+power:'Draws joy, wellbeing, and alignment into your life. A powerful talisman for emotional health.',
+l:'The peak of well-being — the moment your inner will aligns perfectly with the outer world.'},
+{g:'ᚺ',n:'Hagalaz', m:'Evolution',
+predict:['Something is about to be disrupted or broken apart. This is necessary, not catastrophic.','A sudden change you didn&#39;t choose is clearing space for something better.','What falls apart now was already too fragile to serve you.'],
+warn:'Don&#39;t try to hold on to what&#39;s breaking down. Let it go cleanly.',
+power:'Breaks stagnant patterns and forces necessary change. Use when you need transformation.',
+l:'The hailstone — necessary disruption that clears old patterns for a stronger formation.'},
+{g:'ᚾ',n:'Naudhiz', m:'Resilience',
+predict:['A period of pressure and restriction is testing you. You will come through it stronger.','The difficulty you&#39;re facing is forging something in you that couldn&#39;t form any other way.','Innovation is coming from necessity. The solution is hiding in the problem.'],
+warn:'Don&#39;t give up when it&#39;s hardest. This is precisely when your effort counts most.',
+power:'Builds resilience and adaptability under pressure. Wear during hardship or difficult trials.',
+l:'Need-fire — strength born of friction. The force that makes us adapt and overcome our limits.'},
+{g:'ᛁ',n:'Isa',     m:'Stillness',
+predict:['Progress will be slow or stopped for a time. This is not failure — it&#39;s preservation.','You need to pause and think before moving forward. Rushing now will cost you.','Something is frozen that needs to thaw naturally. Don&#39;t force it.'],
+warn:'Isolation can become a trap. Don&#39;t confuse stillness with retreat.',
+power:'Brings focus and mental clarity. Use when you need to think clearly or calm a chaotic mind.',
+l:'The ice — total stillness so that internal clarity and concentration can crystallise.'},
+{g:'ᛃ',n:'Jera',    m:'Cycles',
+predict:['Patient effort you&#39;ve put in is about to bear visible results. The harvest is coming.','A natural cycle is completing. What you planted is ready to be gathered.','This is not the time to start new things — it&#39;s time to receive what&#39;s already growing.'],
+warn:'Don&#39;t rush the season. Forcing the harvest ruins it.',
+power:'Brings the reward of patient effort to fruition. For long-term projects and goals.',
+l:'The harvest — patient effort in the right season leads to inevitable and fruitful results.'},
+{g:'ᛇ',n:'Eihwaz',  m:'Endurance',
+predict:['You will face something that tests your staying power. You have more than enough.','A situation that looks like an ending is actually a transition. Keep going.','Protection surrounds you during a difficult passage. You are not as alone as you feel.'],
+warn:'Don&#39;t confuse endurance with stubbornness. Know what&#39;s worth outlasting.',
+power:'Provides deep protection and endurance through life&#39;s transitions. A powerful guardian talisman.',
+l:'The Yew tree — continuity, protection, and the ability to endure life&#39;s great transitions.'},
+{g:'ᛈ',n:'Perthro', m:'Destiny',
+predict:['Something unexpected will happen that changes the odds in your favour.','A secret or hidden truth is about to be revealed. Be open to what it shows you.','What seems like chance is not. Forces are at work that you can&#39;t fully see yet.'],
+warn:'Don&#39;t try to control what is governed by fate. Play the hand you&#39;re dealt wisely.',
+power:'Aligns you with fortunate probability and hidden opportunity. For luck and revelation.',
+l:'The dice cup of the Norns — hidden laws of probability and the mysteries yet to be revealed.'},
+{g:'ᛉ',n:'Algiz',   m:'Guard',
+predict:['Someone or something threatens your peace. Your instincts about them are correct.','A period of vulnerability is ending. You are stronger and safer than you were.','Trust who you feel safe with. Your read on people right now is accurate.'],
+warn:'Don&#39;t lower your guard out of politeness. Not everyone has earned your trust.',
+power:'The strongest protection rune. Guards against physical harm, negative energy, and ill intent.',
+l:'The elk-sedge shield — protective instinct that guards from physical and spiritual harm.'},
+{g:'ᛊ',n:'Sowilo',  m:'Success',
+predict:['A goal you&#39;ve been working toward is within reach. Drive forward with full confidence.','Victory is coming — but it requires your full energy, not half measures.','The light is on your side right now. Make the most of this window.'],
+warn:'Don&#39;t burn out chasing success. Even the sun sets.',
+power:'Ignites confidence, success, and vital energy. Carry when you need momentum or victory.',
+l:'The sun&#39;s rays — vitality and the light that burns away shadows. Energy to complete any task.'},
+{g:'ᛏ',n:'Tiwaz',   m:'Honor',
+predict:['A sacrifice of time, comfort, or pride will be required of you soon. Make it willingly.','A dispute or legal matter will resolve in your favour if you&#39;ve acted with integrity.','Someone is watching your actions closely. Be exactly who you say you are.'],
+warn:'Don&#39;t confuse stubbornness for integrity. Honour means knowing when you&#39;re wrong.',
+power:'Grants courage, justice, and protection in conflict. For legal battles, disputes, and challenges.',
+l:'The warrior&#39;s spear — sacrifice for the greater good, integrity, and the courage to act justly.'},
+{g:'ᛒ',n:'Berkano', m:'Growth',
+predict:['Something new is being born in your life. Give it time and care before exposing it.','A relationship or creative project is entering a tender, formative phase. Protect it.','Healing is happening — slower than you&#39;d like, but steadily and truly.'],
+warn:'Don&#39;t rush new beginnings. What is still growing can&#39;t be forced open.',
+power:'Nurtures new beginnings, healing, and creative growth. For new ventures, recovery, and fertility.',
+l:'The birch tree — the energy of the womb, nurturing new life and creative ideas into bloom.'},
+{g:'ᛖ',n:'Ehwaz',   m:'Synergy',
+predict:['A partnership or collaboration is about to become more powerful than either party alone.','Trust the person beside you. Progress comes from working together, not independently.','A transition is coming — a move, a change of role, or a new direction. It will go smoothly.'],
+warn:'Don&#39;t try to control the partnership. Both sides must have room to move.',
+power:'Strengthens teamwork, partnerships, and smooth transitions. For collaborations and new phases.',
+l:'The horse and rider — progress through mutual trust and the movement of two forces as one.'},
+{g:'ᛗ',n:'Mannaz',  m:'Identity',
+predict:['How others see you matters right now. Make sure your actions match your values.','A community or group you belong to needs your contribution. Show up fully.','You are in a period of self-discovery. The question you keep avoiding holds your answer.'],
+warn:'Don&#39;t lose yourself in what others expect. Know the difference between fitting in and belonging.',
+power:'Strengthens self-knowledge and social bonds. For clarity of identity and community connection.',
+l:'The individual within the tribe — human consciousness, social bonds, and knowing your true self.'},
+{g:'ᛚ',n:'Laguz',   m:'Intuition',
+predict:['Your gut feeling about a situation is right. Stop second-guessing it.','Emotions you&#39;ve been pushing down are rising. Let them surface — they carry information.','Something hidden beneath the surface of a relationship or situation is about to become visible.'],
+warn:'Don&#39;t let emotion become delusion. Feel deeply, but keep one foot on solid ground.',
+power:'Heightens intuition and emotional intelligence. For dreamwork, creativity, and emotional healing.',
+l:'The flow of water — deep emotions and the subconscious mind. Reality is fluid and ever-changing.'},
+{g:'ᛜ',n:'Ingwaz',  m:'Potential',
+predict:['An idea or project needs more time in the dark before it&#39;s ready. Don&#39;t rush the reveal.','A period of rest is not laziness — it is preparation. Use this quiet time well.','Something is stored up inside you that is ready to burst into form. The moment is almost here.'],
+warn:'Don&#39;t scatter your energy. Protect what&#39;s growing until it can stand on its own.',
+power:'Stores and protects potential energy. For ideas in early stages, pregnancy, or creative incubation.',
+l:'The seed — stored potential waiting for the right moment to burst into unstoppable life.'},
+{g:'ᛞ',n:'Dagaz',   m:'Awakening',
+predict:['A moment of sudden, complete clarity is coming. Everything you&#39;ve been confused about will resolve.','You are at a threshold — what lies ahead is fundamentally different from what came before. Step through.','A breakthrough is imminent. The struggle is ending.'],
+warn:'Don&#39;t cling to who you were. The awakening requires you to let go of your old perspective.',
+power:'Triggers breakthrough and radical transformation. Use when you need to turn a corner decisively.',
+l:'The light of dawn — a total transformation of perspective that leads to absolute clarity.'},
+{g:'ᛟ',n:'Othala',  m:'Legacy',
+predict:['Your roots and your past are relevant right now — look there for the answer you need.','Something inherited — money, wisdom, or a trait — is about to prove its value.','What you build now will outlast you. Make it worthy.'],
+warn:'Don&#39;t let tradition become a prison. Honour your roots without being trapped by them.',
+power:'Connects you to ancestral protection and grounds your energy in what endures.',
+l:'Ancestral home — the foundations we build and the lasting inheritances we leave behind.'},
+{g:'◯',n:'Wyrd',    m:'Fate',
+predict:['The answer you seek is not yet knowable. Something must unfold before clarity is possible.','You are standing at a genuinely open crossroads. What happens next is being written right now.','Let go of the need to know. The path will reveal itself when you stop demanding a map.'],
+warn:'Don&#39;t let the unknown become paralysing. You can act well without certainty.',
+power:'Embraces the unwritten. For moments when you must trust the unknown and step forward anyway.',
+l:'The Blank Rune — the unknowable void and the destiny that has not yet been written.'}
 ];
-
 // ── State ─────────────────────────────────────────────────────────────────────
 let forgeSet  = [];
 let manualSet = [];
@@ -473,859 +438,799 @@ let currentReadMode = 'draw';
 let stats     = JSON.parse(localStorage.getItem('rune_stats') || '{}');
 let history   = JSON.parse(localStorage.getItem('rune_hist')  || '[]');
 let talismans = JSON.parse(localStorage.getItem('rune_tali')  || '[]');
-
 // ── Init ──────────────────────────────────────────────────────────────────────
 (function init() {
-    const now = new Date();
-    document.getElementById('date-now').textContent =
-        now.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'}).toUpperCase();
+const now = new Date();
+document.getElementById('date-now').textContent =
+now.toLocaleDateString('en-GB', {weekday:'long', day:'numeric', month:'long'}).toUpperCase();
+// Rune of the day — deterministic by calendar date
+const rotdIdx = (now.getFullYear()*10000 + (now.getMonth()+1)*100 + now.getDate()) % 24; // exclude Wyrd
+const rotd = RUNES[rotdIdx];
+document.getElementById(&#39;rotd-g&#39;).textContent = rotd.g;
+document.getElementById(&#39;rotd-n&#39;).textContent = rotd.n;
+document.getElementById(&#39;rotd-m&#39;).textContent = rotd.m;
+// Show today&#39;s prediction for the rune of the day
+const rotdPreds = rotd.predict || [];
+const rotdSeed = now.getFullYear()*10000 + (now.getMonth()+1)*100 + now.getDate();
+const rotdPred = rotdPreds.length &gt; 0 ? rotdPreds[rotdSeed % rotdPreds.length] : &#39;&#39;;
+const rotdMsgEl = document.getElementById(&#39;rotd-msg&#39;);
+if (rotdMsgEl) rotdMsgEl.textContent = rotdPred;
 
-    // Rune of the day — deterministic by calendar date
-    const rotdIdx = (now.getFullYear()*10000 + (now.getMonth()+1)*100 + now.getDate()) % 24; // exclude Wyrd
-    const rotd = RUNES[rotdIdx];
-    document.getElementById('rotd-g').textContent = rotd.g;
-    document.getElementById('rotd-n').textContent = rotd.n;
-    document.getElementById('rotd-m').textContent = rotd.m;
-    // Show today's prediction for the rune of the day
-    const rotdPreds = rotd.predict || [];
-    const rotdSeed = now.getFullYear()*10000 + (now.getMonth()+1)*100 + now.getDate();
-    const rotdPred = rotdPreds.length > 0 ? rotdPreds[rotdSeed % rotdPreds.length] : '';
-    const rotdMsgEl = document.getElementById('rotd-msg');
-    if (rotdMsgEl) rotdMsgEl.textContent = rotdPred;
+navTo(&#39;home&#39;);
 
-    navTo('home');
 })();
-
 // ── Navigation ────────────────────────────────────────────────────────────────
 function navTo(id) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('page-' + id).classList.add('active');
-    document.querySelector(`[data-id="${id}"]`).classList.add('active');
-
-    if (id === 'reading') {
-        // ★ KEY FIX: only reset reading if no reading is currently in progress
-        if (!readingActive) {
-            setReadMode(currentReadMode);
-        } else {
-            // Make sure the reveal is shown and input UIs are hidden
-            document.getElementById('draw-ui').style.display   = 'none';
-            document.getElementById('manual-ui').style.display = 'none';
-            document.getElementById('reveal-ui').style.display = 'block';
-        }
+document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+document.getElementById('page-' + id).classList.add('active');
+document.querySelector([data-id=&quot;${id}&quot;]).classList.add('active');
+if (id === &#39;reading&#39;) {
+    // ★ KEY FIX: only reset reading if no reading is currently in progress
+    if (!readingActive) {
+        setReadMode(currentReadMode);
+    } else {
+        // Make sure the reveal is shown and input UIs are hidden
+        document.getElementById(&#39;draw-ui&#39;).style.display   = &#39;none&#39;;
+        document.getElementById(&#39;manual-ui&#39;).style.display = &#39;none&#39;;
+        document.getElementById(&#39;reveal-ui&#39;).style.display = &#39;block&#39;;
     }
-    if (id === 'forge')   initForge();
-    if (id === 'history') renderStats();
-    if (id === 'library') renderGuide();
 }
+if (id === &#39;forge&#39;)   initForge();
+if (id === &#39;history&#39;) renderStats();
+if (id === &#39;library&#39;) renderGuide();
 
+}
 // ── Reading: mode setup ───────────────────────────────────────────────────────
 function setReadMode(mode) {
-    currentReadMode = mode;
-    readingActive   = false;
+currentReadMode = mode;
+readingActive   = false;
+document.getElementById(&#39;draw-ui&#39;).style.display   = mode === &#39;draw&#39;   ? &#39;block&#39; : &#39;none&#39;;
+document.getElementById(&#39;manual-ui&#39;).style.display = mode === &#39;manual&#39; ? &#39;block&#39; : &#39;none&#39;;
+document.getElementById(&#39;reveal-ui&#39;).style.display = &#39;none&#39;;
 
-    document.getElementById('draw-ui').style.display   = mode === 'draw'   ? 'block' : 'none';
-    document.getElementById('manual-ui').style.display = mode === 'manual' ? 'block' : 'none';
-    document.getElementById('reveal-ui').style.display = 'none';
-
-    if (mode === 'draw') {
-        document.getElementById('cast-btn').disabled = false;
-        const wrap = document.getElementById('reel-wrap');
-        wrap.innerHTML = '';
-        for (let i = 0; i < 3; i++) {
-            const slot = document.createElement('div'); slot.className = 'slot';
-            const reel = document.createElement('div'); reel.className = 'reel'; reel.id = `r${i}`;
-            reel.style.transitionDuration = (3.2 + i * 0.6) + 's';
-            reel.style.transitionDelay    = (i * 0.15) + 's';
-            for (let j = 0; j < 45; j++) {
-                const unit = document.createElement('div'); unit.className = 'reel-unit';
-                unit.textContent = RUNES[Math.floor(Math.random() * 25)].g;
-                reel.appendChild(unit);
-            }
-            slot.appendChild(reel); wrap.appendChild(slot);
+if (mode === &#39;draw&#39;) {
+    document.getElementById(&#39;cast-btn&#39;).disabled = false;
+    const wrap = document.getElementById(&#39;reel-wrap&#39;);
+    wrap.innerHTML = &#39;&#39;;
+    for (let i = 0; i &lt; 3; i++) {
+        const slot = document.createElement(&#39;div&#39;); slot.className = &#39;slot&#39;;
+        const reel = document.createElement(&#39;div&#39;); reel.className = &#39;reel&#39;; reel.id = `r${i}`;
+        reel.style.transitionDuration = (3.2 + i * 0.6) + &#39;s&#39;;
+        reel.style.transitionDelay    = (i * 0.15) + &#39;s&#39;;
+        for (let j = 0; j &lt; 45; j++) {
+            const unit = document.createElement(&#39;div&#39;); unit.className = &#39;reel-unit&#39;;
+            unit.textContent = RUNES[Math.floor(Math.random() * 25)].g;
+            reel.appendChild(unit);
         }
-    } else {
-        const grid = document.getElementById('manual-grid');
-        grid.innerHTML = '';
-        manualSet = [];
-        RUNES.forEach(r => {
-            const item = document.createElement('div'); item.className = 'manual-item';
-            item.textContent = r.g;
-            item.onclick = () => {
-                if (manualSet.includes(r)) {
-                    manualSet = manualSet.filter(x => x !== r);
-                    item.classList.remove('selected');
-                } else if (manualSet.length < 3) {
-                    manualSet.push(r); item.classList.add('selected');
-                }
-                const btn = document.getElementById('manual-submit');
-                btn.disabled = manualSet.length !== 3;
-                btn.textContent = manualSet.length === 3 ? 'Read the Staves' : `Select ${3 - manualSet.length} More`;
-            };
-            grid.appendChild(item);
-        });
+        slot.appendChild(reel); wrap.appendChild(slot);
     }
+} else {
+    const grid = document.getElementById(&#39;manual-grid&#39;);
+    grid.innerHTML = &#39;&#39;;
+    manualSet = [];
+    RUNES.forEach(r =&gt; {
+        const item = document.createElement(&#39;div&#39;); item.className = &#39;manual-item&#39;;
+        item.textContent = r.g;
+        item.onclick = () =&gt; {
+            if (manualSet.includes(r)) {
+                manualSet = manualSet.filter(x =&gt; x !== r);
+                item.classList.remove(&#39;selected&#39;);
+            } else if (manualSet.length &lt; 3) {
+                manualSet.push(r); item.classList.add(&#39;selected&#39;);
+            }
+            const btn = document.getElementById(&#39;manual-submit&#39;);
+            btn.disabled = manualSet.length !== 3;
+            btn.textContent = manualSet.length === 3 ? &#39;Read the Staves&#39; : `Select ${3 - manualSet.length} More`;
+        };
+        grid.appendChild(item);
+    });
 }
 
+}
 // ── Reading: cast ─────────────────────────────────────────────────────────────
 function startCast() {
-    document.getElementById('cast-btn').disabled = true;
-    const picks = [];
-    for (let i = 0; i < 3; i++) {
-        const win = RUNES[Math.floor(Math.random() * 25)];
-        picks.push(win);
-        const r = document.getElementById('r' + i);
-        r.lastChild.textContent = win.g;
-        r.style.transform = `translateY(-${44 * 130}px)`;
-    }
-    setTimeout(() => processReading(picks), 4600);
+document.getElementById('cast-btn').disabled = true;
+const picks = [];
+for (let i = 0; i < 3; i++) {
+const win = RUNES[Math.floor(Math.random() * 25)];
+picks.push(win);
+const r = document.getElementById('r' + i);
+r.lastChild.textContent = win.g;
+r.style.transform = translateY(-${44 * 130}px);
 }
-
+setTimeout(() => processReading(picks), 4600);
+}
 function submitManual() { processReading(manualSet); }
-
 function processReading(runes) {
-    readingActive = true;
+readingActive = true;
+document.getElementById(&#39;draw-ui&#39;).style.display   = &#39;none&#39;;
+document.getElementById(&#39;manual-ui&#39;).style.display = &#39;none&#39;;
 
-    document.getElementById('draw-ui').style.display   = 'none';
-    document.getElementById('manual-ui').style.display = 'none';
+const container = document.getElementById(&#39;reveal-glyphs&#39;);
+container.innerHTML = &#39;&#39;;
+runes.forEach(r =&gt; {
+    const wrap = document.createElement(&#39;div&#39;);
+    wrap.style.cssText = &#39;display:flex; flex-direction:column; align-items:center; gap:6px;&#39;;
+    const glyph = document.createElement(&#39;div&#39;); glyph.className = &#39;reveal-rune&#39;; glyph.textContent = r.g;
+    const name  = document.createElement(&#39;div&#39;); name.className  = &#39;reveal-name&#39;;  name.textContent  = r.n;
+    wrap.appendChild(glyph); wrap.appendChild(name);
+    container.appendChild(wrap);
+    stats[r.n] = (stats[r.n] || 0) + 1;
+});
+localStorage.setItem(&#39;rune_stats&#39;, JSON.stringify(stats));
 
-    const container = document.getElementById('reveal-glyphs');
-    container.innerHTML = '';
-    runes.forEach(r => {
-        const wrap = document.createElement('div');
-        wrap.style.cssText = 'display:flex; flex-direction:column; align-items:center; gap:6px;';
-        const glyph = document.createElement('div'); glyph.className = 'reveal-rune'; glyph.textContent = r.g;
-        const name  = document.createElement('div'); name.className  = 'reveal-name';  name.textContent  = r.n;
-        wrap.appendChild(glyph); wrap.appendChild(name);
-        container.appendChild(wrap);
-        stats[r.n] = (stats[r.n] || 0) + 1;
-    });
-    localStorage.setItem('rune_stats', JSON.stringify(stats));
+// Build reading from structured predict/warn fields
+// Positions: Past · Present · Future
+const positions = [&#39;Past&#39;, &#39;Present&#39;, &#39;Future&#39;];
+const labels    = [&#39;What has shaped you&#39;, &#39;What is active now&#39;, &#39;What is coming&#39;];
 
-    // Build reading from structured predict/warn fields
-    // Positions: Past · Present · Future
-    const positions = ['Past', 'Present', 'Future'];
-    const labels    = ['What has shaped you', 'What is active now', 'What is coming'];
+// Pick a deterministic-but-varied prediction index per rune per day
+const today = new Date();
+const seed = today.getFullYear()*10000 + (today.getMonth()+1)*100 + today.getDate();
 
-    // Pick a deterministic-but-varied prediction index per rune per day
-    const today = new Date();
-    const seed = today.getFullYear()*10000 + (today.getMonth()+1)*100 + today.getDate();
+const parts = runes.map((r, i) =&gt; {
+    const preds = r.predict || [`${r.m} is present.`];
+    const idx = (seed + i * 7 + (r.n.charCodeAt(0) || 0)) % preds.length;
+    return { r, pos: positions[i], label: labels[i], prediction: preds[idx] };
+});
 
-    const parts = runes.map((r, i) => {
-        const preds = r.predict || [`${r.m} is present.`];
-        const idx = (seed + i * 7 + (r.n.charCodeAt(0) || 0)) % preds.length;
-        return { r, pos: positions[i], label: labels[i], prediction: preds[idx] };
-    });
+// Warning comes from the middle rune (most active)
+const warnRune = runes[1];
+const warnText = warnRune.warn || &#39;&#39;;
 
-    // Warning comes from the middle rune (most active)
-    const warnRune = runes[1];
-    const warnText = warnRune.warn || '';
+// Build HTML reading
+const html = parts.map(p =&gt; `
+    &lt;div style=&quot;margin-bottom:28px; text-align:left; border-left:2px solid rgba(201,169,110,0.25); padding-left:16px;&quot;&gt;
+        &lt;div style=&quot;font-size:9px; letter-spacing:0.35em; text-transform:uppercase; color:var(--accent); -webkit-text-fill-color:var(--accent); margin-bottom:4px;&quot;&gt;${p.pos} — ${p.label}&lt;/div&gt;
+        &lt;div style=&quot;font-size:11px; text-transform:uppercase; letter-spacing:0.2em; color:var(--dim2); -webkit-text-fill-color:var(--dim2); margin-bottom:8px;&quot;&gt;${p.r.n} · ${p.r.m}&lt;/div&gt;
+        &lt;div style=&quot;font-size:17px; font-style:italic; line-height:1.7; color:var(--fg); -webkit-text-fill-color:var(--fg);&quot;&gt;${p.prediction}&lt;/div&gt;
+    &lt;/div&gt;`).join(&#39;&#39;);
 
-    // Build HTML reading
-    const html = parts.map(p => `
-        <div style="margin-bottom:28px; text-align:left; border-left:2px solid rgba(201,169,110,0.25); padding-left:16px;">
-            <div style="font-size:9px; letter-spacing:0.35em; text-transform:uppercase; color:var(--accent); -webkit-text-fill-color:var(--accent); margin-bottom:4px;">${p.pos} — ${p.label}</div>
-            <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.2em; color:var(--dim2); -webkit-text-fill-color:var(--dim2); margin-bottom:8px;">${p.r.n} · ${p.r.m}</div>
-            <div style="font-size:17px; font-style:italic; line-height:1.7; color:var(--fg); -webkit-text-fill-color:var(--fg);">${p.prediction}</div>
-        </div>`).join('');
+const warnHtml = warnText ? `
+    &lt;div style=&quot;margin-top:8px; padding:14px 16px; background:rgba(201,169,110,0.06); border-radius:8px; border:1px solid rgba(201,169,110,0.12);&quot;&gt;
+        &lt;div style=&quot;font-size:9px; letter-spacing:0.35em; text-transform:uppercase; color:var(--dim2); -webkit-text-fill-color:var(--dim2); margin-bottom:6px;&quot;&gt;Heed&lt;/div&gt;
+        &lt;div style=&quot;font-size:15px; font-style:italic; line-height:1.6; color:var(--fg2); -webkit-text-fill-color:var(--fg2);&quot;&gt;${warnText}&lt;/div&gt;
+    &lt;/div&gt;` : &#39;&#39;;
 
-    const warnHtml = warnText ? `
-        <div style="margin-top:8px; padding:14px 16px; background:rgba(201,169,110,0.06); border-radius:8px; border:1px solid rgba(201,169,110,0.12);">
-            <div style="font-size:9px; letter-spacing:0.35em; text-transform:uppercase; color:var(--dim2); -webkit-text-fill-color:var(--dim2); margin-bottom:6px;">Heed</div>
-            <div style="font-size:15px; font-style:italic; line-height:1.6; color:var(--fg2); -webkit-text-fill-color:var(--fg2);">${warnText}</div>
-        </div>` : '';
+const revealDiv = document.getElementById(&#39;reveal-text&#39;);
+revealDiv.innerHTML = html + warnHtml;
 
-    const revealDiv = document.getElementById('reveal-text');
-    revealDiv.innerHTML = html + warnHtml;
+const dateStr = new Date().toLocaleDateString(&#39;en-GB&#39;, {day:&#39;numeric&#39;, month:&#39;short&#39;}).toUpperCase();
+const textStr = parts.map(p =&gt; `${p.pos}: ${p.prediction}`).join(&#39; &#39;);
+history.unshift({ date: dateStr, names: runes.map(r =&gt; r.n), glyphs: runes.map(r =&gt; r.g).join(&#39; · &#39;), text: textStr });
+localStorage.setItem(&#39;rune_hist&#39;, JSON.stringify(history.slice(0, 30)));
 
-    const dateStr = new Date().toLocaleDateString('en-GB', {day:'numeric', month:'short'}).toUpperCase();
-    const textStr = parts.map(p => `${p.pos}: ${p.prediction}`).join(' ');
-    history.unshift({ date: dateStr, names: runes.map(r => r.n), glyphs: runes.map(r => r.g).join(' · '), text: textStr });
-    localStorage.setItem('rune_hist', JSON.stringify(history.slice(0, 30)));
+document.getElementById(&#39;reveal-ui&#39;).style.display = &#39;block&#39;;
 
-    document.getElementById('reveal-ui').style.display = 'block';
 }
-
 function resetReader() {
-    readingActive = false;
-    setReadMode(currentReadMode);
-    document.getElementById('cast-btn').disabled = false;
+readingActive = false;
+setReadMode(currentReadMode);
+document.getElementById('cast-btn').disabled = false;
 }
-
-// ── Bind Rune Engine v8 — Noto Sans Runic ────────────────────────────────────
+// ── Bind Rune Engine v8 — Junicode ────────────────────────────────────
 //
-// Uses Noto Sans Runic: a clean geometric sans-serif font with no serifs,
-// no enclosed counters, and uniform stroke weight. Runes are stroked outlines
-// only. All runes aligned to share their traced vertical staff centre.
+// Uses Junicode: a scholarly font with excellent Runic support.
+// All runes aligned to share their traced vertical staff centre.
 // Secondary runes scaled 40-70% and positioned to touch but not bury primary.
-
 const FS = 300;
 const CX = FS/2, CY = FS/2;
 const BG = '#0d0d12';
 const GOLD = '#c9a96e';
-const RUNIC_FONT = "Noto Sans Runic";
+const RUNIC_FONT = "Junicode";
 const FALLBACK   = '"Segoe UI Historic","Segoe UI Symbol"';
 const OW = 3.5;   // outline stroke width
-
 let forgeMirrors = [];
 let forgeScales  = [];
 let forgeOffsets = [];
-
 const _mc = {};
-
 function getMetrics(glyph, mirror) {
-    const key = glyph + (mirror?'M':'');
-    if (_mc[key]) return _mc[key];
-    const SZ = 200, fs = Math.round(SZ * 0.78);
-    const cv = document.createElement('canvas');
-    cv.width = cv.height = SZ;
-    const ctx = cv.getContext('2d');
-    ctx.save();
-    if (mirror) { ctx.translate(SZ,0); ctx.scale(-1,1); }
-    ctx.font = `${fs}px "${RUNIC_FONT}",${FALLBACK},serif`;
-    ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText(glyph, SZ/2, SZ/2);
-    ctx.restore();
-    const d = ctx.getImageData(0,0,SZ,SZ).data;
-    let mnX=SZ,mxX=0,mnY=SZ,mxY=0;
-    const colD=new Float32Array(SZ);
-    let sX=0,sY=0,tot=0;
-    for(let y=0;y<SZ;y++) for(let x=0;x<SZ;x++){
-        const a=d[(y*SZ+x)*4+3];
-        if(a>30){
-            if(x<mnX)mnX=x;if(x>mxX)mxX=x;
-            if(y<mnY)mnY=y;if(y>mxY)mxY=y;
-            colD[x]+=a/255;sX+=x*a;sY+=y*a;tot+=a;
-        }
-    }
-    if(mxX<mnX){mnX=40;mxX=160;mnY=30;mxY=170;}
-    let staffX=SZ/2,best=0;
-    for(let x=mnX;x<=mxX;x++){
-        let s=0;
-        for(let dx=-3;dx<=3;dx++) s+=colD[Math.max(0,Math.min(SZ-1,x+dx))];
-        if(s>best){best=s;staffX=x;}
-    }
-    const vCX=tot>0?sX/tot:SZ/2, vCY=tot>0?sY/tot:SZ/2;
-    return _mc[key]={w:mxX-mnX,h:mxY-mnY,vCX,vCY,staffX,fs,SZ,
-        sfc:staffX-SZ/2, vcyc:vCY-SZ/2};
+const key = glyph + (mirror?'M':'');
+if (_mc[key]) return _mc[key];
+const SZ = 200, fs = Math.round(SZ * 0.78);
+const cv = document.createElement('canvas');
+cv.width = cv.height = SZ;
+const ctx = cv.getContext('2d');
+ctx.save();
+if (mirror) { ctx.translate(SZ,0); ctx.scale(-1,1); }
+ctx.font = ${fs}px &quot;${RUNIC_FONT}&quot;,${FALLBACK},serif;
+ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+ctx.fillText(glyph, SZ/2, SZ/2);
+ctx.restore();
+const d = ctx.getImageData(0,0,SZ,SZ).data;
+let mnX=SZ,mxX=0,mnY=SZ,mxY=0;
+const colD=new Float32Array(SZ);
+let sX=0,sY=0,tot=0;
+for(let y=0;y<SZ;y++) for(let x=0;x<SZ;x++){
+const a=d[(ySZ+x)4+3];
+if(a>30){
+if(x<mnX)mnX=x;if(x>mxX)mxX=x;
+if(y<mnY)mnY=y;if(y>mxY)mxY=y;
+colD[x]+=a/255;sX+=xa;sY+=ya;tot+=a;
 }
-
+}
+if(mxX<mnX){mnX=40;mxX=160;mnY=30;mxY=170;}
+let staffX=SZ/2,best=0;
+for(let x=mnX;x<=mxX;x++){
+let s=0;
+for(let dx=-3;dx<=3;dx++) s+=colD[Math.max(0,Math.min(SZ-1,x+dx))];
+if(s>best){best=s;staffX=x;}
+}
+const vCX=tot>0?sX/tot:SZ/2, vCY=tot>0?sY/tot:SZ/2;
+return _mc[key]={w:mxX-mnX,h:mxY-mnY,vCX,vCY,staffX,fs,SZ,
+sfc:staffX-SZ/2, vcyc:vCY-SZ/2};
+}
 function runeFont(fs) {
-    return `${fs}px "${RUNIC_FONT}",${FALLBACK},serif`;
+return ${fs}px &quot;${RUNIC_FONT}&quot;,${FALLBACK},serif;
 }
-
 // Draw one rune as stroked outline, staff-centred, with transforms
 function drawRune(ctx, glyph, mirror, m, scale, dx, dy, baseH, colour, lw) {
-    const W  = ctx.canvas.width;
-    const sc = (baseH*scale)/m.h;
-    const fs = Math.round(m.fs*sc);
-    const rx0= CX - m.sfc*sc + dx;
-    const ry0= CY - m.vcyc*sc + dy;
-    ctx.save();
-    if(mirror){ctx.translate(W,0);ctx.scale(-1,1);}
-    const rx = mirror ? W-rx0 : rx0;
-    ctx.font=runeFont(fs);
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.strokeStyle=colour; ctx.lineWidth=lw;
-    ctx.lineJoin='round'; ctx.lineCap='round';
-    ctx.strokeText(glyph,rx,ry0);
-    ctx.restore();
+const W  = ctx.canvas.width;
+const sc = (baseHscale)/m.h;
+const fs = Math.round(m.fssc);
+const rx0= CX - m.sfcsc + dx;
+const ry0= CY - m.vcycsc + dy;
+ctx.save();
+if(mirror){ctx.translate(W,0);ctx.scale(-1,1);}
+const rx = mirror ? W-rx0 : rx0;
+ctx.font=runeFont(fs);
+ctx.textAlign='center'; ctx.textBaseline='middle';
+ctx.strokeStyle=colour; ctx.lineWidth=lw;
+ctx.lineJoin='round'; ctx.lineCap='round';
+ctx.strokeText(glyph,rx,ry0);
+ctx.restore();
 }
-
 // Also draw filled (for interior erase pass)
 function fillRune(ctx, glyph, mirror, m, scale, dx, dy, baseH, colour) {
-    const W  = ctx.canvas.width;
-    const sc = (baseH*scale)/m.h;
-    const fs = Math.round(m.fs*sc);
-    const rx0= CX - m.sfc*sc + dx;
-    const ry0= CY - m.vcyc*sc + dy;
-    ctx.save();
-    if(mirror){ctx.translate(W,0);ctx.scale(-1,1);}
-    const rx = mirror ? W-rx0 : rx0;
-    ctx.font=runeFont(fs);
-    ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillStyle=colour;
-    ctx.fillText(glyph,rx,ry0);
-    ctx.restore();
+const W  = ctx.canvas.width;
+const sc = (baseHscale)/m.h;
+const fs = Math.round(m.fssc);
+const rx0= CX - m.sfcsc + dx;
+const ry0= CY - m.vcycsc + dy;
+ctx.save();
+if(mirror){ctx.translate(W,0);ctx.scale(-1,1);}
+const rx = mirror ? W-rx0 : rx0;
+ctx.font=runeFont(fs);
+ctx.textAlign='center'; ctx.textBaseline='middle';
+ctx.fillStyle=colour;
+ctx.fillText(glyph,rx,ry0);
+ctx.restore();
 }
-
 function compositeForge() {
-    const display = document.getElementById('forge-canvas-el');
-    if(!display) return;
-    const ctx = display.getContext('2d');
+const display = document.getElementById('forge-canvas-el');
+if(!display) return;
+const ctx = display.getContext('2d');
+ctx.clearRect(0,0,FS,FS);
+ctx.fillStyle=BG;
+ctx.beginPath();ctx.arc(CX,CY,CX,0,Math.PI*2);ctx.fill();
+const grd=ctx.createRadialGradient(CX,CY,0,CX,CY,CX*0.85);
+grd.addColorStop(0,&#39;rgba(201,169,110,0.09)&#39;);
+grd.addColorStop(0.6,&#39;rgba(201,169,110,0.02)&#39;);
+grd.addColorStop(1,&#39;rgba(0,0,0,0)&#39;);
+ctx.fillStyle=grd;
+ctx.beginPath();ctx.arc(CX,CY,CX,0,Math.PI*2);ctx.fill();
 
-    ctx.clearRect(0,0,FS,FS);
-    ctx.fillStyle=BG;
-    ctx.beginPath();ctx.arc(CX,CY,CX,0,Math.PI*2);ctx.fill();
-    const grd=ctx.createRadialGradient(CX,CY,0,CX,CY,CX*0.85);
-    grd.addColorStop(0,'rgba(201,169,110,0.09)');
-    grd.addColorStop(0.6,'rgba(201,169,110,0.02)');
-    grd.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=grd;
-    ctx.beginPath();ctx.arc(CX,CY,CX,0,Math.PI*2);ctx.fill();
+if(forgeSet.length===0) return;
 
-    if(forgeSet.length===0) return;
+const ms   = forgeSet.map((r,i)=&gt;getMetrics(r.g,forgeMirrors[i]??false));
+const baseH = FS * 0.65;
 
-    const ms   = forgeSet.map((r,i)=>getMetrics(r.g,forgeMirrors[i]??false));
-    const baseH = FS * 0.65;
+// Offscreen canvas for the outline
+const outCv=document.createElement(&#39;canvas&#39;);
+outCv.width=outCv.height=FS;
+const oCtx=outCv.getContext(&#39;2d&#39;);
 
-    // Offscreen canvas for the outline
-    const outCv=document.createElement('canvas');
-    outCv.width=outCv.height=FS;
-    const oCtx=outCv.getContext('2d');
+// Pass 1: thick gold stroke outline
+forgeSet.forEach((r,i)=&gt;{
+    drawRune(oCtx,r.g,forgeMirrors[i]??false,ms[i],
+        forgeScales[i]??1,forgeOffsets[i]?.[0]??0,forgeOffsets[i]?.[1]??0,
+        baseH,GOLD,OW*2+1);
+});
 
-    // Pass 1: thick gold stroke outline
-    forgeSet.forEach((r,i)=>{
-        drawRune(oCtx,r.g,forgeMirrors[i]??false,ms[i],
-            forgeScales[i]??1,forgeOffsets[i]?.[0]??0,forgeOffsets[i]?.[1]??0,
-            baseH,GOLD,OW*2+1);
-    });
+// Pass 2: erase interior with destination-out solid fill
+oCtx.globalCompositeOperation=&#39;destination-out&#39;;
+forgeSet.forEach((r,i)=&gt;{
+    fillRune(oCtx,r.g,forgeMirrors[i]??false,ms[i],
+        forgeScales[i]??1,forgeOffsets[i]?.[0]??0,forgeOffsets[i]?.[1]??0,
+        baseH,&#39;rgba(0,0,0,1)&#39;);
+});
+oCtx.globalCompositeOperation=&#39;source-over&#39;;
 
-    // Pass 2: erase interior with destination-out solid fill
-    oCtx.globalCompositeOperation='destination-out';
-    forgeSet.forEach((r,i)=>{
-        fillRune(oCtx,r.g,forgeMirrors[i]??false,ms[i],
-            forgeScales[i]??1,forgeOffsets[i]?.[0]??0,forgeOffsets[i]?.[1]??0,
-            baseH,'rgba(0,0,0,1)');
-    });
-    oCtx.globalCompositeOperation='source-over';
+// Blit to display, clipped to circle
+ctx.save();
+ctx.beginPath();ctx.arc(CX,CY,CX-2,0,Math.PI*2);ctx.clip();
+ctx.drawImage(outCv,0,0);
+ctx.restore();
 
-    // Blit to display, clipped to circle
-    ctx.save();
-    ctx.beginPath();ctx.arc(CX,CY,CX-2,0,Math.PI*2);ctx.clip();
-    ctx.drawImage(outCv,0,0);
-    ctx.restore();
+// Vignette
+const vig=ctx.createRadialGradient(CX,CY,CX*0.4,CX,CY,CX);
+vig.addColorStop(0,&#39;rgba(0,0,0,0)&#39;);
+vig.addColorStop(0.68,&#39;rgba(13,13,18,0.18)&#39;);
+vig.addColorStop(1,&#39;rgba(13,13,18,1)&#39;);
+ctx.fillStyle=vig;
+ctx.beginPath();ctx.arc(CX,CY,CX,0,Math.PI*2);ctx.fill();
 
-    // Vignette
-    const vig=ctx.createRadialGradient(CX,CY,CX*0.4,CX,CY,CX);
-    vig.addColorStop(0,'rgba(0,0,0,0)');
-    vig.addColorStop(0.68,'rgba(13,13,18,0.18)');
-    vig.addColorStop(1,'rgba(13,13,18,1)');
-    ctx.fillStyle=vig;
-    ctx.beginPath();ctx.arc(CX,CY,CX,0,Math.PI*2);ctx.fill();
 }
-
 // Score: reward overlap in 15-60% range, penalise out-of-circle pixels hard
 // ── Quality scoring ───────────────────────────────────────────────────────────
 // Scores a candidate on multiple quality dimensions, returns a composite score.
 // Higher = better bind rune composition.
 function scoreTransforms(mirrors, scales, offsets) {
-    const SZ = 70, bH = SZ * 0.65;
-    const layers = forgeSet.map((r, i) => {
-        const m  = getMetrics(r.g, mirrors[i]);
-        const sc = (bH * (scales[i] ?? 1)) / m.h;
-        const fs = Math.round(m.fs * sc * (SZ / 200));
-        const dx = SZ/2 - m.sfc  * sc * (SZ/200) + (offsets[i]?.[0] ?? 0) * (SZ/FS);
-        const dy = SZ/2 - m.vcyc * sc * (SZ/200) + (offsets[i]?.[1] ?? 0) * (SZ/FS);
-        const cv = document.createElement('canvas');
-        cv.width = cv.height = SZ;
-        const c = cv.getContext('2d');
-        c.save();
-        if (mirrors[i]) { c.translate(SZ, 0); c.scale(-1, 1); }
-        c.font = `${fs}px "${RUNIC_FONT}",${FALLBACK},serif`;
-        c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle';
-        c.fillText(r.g, mirrors[i] ? SZ - dx : dx, dy);
-        c.restore();
-        return c.getImageData(0, 0, SZ, SZ).data;
-    });
+const SZ = 70, bH = SZ * 0.65;
+const layers = forgeSet.map((r, i) => {
+const m  = getMetrics(r.g, mirrors[i]);
+const sc = (bH * (scales[i] ?? 1)) / m.h;
+const fs = Math.round(m.fs * sc * (SZ / 200));
+const dx = SZ/2 - m.sfc  * sc * (SZ/200) + (offsets[i]?.[0] ?? 0) * (SZ/FS);
+const dy = SZ/2 - m.vcyc * sc * (SZ/200) + (offsets[i]?.[1] ?? 0) * (SZ/FS);
+const cv = document.createElement('canvas');
+cv.width = cv.height = SZ;
+const c = cv.getContext('2d');
+c.save();
+if (mirrors[i]) { c.translate(SZ, 0); c.scale(-1, 1); }
+c.font = ${fs}px &quot;${RUNIC_FONT}&quot;,${FALLBACK},serif;
+c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle';
+c.fillText(r.g, mirrors[i] ? SZ - dx : dx, dy);
+c.restore();
+return c.getImageData(0, 0, SZ, SZ).data;
+});
+const r2circle = (SZ/2) * (SZ/2) * 0.88;
+let overlap=0, lit=0, outOfCircle=0;
+let minX=SZ, maxX=0, minY=SZ, maxY=0;
+let litByRune = [0, 0];
+let sumX=0, sumY=0;
 
-    const r2circle = (SZ/2) * (SZ/2) * 0.88;
-    let overlap=0, lit=0, outOfCircle=0;
-    let minX=SZ, maxX=0, minY=SZ, maxY=0;
-    let litByRune = [0, 0];
-    let sumX=0, sumY=0;
-
-    for (let y = 0; y < SZ; y++) {
-        for (let x = 0; x < SZ; x++) {
-            const p = (y * SZ + x) * 4;
-            let n = 0;
-            layers.forEach((d, i) => {
-                if (d[p+3] > 30) { n++; litByRune[i] = (litByRune[i]||0) + 1; }
-            });
-            if (n > 0) {
-                lit++;
-                if (x < minX) minX=x; if (x > maxX) maxX=x;
-                if (y < minY) minY=y; if (y > maxY) maxY=y;
-                sumX += x; sumY += y;
-                const dist2 = (x-SZ/2)**2 + (y-SZ/2)**2;
-                if (dist2 > r2circle) outOfCircle++;
-            }
-            if (n >= 2) overlap++;
+for (let y = 0; y &lt; SZ; y++) {
+    for (let x = 0; x &lt; SZ; x++) {
+        const p = (y * SZ + x) * 4;
+        let n = 0;
+        layers.forEach((d, i) =&gt; {
+            if (d[p+3] &gt; 30) { n++; litByRune[i] = (litByRune[i]||0) + 1; }
+        });
+        if (n &gt; 0) {
+            lit++;
+            if (x &lt; minX) minX=x; if (x &gt; maxX) maxX=x;
+            if (y &lt; minY) minY=y; if (y &gt; maxY) maxY=y;
+            sumX += x; sumY += y;
+            const dist2 = (x-SZ/2)**2 + (y-SZ/2)**2;
+            if (dist2 &gt; r2circle) outOfCircle++;
         }
+        if (n &gt;= 2) overlap++;
     }
-
-    if (lit === 0) return -999;
-
-    // 1. Overlap ratio — ideal is 15-55% shared area
-    const or = overlap / lit;
-    const overlapScore = or < 0.05 ? -60 :
-                         or > 0.80 ? -60 :
-                         or < 0.15 ? overlap * 0.5 :
-                         or > 0.55 ? overlap * 0.8 :
-                         overlap * 1.5;  // sweet spot bonus
-
-    // 2. Containment — heavy penalty for pixels outside circle
-    const containScore = -outOfCircle * 8;
-
-    // 3. Balance — is composition centred on the canvas?
-    const centreX = sumX / lit, centreY = sumY / lit;
-    const centreOffsetX = Math.abs(centreX - SZ/2) / SZ;
-    const centreOffsetY = Math.abs(centreY - SZ/2) / SZ;
-    const balanceScore = -(centreOffsetX + centreOffsetY) * 30;
-
-    // 4. Compactness — reward tighter bounding box
-    const bw = maxX - minX || 1, bh = maxY - minY || 1;
-    const compactScore = (1 - Math.max(bw, bh) / SZ) * 20;
-
-    // 5. Proportions — reward bounding box close to golden ratio or square
-    const ratio = Math.max(bw, bh) / Math.min(bw, bh);
-    const proportionScore = ratio < 1.2 ? 15 :    // nearly square
-                            ratio < 1.7 ? 10 :    // golden ratio zone
-                            ratio < 2.2 ? 0  : -10; // too elongated
-
-    // 6. Visibility — each rune should contribute meaningfully (not buried)
-    const minRuneLit = Math.min(...litByRune);
-    const visibilityScore = minRuneLit < 20 ? -30 : 0; // one rune nearly invisible
-
-    // 7. Opposite mirrors bonus — facing each other looks most like real bind rune
-    const oppositeMirrors = (mirrors[0] !== mirrors[1]);
-    const mirrorBonus = oppositeMirrors ? 12 : 0;
-
-    return overlapScore + containScore + balanceScore + compactScore +
-           proportionScore + visibilityScore + mirrorBonus;
 }
 
+if (lit === 0) return -999;
+
+// 1. Overlap ratio — ideal is 15-55% shared area
+const or = overlap / lit;
+const overlapScore = or &lt; 0.05 ? -60 :
+                     or &gt; 0.80 ? -60 :
+                     or &lt; 0.15 ? overlap * 0.5 :
+                     or &gt; 0.55 ? overlap * 0.8 :
+                     overlap * 1.5;  // sweet spot bonus
+
+// 2. Containment — heavy penalty for pixels outside circle
+const containScore = -outOfCircle * 8;
+
+// 3. Balance — is composition centred on the canvas?
+const centreX = sumX / lit, centreY = sumY / lit;
+const centreOffsetX = Math.abs(centreX - SZ/2) / SZ;
+const centreOffsetY = Math.abs(centreY - SZ/2) / SZ;
+const balanceScore = -(centreOffsetX + centreOffsetY) * 30;
+
+// 4. Compactness — reward tighter bounding box
+const bw = maxX - minX || 1, bh = maxY - minY || 1;
+const compactScore = (1 - Math.max(bw, bh) / SZ) * 20;
+
+// 5. Proportions — reward bounding box close to golden ratio or square
+const ratio = Math.max(bw, bh) / Math.min(bw, bh);
+const proportionScore = ratio &lt; 1.2 ? 15 :    // nearly square
+                        ratio &lt; 1.7 ? 10 :    // golden ratio zone
+                        ratio &lt; 2.2 ? 0  : -10; // too elongated
+
+// 6. Visibility — each rune should contribute meaningfully (not buried)
+const minRuneLit = Math.min(...litByRune);
+const visibilityScore = minRuneLit &lt; 20 ? -30 : 0; // one rune nearly invisible
+
+// 7. Opposite mirrors bonus — facing each other looks most like real bind rune
+const oppositeMirrors = (mirrors[0] !== mirrors[1]);
+const mirrorBonus = oppositeMirrors ? 12 : 0;
+
+return overlapScore + containScore + balanceScore + compactScore +
+       proportionScore + visibilityScore + mirrorBonus;
+
+}
 // ── Pre-ranked candidate system ───────────────────────────────────────────────
 // On initial selection: evaluate ALL candidates, rank by score, store list.
 // First render uses the top-ranked candidate.
 // Rethrow walks through the list in order — always showing the next best option.
 let _rankedCandidates = [];  // sorted array of {mirrors,scales,offsets,score}
 let _candidateIndex   = 0;  // current position in the ranked list
-
 function buildAllCandidates() {
-    const scaleOpts  = [0.45, 0.58, 0.72, 0.86, 1.0];
-    const offsetOpts = [
-        [0,0],
-        [0,-22],[0,22],[-18,0],[18,0],
-        [0,-40],[0,40],[-32,0],[32,0],
-        [-16,-16],[16,-16],[-16,16],[16,16],
-    ];
-    const mirrorCombos = [
-        [false, true],   // opposite — most authentic
-        [true,  false],
-        [false, false],
-        [true,  true],
-    ];
-
-    const candidates = [];
-    for (const mCombo of mirrorCombos) {
-        for (const s1 of scaleOpts) {
-            for (const o1 of offsetOpts) {
-                const mirrors  = [mCombo[0], mCombo[1]];
-                const scales   = [1, s1];
-                const offsets  = [[0,0], o1];
-                const score    = scoreTransforms(mirrors, scales, offsets);
-                candidates.push({ mirrors, scales, offsets, score });
-            }
+const scaleOpts  = [0.45, 0.58, 0.72, 0.86, 1.0];
+const offsetOpts = [
+[0,0],
+[0,-22],[0,22],[-18,0],[18,0],
+[0,-40],[0,40],[-32,0],[32,0],
+[-16,-16],[16,-16],[-16,16],[16,16],
+];
+const mirrorCombos = [
+[false, true],   // opposite — most authentic
+[true,  false],
+[false, false],
+[true,  true],
+];
+const candidates = [];
+for (const mCombo of mirrorCombos) {
+    for (const s1 of scaleOpts) {
+        for (const o1 of offsetOpts) {
+            const mirrors  = [mCombo[0], mCombo[1]];
+            const scales   = [1, s1];
+            const offsets  = [[0,0], o1];
+            const score    = scoreTransforms(mirrors, scales, offsets);
+            candidates.push({ mirrors, scales, offsets, score });
         }
     }
-
-    // Sort best first
-    candidates.sort((a, b) => b.score - a.score);
-    return candidates;
 }
 
+// Sort best first
+candidates.sort((a, b) =&gt; b.score - a.score);
+return candidates;
+
+}
 function smartAlignAngles() {
-    if (forgeSet.length === 0) { compositeForge(); return; }
-    if (forgeSet.length === 1) {
-        forgeMirrors=[false]; forgeScales=[1]; forgeOffsets=[[0,0]];
-        compositeForge(); return;
-    }
-
-    // Build and rank all candidates
-    _rankedCandidates = buildAllCandidates();
-    _candidateIndex   = 0;
-
-    // Apply the best one
-    applyCandidate(0);
-    updateQualityIndicator();
+if (forgeSet.length === 0) { compositeForge(); return; }
+if (forgeSet.length === 1) {
+forgeMirrors=[false]; forgeScales=[1]; forgeOffsets=[[0,0]];
+compositeForge(); return;
 }
+// Build and rank all candidates
+_rankedCandidates = buildAllCandidates();
+_candidateIndex   = 0;
 
+// Apply the best one
+applyCandidate(0);
+updateQualityIndicator();
+
+}
 function applyCandidate(idx) {
-    const c = _rankedCandidates[idx];
-    if (!c) return;
-    forgeMirrors = [...c.mirrors];
-    forgeScales  = [...c.scales];
-    forgeOffsets = c.offsets.map(o => [...o]);
-    compositeForge();
+const c = _rankedCandidates[idx];
+if (!c) return;
+forgeMirrors = [...c.mirrors];
+forgeScales  = [...c.scales];
+forgeOffsets = c.offsets.map(o => [...o]);
+compositeForge();
 }
-
 // Show a subtle quality indicator so the user knows when they've hit a good one
 function updateQualityIndicator() {
-    const scoreEl = document.getElementById('forge-quality');
-    if (!scoreEl || _rankedCandidates.length === 0) return;
-    const score = _rankedCandidates[_candidateIndex]?.score ?? 0;
-    const max   = _rankedCandidates[0]?.score ?? 1;
-    const pct   = Math.max(0, Math.min(1, score / Math.max(max, 1)));
+const scoreEl = document.getElementById('forge-quality');
+if (!scoreEl || _rankedCandidates.length === 0) return;
+const score = _rankedCandidates[_candidateIndex]?.score ?? 0;
+const max   = _rankedCandidates[0]?.score ?? 1;
+const pct   = Math.max(0, Math.min(1, score / Math.max(max, 1)));
+// Show stars: ★★★ for top 20%, ★★ for top 50%, ★ for rest
+const rank = _candidateIndex / Math.max(_rankedCandidates.length - 1, 1);
+scoreEl.textContent = rank &lt; 0.05 ? &#39;✦ Exceptional&#39; :
+                      rank &lt; 0.20 ? &#39;✦ Strong&#39;      :
+                      rank &lt; 0.50 ? &#39;✦ Good&#39;        : &#39;&#39;;
+scoreEl.style.opacity = rank &lt; 0.50 ? &#39;1&#39; : &#39;0&#39;;
 
-    // Show stars: ★★★ for top 20%, ★★ for top 50%, ★ for rest
-    const rank = _candidateIndex / Math.max(_rankedCandidates.length - 1, 1);
-    scoreEl.textContent = rank < 0.05 ? '✦ Exceptional' :
-                          rank < 0.20 ? '✦ Strong'      :
-                          rank < 0.50 ? '✦ Good'        : '';
-    scoreEl.style.opacity = rank < 0.50 ? '1' : '0';
 }
-
 function recastForge() {
-    if (forgeSet.length !== 2) return;
-    const c = document.getElementById('forge-canvas');
-    c.style.transition = 'opacity 0.1s';
-    c.style.opacity = '0.15';
-    setTimeout(() => {
-        // Walk to next candidate in ranked list (wraps around)
-        _candidateIndex = (_candidateIndex + 1) % _rankedCandidates.length;
-        applyCandidate(_candidateIndex);
-        updateQualityIndicator();
-        c.style.opacity = '1';
-    }, 120);
+if (forgeSet.length !== 2) return;
+const c = document.getElementById('forge-canvas');
+c.style.transition = 'opacity 0.1s';
+c.style.opacity = '0.15';
+setTimeout(() => {
+// Walk to next candidate in ranked list (wraps around)
+_candidateIndex = (_candidateIndex + 1) % _rankedCandidates.length;
+applyCandidate(_candidateIndex);
+updateQualityIndicator();
+c.style.opacity = '1';
+}, 120);
 }
-
-
 function initForge() {
-    const p = document.getElementById('forge-picker');
-    if (p.children.length > 0) { renderTalismans(); return; }
-    RUNES.forEach(r => {
-        const b = document.createElement('div');
-        b.className = 'forge-pick-btn';
-        b.textContent = r.g;
-        b.title = r.n;
-        b.onclick = () => {
-            if (forgeSet.find(x => x.n === r.n)) {
-                forgeSet = forgeSet.filter(x => x.n !== r.n);
-                forgeMirrors = forgeMirrors.slice(0, forgeSet.length);
-                b.classList.remove('chosen');
-            } else if (forgeSet.length < 2) {
-                forgeSet.push(r);
-                forgeMirrors.push(false);
-                b.classList.add('chosen');
-            }
-            updateForge();
-        };
-        p.appendChild(b);
-    });
-    renderTalismans();
+const p = document.getElementById('forge-picker');
+if (p.children.length > 0) { renderTalismans(); return; }
+RUNES.forEach(r => {
+const b = document.createElement('div');
+b.className = 'forge-pick-btn';
+b.textContent = r.g;
+b.title = r.n;
+b.onclick = () => {
+if (forgeSet.find(x => x.n === r.n)) {
+forgeSet = forgeSet.filter(x => x.n !== r.n);
+forgeMirrors = forgeMirrors.slice(0, forgeSet.length);
+b.classList.remove('chosen');
+} else if (forgeSet.length < 2) {
+forgeSet.push(r);
+forgeMirrors.push(false);
+b.classList.add('chosen');
 }
-
+updateForge();
+};
+p.appendChild(b);
+});
+renderTalismans();
+}
 function updateForge() {
-    const placeholder = document.getElementById('forge-placeholder-text');
-    document.getElementById('bind-btn').disabled   = forgeSet.length !== 2;
-    document.getElementById('recast-btn').disabled = forgeSet.length !== 2;
-    if (forgeSet.length === 0) {
-        placeholder.style.display = 'flex';
-        compositeForge();
-        return;
-    }
-    placeholder.style.display = 'none';
-    if (forgeSet.length >= 2) smartAlignAngles();
-    else compositeForge();
+const placeholder = document.getElementById('forge-placeholder-text');
+document.getElementById('bind-btn').disabled   = forgeSet.length !== 2;
+document.getElementById('recast-btn').disabled = forgeSet.length !== 2;
+if (forgeSet.length === 0) {
+placeholder.style.display = 'flex';
+compositeForge();
+return;
 }
-
+placeholder.style.display = 'none';
+if (forgeSet.length >= 2) smartAlignAngles();
+else compositeForge();
+}
 function bindTalisman() {
-    if (forgeSet.length !== 2) return;
-    const names  = forgeSet.map(r => r.n);
-    const powers = forgeSet.map(r => r.power || `The power of ${r.m.toLowerCase()}.`);
-    const incantation = `A talisman of ${names.join(' and ')}: ${powers.map(p => p.replace(/\.$/, '')).join('. ')}. Carry this seal as your protection and your intent.`;
-
-    // Snapshot: use the live canvas (stroke-based, no getImageData — always clean)
-    let snap = null;
-    try {
-        snap = document.getElementById('forge-canvas-el').toDataURL('image/png');
-    } catch(e) {
-        console.warn('Snapshot failed:', e);
-    }
-
-    talismans.unshift({ glyphs, incantation, snap, mirrors: [...forgeMirrors] });
-    localStorage.setItem('rune_tali', JSON.stringify(talismans.slice(0, 15)));
-    showToast('Talisman Bound');
-
-    forgeSet = [];
-    forgeMirrors = [];
-    document.querySelectorAll('.forge-pick-btn.chosen').forEach(b => b.classList.remove('chosen'));
-    updateForge();
-    renderTalismans();
+if (forgeSet.length !== 2) return;
+const names  = forgeSet.map(r => r.n);
+const powers = forgeSet.map(r => r.power || The power of ${r.m.toLowerCase()}.);
+const incantation = A talisman of ${names.join(&#39; and &#39;)}: ${powers.map(p =&gt; p.replace(/\.$/, &#39;&#39;)).join(&#39;. &#39;)}. Carry this seal as your protection and your intent.;
+// Snapshot: use the live canvas (stroke-based, no getImageData — always clean)
+let snap = null;
+try {
+    snap = document.getElementById(&#39;forge-canvas-el&#39;).toDataURL(&#39;image/png&#39;);
+} catch(e) {
+    console.warn(&#39;Snapshot failed:&#39;, e);
 }
 
+const glyphs = forgeSet.map(r =&gt; r.g).join(&#39; · &#39;);
+talismans.unshift({ glyphs, incantation, snap, mirrors: [...forgeMirrors] });
+localStorage.setItem(&#39;rune_tali&#39;, JSON.stringify(talismans.slice(0, 15)));
+showToast(&#39;Talisman Bound&#39;);
 
+forgeSet = [];
+forgeMirrors = [];
+document.querySelectorAll(&#39;.forge-pick-btn.chosen&#39;).forEach(b =&gt; b.classList.remove(&#39;chosen&#39;));
+updateForge();
+renderTalismans();
 
+}
 // ── Stats & History ───────────────────────────────────────────────────────────
 function renderStats() {
-    const census = document.getElementById('full-rune-stats');
-    census.innerHTML = '';
-    RUNES.forEach(r => {
-        const count = stats[r.n] || 0;
-        const box = document.createElement('div'); box.className = 'grid-stat-box';
-        box.innerHTML = `
-            <span style="font-size:22px;">${r.g}</span>
-            <span style="font-size:9px; opacity:0.4; text-transform:uppercase; letter-spacing:0.1em;">${r.n}</span>
-            <span style="color:var(--accent); -webkit-text-fill-color:var(--accent); font-weight:bold;">${count}</span>`;
-        census.appendChild(box);
-    });
+const census = document.getElementById('full-rune-stats');
+census.innerHTML = '';
+RUNES.forEach(r => {
+const count = stats[r.n] || 0;
+const box = document.createElement('div'); box.className = 'grid-stat-box';
+box.innerHTML =  &lt;span style=&quot;font-size:22px;&quot;&gt;${r.g}&lt;/span&gt; &lt;span style=&quot;font-size:9px; opacity:0.4; text-transform:uppercase; letter-spacing:0.1em;&quot;&gt;${r.n}&lt;/span&gt; &lt;span style=&quot;color:var(--accent); -webkit-text-fill-color:var(--accent); font-weight:bold;&quot;&gt;${count}&lt;/span&gt;;
+census.appendChild(box);
+});
+const hList = document.getElementById(&#39;history-list&#39;);
+hList.innerHTML = &#39;&#39;;
+if (history.length === 0) {
+    hList.innerHTML = &#39;&lt;p style=&quot;font-size:13px;color:var(--dim2);-webkit-text-fill-color:var(--dim2);font-style:italic;padding:20px 0;&quot;&gt;No readings yet.&lt;/p&gt;&#39;;
+    return;
+}
 
-    const hList = document.getElementById('history-list');
-    hList.innerHTML = '';
-    if (history.length === 0) {
-        hList.innerHTML = '<p style="font-size:13px;color:var(--dim2);-webkit-text-fill-color:var(--dim2);font-style:italic;padding:20px 0;">No readings yet.</p>';
-        return;
-    }
+history.forEach((h, idx) =&gt; {
+    const item = document.createElement(&#39;div&#39;);
+    item.className = &#39;history-item&#39;;
+    item.innerHTML = `
+        &lt;div class=&quot;history-delete-bg&quot;&gt;Delete&lt;/div&gt;
+        &lt;div class=&quot;history-content&quot;&gt;
+            &lt;div style=&quot;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;&quot;&gt;
+                &lt;div style=&quot;font-size:10px;color:var(--accent);-webkit-text-fill-color:var(--accent);letter-spacing:0.2em;&quot;&gt;${h.date}&lt;/div&gt;
+                &lt;div style=&quot;font-size:22px;letter-spacing:4px;&quot;&gt;${h.glyphs}&lt;/div&gt;
+            &lt;/div&gt;
+            &lt;div style=&quot;font-size:14px;font-style:italic;color:var(--fg2);-webkit-text-fill-color:var(--fg2);line-height:1.5;opacity:0.8;&quot;&gt;${(h.text || &#39;&#39;).split(&#39;.&#39;)[0]}.&lt;/div&gt;
+        &lt;/div&gt;`;
 
-    history.forEach((h, idx) => {
-        const item = document.createElement('div');
-        item.className = 'history-item';
-        item.innerHTML = `
-            <div class="history-delete-bg">Delete</div>
-            <div class="history-content">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-                    <div style="font-size:10px;color:var(--accent);-webkit-text-fill-color:var(--accent);letter-spacing:0.2em;">${h.date}</div>
-                    <div style="font-size:22px;letter-spacing:4px;">${h.glyphs}</div>
-                </div>
-                <div style="font-size:14px;font-style:italic;color:var(--fg2);-webkit-text-fill-color:var(--fg2);line-height:1.5;opacity:0.8;">${(h.text || '').split('.')[0]}.</div>
-            </div>`;
+    // ── Swipe to delete ────────────────────────────────────────────────
+    const content = item.querySelector(&#39;.history-content&#39;);
+    let startX = 0, startY = 0, currentX = 0, dragging = false, swiped = false;
 
-        // ── Swipe to delete ────────────────────────────────────────────────
-        const content = item.querySelector('.history-content');
-        let startX = 0, startY = 0, currentX = 0, dragging = false, swiped = false;
+    content.addEventListener(&#39;touchstart&#39;, e =&gt; {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        currentX = 0;
+        dragging = true;
+        content.style.transition = &#39;none&#39;;
+    }, {passive: true});
 
-        content.addEventListener('touchstart', e => {
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-            currentX = 0;
-            dragging = true;
-            content.style.transition = 'none';
-        }, {passive: true});
+    content.addEventListener(&#39;touchmove&#39;, e =&gt; {
+        if (!dragging) return;
+        const dx = e.touches[0].clientX - startX;
+        const dy = e.touches[0].clientY - startY;
+        // Only track horizontal swipes
+        if (Math.abs(dy) &gt; Math.abs(dx) &amp;&amp; Math.abs(currentX) &lt; 5) return;
+        currentX = dx;
+        if (dx &lt; 0) {
+            // Swipe left: slide content to reveal delete
+            const travel = Math.min(Math.abs(dx), window.innerWidth * 0.85);
+            content.style.transform = `translateX(${-travel}px)`;
+        } else if (swiped &amp;&amp; dx &gt; 0) {
+            // Swipe right to close when already open
+            const travel = Math.max(0, 90 - dx);
+            content.style.transform = `translateX(-${travel}px)`;
+        }
+    }, {passive: true});
 
-        content.addEventListener('touchmove', e => {
-            if (!dragging) return;
-            const dx = e.touches[0].clientX - startX;
-            const dy = e.touches[0].clientY - startY;
-            // Only track horizontal swipes
-            if (Math.abs(dy) > Math.abs(dx) && Math.abs(currentX) < 5) return;
-            currentX = dx;
-            if (dx < 0) {
-                // Swipe left: slide content to reveal delete
-                const travel = Math.min(Math.abs(dx), window.innerWidth * 0.85);
-                content.style.transform = `translateX(${-travel}px)`;
-            } else if (swiped && dx > 0) {
-                // Swipe right to close when already open
-                const travel = Math.max(0, 90 - dx);
-                content.style.transform = `translateX(-${travel}px)`;
-            }
-        }, {passive: true});
+    content.addEventListener(&#39;touchend&#39;, e =&gt; {
+        dragging = false;
+        content.style.transition = &#39;transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)&#39;;
+        const travel = Math.abs(currentX);
 
-        content.addEventListener('touchend', e => {
-            dragging = false;
-            content.style.transition = 'transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)';
-            const travel = Math.abs(currentX);
-
-            if (currentX < 0) {
-                if (travel > window.innerWidth * 0.5) {
-                    // Swiped more than halfway — delete it
-                    content.style.transform = `translateX(-${window.innerWidth}px)`;
-                    item.style.transition = 'max-height 0.35s ease, opacity 0.35s ease';
-                    item.style.overflow = 'hidden';
-                    setTimeout(() => {
-                        item.style.maxHeight = item.offsetHeight + 'px';
-                        requestAnimationFrame(() => {
-                            item.style.maxHeight = '0';
-                            item.style.opacity = '0';
-                        });
-                        setTimeout(() => deleteHistory(idx), 350);
-                    }, 200);
-                } else if (travel > 40) {
-                    // Partial swipe — snap open to show delete
-                    content.style.transform = 'translateX(-90px)';
-                    swiped = true;
-                } else {
-                    content.style.transform = 'translateX(0)';
-                    swiped = false;
-                }
-            } else if (swiped) {
-                content.style.transform = 'translateX(0)';
+        if (currentX &lt; 0) {
+            if (travel &gt; window.innerWidth * 0.5) {
+                // Swiped more than halfway — delete it
+                content.style.transform = `translateX(-${window.innerWidth}px)`;
+                item.style.transition = &#39;max-height 0.35s ease, opacity 0.35s ease&#39;;
+                item.style.overflow = &#39;hidden&#39;;
+                setTimeout(() =&gt; {
+                    item.style.maxHeight = item.offsetHeight + &#39;px&#39;;
+                    requestAnimationFrame(() =&gt; {
+                        item.style.maxHeight = &#39;0&#39;;
+                        item.style.opacity = &#39;0&#39;;
+                    });
+                    setTimeout(() =&gt; deleteHistory(idx), 350);
+                }, 200);
+            } else if (travel &gt; 40) {
+                // Partial swipe — snap open to show delete
+                content.style.transform = &#39;translateX(-90px)&#39;;
+                swiped = true;
+            } else {
+                content.style.transform = &#39;translateX(0)&#39;;
                 swiped = false;
             }
-        });
-
-        // Tap the delete bg to confirm delete when swiped open
-        item.querySelector('.history-delete-bg').addEventListener('click', () => {
-            content.style.transition = 'transform 0.2s ease';
-            content.style.transform = `translateX(-${window.innerWidth}px)`;
-            setTimeout(() => deleteHistory(idx), 220);
-        });
-
-        // Tap content to open detail — only if not mid-swipe
-        content.addEventListener('click', e => {
-            if (swiped) {
-                content.style.transform = 'translateX(0)';
-                content.style.transition = 'transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)';
-                swiped = false;
-                return;
-            }
-            openReadingDetail(h);
-        });
-
-        hList.appendChild(item);
+        } else if (swiped) {
+            content.style.transform = &#39;translateX(0)&#39;;
+            swiped = false;
+        }
     });
-}
 
-function deleteHistory(idx) {
-    const item = history[idx];
-    if (item && item.names) item.names.forEach(n => { if (stats[n] > 0) stats[n]--; });
-    history.splice(idx, 1);
-    localStorage.setItem('rune_hist',  JSON.stringify(history));
-    localStorage.setItem('rune_stats', JSON.stringify(stats));
-    renderStats();
-}
+    // Tap the delete bg to confirm delete when swiped open
+    item.querySelector(&#39;.history-delete-bg&#39;).addEventListener(&#39;click&#39;, () =&gt; {
+        content.style.transition = &#39;transform 0.2s ease&#39;;
+        content.style.transform = `translateX(-${window.innerWidth}px)`;
+        setTimeout(() =&gt; deleteHistory(idx), 220);
+    });
 
-function purgeHistory() {
-    if (confirm('Purge all records? This will reset your census counts and history.')) {
-        history = []; stats = {};
-        localStorage.removeItem('rune_hist');
-        localStorage.removeItem('rune_stats');
-        renderStats();
-        showToast('Records Purged');
-    }
-}
+    // Tap content to open detail — only if not mid-swipe
+    content.addEventListener(&#39;click&#39;, e =&gt; {
+        if (swiped) {
+            content.style.transform = &#39;translateX(0)&#39;;
+            content.style.transition = &#39;transform 0.3s cubic-bezier(0.25,0.46,0.45,0.94)&#39;;
+            swiped = false;
+            return;
+        }
+        openReadingDetail(h);
+    });
 
-// ── Detail modals ─────────────────────────────────────────────────────────────
-function openReadingDetail(h) {
-    const modal = document.getElementById('detail-modal');
-    // Rebuild the rune objects from stored names
-    const runes = (h.names || []).map(n => RUNES.find(r => r.n === n)).filter(Boolean);
-    const positions = ['Past', 'Present', 'Future'];
-
-    const runeHTML = runes.map((r, i) => `
-        <div style="margin-bottom:30px;text-align:left;border-left:2px solid rgba(201,169,110,0.3);padding-left:18px;">
-            <div style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:var(--accent);-webkit-text-fill-color:var(--accent);margin-bottom:6px;">${positions[i] || 'Rune ' + (i+1)}</div>
-            <div style="display:flex;align-items:center;gap:14px;margin-bottom:10px;">
-                <span style="font-size:52px;color:var(--fg);-webkit-text-fill-color:var(--fg);">${r.g}</span>
-                <div>
-                    <div style="font-size:18px;letter-spacing:0.15em;text-transform:uppercase;">${r.n}</div>
-                    <div style="font-size:12px;color:var(--dim2);-webkit-text-fill-color:var(--dim2);font-style:italic;">${r.m}</div>
-                </div>
-            </div>
-            <div style="font-size:16px;font-style:italic;line-height:1.7;color:var(--fg);-webkit-text-fill-color:var(--fg);">${r.predict ? r.predict[0] : r.l}</div>
-            ${r.warn ? `<div style="margin-top:12px;font-size:13px;color:var(--dim2);-webkit-text-fill-color:var(--dim2);font-style:italic;"><span style="color:var(--accent);-webkit-text-fill-color:var(--accent);">Heed — </span>${r.warn}</div>` : ''}
-        </div>`).join('');
-
-    modal.innerHTML = `
-        <div class="detail-modal">
-            <div class="detail-modal-close"><button onclick="closeModal()">✕</button></div>
-            <div style="padding:0 24px 40px;">
-                <div style="font-size:10px;letter-spacing:0.4em;text-transform:uppercase;color:var(--dim2);-webkit-text-fill-color:var(--dim2);margin-bottom:6px;">${h.date}</div>
-                <div style="font-size:28px;letter-spacing:8px;margin-bottom:30px;">${h.glyphs}</div>
-                ${runeHTML}
-            </div>
-        </div>`;
-    modal.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-}
-
-function openTalismanDetail(idx) {
-    const t = talismans[idx];
-    if (!t) return;
-    const modal = document.getElementById('detail-modal');
-
-    const preview = t.snap && t.snap.startsWith('data:')
-        ? `<img src="${t.snap}" style="width:180px;height:180px;border-radius:50%;display:block;margin:0 auto 30px;box-shadow:0 0 40px rgba(201,169,110,0.2);">`
-        : `<div style="font-size:60px;letter-spacing:-8px;text-align:center;margin-bottom:30px;">${t.glyphs || ''}</div>`;
-
-    modal.innerHTML = `
-        <div class="detail-modal">
-            <div class="detail-modal-close"><button onclick="closeModal()">✕</button></div>
-            <div style="padding:0 24px 40px;text-align:center;">
-                ${preview}
-                <div style="font-size:9px;letter-spacing:0.4em;text-transform:uppercase;color:var(--accent);-webkit-text-fill-color:var(--accent);margin-bottom:20px;">Talisman of ${t.glyphs || ''}</div>
-                <div style="font-size:17px;font-style:italic;line-height:1.8;color:var(--fg);-webkit-text-fill-color:var(--fg);text-align:left;padding:20px;background:rgba(201,169,110,0.05);border-radius:12px;border:1px solid rgba(201,169,110,0.1);">${t.incantation}</div>
-                <div style="margin-top:24px;text-align:right;">
-                    <span style="font-size:9px;color:#ff9999;-webkit-text-fill-color:#ff9999;cursor:pointer;letter-spacing:0.2em;text-transform:uppercase;" onclick="closeModal();deleteTalisman(${idx})">Unbind</span>
-                </div>
-            </div>
-        </div>`;
-    modal.style.display = 'block';
-    document.body.style.overflow = 'hidden';
-}
-
-function closeModal() {
-    const modal = document.getElementById('detail-modal');
-    modal.style.display = 'none';
-    modal.innerHTML = '';
-    document.body.style.overflow = '';
-}
-
-// Close modal on background tap
-document.getElementById('detail-modal').addEventListener('click', e => {
-    if (e.target === document.getElementById('detail-modal')) closeModal();
+    hList.appendChild(item);
 });
 
-function renderTalismans() {
-    const list = document.getElementById('talisman-list');
-    list.innerHTML = '';
-    if (talismans.length === 0) {
-        list.innerHTML = '<p style="font-size:13px;color:var(--dim2);-webkit-text-fill-color:var(--dim2);font-style:italic;text-align:center;padding:20px 0;">No talismans bound yet</p>';
-        return;
-    }
-    talismans.forEach((t, idx) => {
-        const card = document.createElement('div');
-        card.className = 'talisman-card';
-        card.style.cursor = 'pointer';
-        const preview = t.snap && t.snap.startsWith('data:')
-            ? `<img src="${t.snap}" style="width:70px;height:70px;border-radius:50%;display:block;float:right;margin-left:15px;">`
-            : `<div style="font-size:28px;letter-spacing:-4px;float:right;margin-left:15px;">${t.glyphs || ''}</div>`;
-        card.innerHTML = `
+}
+function deleteHistory(idx) {
+const item = history[idx];
+if (item && item.names) item.names.forEach(n => { if (stats[n] > 0) stats[n]--; });
+history.splice(idx, 1);
+localStorage.setItem('rune_hist',  JSON.stringify(history));
+localStorage.setItem('rune_stats', JSON.stringify(stats));
+renderStats();
+}
+function purgeHistory() {
+if (confirm('Purge all records? This will reset your census counts and history.')) {
+history = []; stats = {};
+localStorage.removeItem('rune_hist');
+localStorage.removeItem('rune_stats');
+renderStats();
+showToast('Records Purged');
+}
+}
+// ── Detail modals ─────────────────────────────────────────────────────────────
+function openReadingDetail(h) {
+const modal = document.getElementById('detail-modal');
+// Rebuild the rune objects from stored names
+const runes = (h.names || []).map(n => RUNES.find(r => r.n === n)).filter(Boolean);
+const positions = ['Past', 'Present', 'Future'];
+const runeHTML = runes.map((r, i) =&gt; `
+    &lt;div style=&quot;margin-bottom:30px;text-align:left;border-left:2px solid rgba(201,169,110,0.3);padding-left:18px;&quot;&gt;
+        &lt;div style=&quot;font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:var(--accent);-webkit-text-fill-color:var(--accent);margin-bottom:6px;&quot;&gt;${positions[i] || &#39;Rune &#39; + (i+1)}&lt;/div&gt;
+        &lt;div style=&quot;display:flex;align-items:center;gap:14px;margin-bottom:10px;&quot;&gt;
+            &lt;span style=&quot;font-size:52px;color:var(--fg);-webkit-text-fill-color:var(--fg);&quot;&gt;${r.g}&lt;/span&gt;
+            &lt;div&gt;
+                &lt;div style=&quot;font-size:18px;letter-spacing:0.15em;text-transform:uppercase;&quot;&gt;${r.n}&lt;/div&gt;
+                &lt;div style=&quot;font-size:12px;color:var(--dim2);-webkit-text-fill-color:var(--dim2);font-style:italic;&quot;&gt;${r.m}&lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div style=&quot;font-size:16px;font-style:italic;line-height:1.7;color:var(--fg);-webkit-text-fill-color:var(--fg);&quot;&gt;${r.predict ? r.predict[0] : r.l}&lt;/div&gt;
+        ${r.warn ? `&lt;div style=&quot;margin-top:12px;font-size:13px;color:var(--dim2);-webkit-text-fill-color:var(--dim2);font-style:italic;&quot;&gt;&lt;span style=&quot;color:var(--accent);-webkit-text-fill-color:var(--accent);&quot;&gt;Heed — &lt;/span&gt;${r.warn}&lt;/div&gt;` : &#39;&#39;}
+    &lt;/div&gt;`).join(&#39;&#39;);
+
+modal.innerHTML = `
+    &lt;div class=&quot;detail-modal&quot;&gt;
+        &lt;div class=&quot;detail-modal-close&quot;&gt;&lt;button onclick=&quot;closeModal()&quot;&gt;✕&lt;/button&gt;&lt;/div&gt;
+        &lt;div style=&quot;padding:0 24px 40px;&quot;&gt;
+            &lt;div style=&quot;font-size:10px;letter-spacing:0.4em;text-transform:uppercase;color:var(--dim2);-webkit-text-fill-color:var(--dim2);margin-bottom:6px;&quot;&gt;${h.date}&lt;/div&gt;
+            &lt;div style=&quot;font-size:28px;letter-spacing:8px;margin-bottom:30px;&quot;&gt;${h.glyphs}&lt;/div&gt;
+            ${runeHTML}
+        &lt;/div&gt;
+    &lt;/div&gt;`;
+modal.style.display = &#39;block&#39;;
+document.body.style.overflow = &#39;hidden&#39;;
+
+}
+function openTalismanDetail(idx) {
+const t = talismans[idx];
+if (!t) return;
+const modal = document.getElementById('detail-modal');
+const preview = t.snap &amp;&amp; t.snap.startsWith(&#39;data:&#39;)
+    ? `&lt;img src=&quot;${t.snap}&quot; style=&quot;width:180px;height:180px;border-radius:50%;display:block;margin:0 auto 30px;box-shadow:0 0 40px rgba(201,169,110,0.2);&quot;&gt;`
+    : `&lt;div style=&quot;font-size:60px;letter-spacing:-8px;text-align:center;margin-bottom:30px;&quot;&gt;${t.glyphs || &#39;&#39;}&lt;/div&gt;`;
+
+modal.innerHTML = `
+    &lt;div class=&quot;detail-modal&quot;&gt;
+        &lt;div class=&quot;detail-modal-close&quot;&gt;&lt;button onclick=&quot;closeModal()&quot;&gt;✕&lt;/button&gt;&lt;/div&gt;
+        &lt;div style=&quot;padding:0 24px 40px;text-align:center;&quot;&gt;
             ${preview}
-            <div style="font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--accent);-webkit-text-fill-color:var(--accent);margin-bottom:8px;">Talisman</div>
-            <div class="talisman-power" style="font-size:13px;">${(t.incantation || '').substring(0, 90)}${t.incantation && t.incantation.length > 90 ? '…' : ''}</div>
-            <div style="clear:both;"></div>`;
-        card.onclick = () => openTalismanDetail(idx);
-        list.appendChild(card);
-    });
-}
+            &lt;div style=&quot;font-size:9px;letter-spacing:0.4em;text-transform:uppercase;color:var(--accent);-webkit-text-fill-color:var(--accent);margin-bottom:20px;&quot;&gt;Talisman of ${t.glyphs || &#39;&#39;}&lt;/div&gt;
+            &lt;div style=&quot;font-size:17px;font-style:italic;line-height:1.8;color:var(--fg);-webkit-text-fill-color:var(--fg);text-align:left;padding:20px;background:rgba(201,169,110,0.05);border-radius:12px;border:1px solid rgba(201,169,110,0.1);&quot;&gt;${t.incantation}&lt;/div&gt;
+            &lt;div style=&quot;margin-top:24px;text-align:right;&quot;&gt;
+                &lt;span style=&quot;font-size:9px;color:#ff9999;-webkit-text-fill-color:#ff9999;cursor:pointer;letter-spacing:0.2em;text-transform:uppercase;&quot; onclick=&quot;closeModal();deleteTalisman(${idx})&quot;&gt;Unbind&lt;/span&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;`;
+modal.style.display = &#39;block&#39;;
+document.body.style.overflow = &#39;hidden&#39;;
 
+}
+function closeModal() {
+const modal = document.getElementById('detail-modal');
+modal.style.display = 'none';
+modal.innerHTML = '';
+document.body.style.overflow = '';
+}
+// Close modal on background tap
+document.getElementById('detail-modal').addEventListener('click', e => {
+if (e.target === document.getElementById('detail-modal')) closeModal();
+});
+function renderTalismans() {
+const list = document.getElementById('talisman-list');
+list.innerHTML = '';
+if (talismans.length === 0) {
+list.innerHTML = '<p style="font-size:13px;color:var(--dim2);-webkit-text-fill-color:var(--dim2);font-style:italic;text-align:center;padding:20px 0;">No talismans bound yet</p>';
+return;
+}
+talismans.forEach((t, idx) => {
+const card = document.createElement('div');
+card.className = 'talisman-card';
+card.style.cursor = 'pointer';
+const preview = t.snap && t.snap.startsWith('data:')
+? &lt;img src=&quot;${t.snap}&quot; style=&quot;width:70px;height:70px;border-radius:50%;display:block;float:right;margin-left:15px;&quot;&gt;
+: &lt;div style=&quot;font-size:28px;letter-spacing:-4px;float:right;margin-left:15px;&quot;&gt;${t.glyphs || &#39;&#39;}&lt;/div&gt;;
+card.innerHTML =  ${preview} &lt;div style=&quot;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--accent);-webkit-text-fill-color:var(--accent);margin-bottom:8px;&quot;&gt;Talisman&lt;/div&gt; &lt;div class=&quot;talisman-power&quot; style=&quot;font-size:13px;&quot;&gt;${(t.incantation || &#39;&#39;).substring(0, 90)}${t.incantation &amp;&amp; t.incantation.length &gt; 90 ? &#39;…&#39; : &#39;&#39;}&lt;/div&gt; &lt;div style=&quot;clear:both;&quot;&gt;&lt;/div&gt;;
+card.onclick = () => openTalismanDetail(idx);
+list.appendChild(card);
+});
+}
 function deleteTalisman(idx) {
-    talismans.splice(idx, 1);
-    localStorage.setItem('rune_tali', JSON.stringify(talismans));
-    renderTalismans();
+talismans.splice(idx, 1);
+localStorage.setItem('rune_tali', JSON.stringify(talismans));
+renderTalismans();
 }
-
 // ── Stave Guide ───────────────────────────────────────────────────────────────
 function renderGuide() {
-    const cont = document.getElementById('guide-list');
-    if (cont.innerHTML) return;
-    RUNES.forEach(r => {
-        const div = document.createElement('div'); div.className = 'guide-item';
-        div.innerHTML = `
-            <div class="guide-header" onclick="this.parentElement.classList.toggle('open')">
-                <span style="font-size:40px; color:var(--accent); -webkit-text-fill-color:var(--accent);">${r.g}</span>
-                <div>
-                    <div style="text-transform:uppercase; letter-spacing:3px; font-size:16px;">${r.n}</div>
-                    <div style="font-size:12px; color:var(--dim2); -webkit-text-fill-color:var(--dim2);">${r.m}</div>
-                </div>
-            </div>
-            <div class="guide-desc">
-                <p style="margin-bottom:14px;">${r.l}</p>
-                ${r.warn ? `<p style="margin-bottom:8px;"><span style="font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--accent);-webkit-text-fill-color:var(--accent);">Heed — </span>${r.warn}</p>` : ''}
-                ${r.power ? `<p style="padding:10px 12px;background:rgba(201,169,110,0.06);border-radius:6px;border:1px solid rgba(201,169,110,0.12);"><span style="font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--accent);-webkit-text-fill-color:var(--accent);">In the Forge — </span>${r.power}</p>` : ''}
-            </div>`;
-        cont.appendChild(div);
-    });
+const cont = document.getElementById('guide-list');
+if (cont.innerHTML) return;
+RUNES.forEach(r => {
+const div = document.createElement('div'); div.className = 'guide-item';
+div.innerHTML = &lt;div class=&quot;guide-header&quot; onclick=&quot;this.parentElement.classList.toggle(&#39;open&#39;)&quot;&gt; &lt;span style=&quot;font-size:40px; color:var(--accent); -webkit-text-fill-color:var(--accent);&quot;&gt;${r.g}&lt;/span&gt; &lt;div&gt; &lt;div style=&quot;text-transform:uppercase; letter-spacing:3px; font-size:16px;&quot;&gt;${r.n}&lt;/div&gt; &lt;div style=&quot;font-size:12px; color:var(--dim2); -webkit-text-fill-color:var(--dim2);&quot;&gt;${r.m}&lt;/div&gt; &lt;/div&gt; &lt;/div&gt; &lt;div class=&quot;guide-desc&quot;&gt; &lt;p style=&quot;margin-bottom:14px;&quot;&gt;${r.l}&lt;/p&gt; ${r.warn ?<p style="margin-bottom:8px;"><span style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:var(--accent);-webkit-text-fill-color:var(--accent);">Heed — </span>{r.warn}\</p\>`: &#39;&#39;} ${r.power ?`\<p style="padding:10px 12px;background:rgba(201,169,110,0.06);border-radius:6px;border:1px solid rgba(201,169,110,0.12);"\>\<span style="font-size:9px;letter-spacing:0.35em;text-transform:uppercase;color:var(--accent);-webkit-text-fill-color:var(--accent);"\>In the Forge — \</span\>{r.power}</p> : &#39;&#39;} &lt;/div&gt;;
+cont.appendChild(div);
+});
 }
-
 // ── Utilities ─────────────────────────────────────────────────────────────────
 function showToast(msg) {
-    const t = document.getElementById('toast');
-    t.textContent = msg; t.style.opacity = '1';
-    setTimeout(() => t.style.opacity = '0', 2500);
+const t = document.getElementById('toast');
+t.textContent = msg; t.style.opacity = '1';
+setTimeout(() => t.style.opacity = '0', 2500);
 }
 </script>
-
 </body>
 </html>
