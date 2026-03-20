@@ -6,6 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Rune Guide & Oracle</title>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+    <!-- Noto Sans Runic via Fontsource CDN — clean geometric runic glyphs -->
+    <style>
+    @font-face {
+        font-family: 'Noto Sans Runic';
+        font-style: normal;
+        font-display: swap;
+        font-weight: 400;
+        src: url(https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-runic@latest/runic-400-normal.woff2) format('woff2'),
+             url(https://cdn.jsdelivr.net/fontsource/fonts/noto-sans-runic@latest/runic-400-normal.woff) format('woff');
+    }
+    </style>
     <style>
         :root {
             --bg: #0d0d12; --fg: #ede9e0; --accent: #c9a96e;
@@ -78,6 +89,7 @@
         text-align: center; font-size: 20px; cursor: pointer;
         border: 1px solid transparent; transition: border-color 0.2s, background 0.2s;
         color: var(--fg); -webkit-text-fill-color: var(--fg);
+        font-family: 'Noto Sans Runic', 'Segoe UI Historic', 'Segoe UI Symbol', serif;
     }
     .forge-pick-btn.chosen { border-color: var(--accent); background: rgba(201,169,110,0.12); }
 
@@ -180,6 +192,7 @@
         text-align: center; font-size: 20px; cursor: pointer;
         border: 1px solid transparent; transition: border-color 0.2s, background 0.2s;
         color: var(--fg); -webkit-text-fill-color: var(--fg);
+        font-family: 'Noto Sans Runic', 'Segoe UI Historic', 'Segoe UI Symbol', serif;
     }
     .forge-pick-btn.chosen { border-color: var(--accent); background: rgba(201,169,110,0.12); }
     .btn-recast {
@@ -188,6 +201,11 @@
     }
     .btn-recast:not([disabled]):hover, .btn-recast:not([disabled]):active {
         border-color: var(--accent); color: var(--accent); -webkit-text-fill-color: var(--accent);
+    }
+    /* Runic glyph font — applied to all rune character displays */
+    .rune-glyph, .reveal-rune, .rotd-glyph, .reel-unit, .manual-item,
+    .guide-header span, .nav-btn .icon {
+        font-family: 'Noto Sans Runic', 'Segoe UI Historic', 'Segoe UI Symbol', serif !important;
     }
 </style>
 ```
@@ -250,7 +268,7 @@
 <div class="page" id="page-forge">
     <div style="padding: 60px 20px 0; text-align:center;">
         <h2 style="font-size:12px; letter-spacing:0.5em; text-transform:uppercase; color:var(--accent); -webkit-text-fill-color:var(--accent); margin-bottom:8px;">Bindrune Forge</h2>
-        <p style="font-size:13px; color:var(--dim2); -webkit-text-fill-color:var(--dim2); font-style:italic; margin-bottom:20px;">Select 2–4 runes to forge a bind rune</p>
+        <p style="font-size:13px; color:var(--dim2); -webkit-text-fill-color:var(--dim2); font-style:italic; margin-bottom:20px;">Select 2 runes to forge a bind rune</p>
 
 ```
     <!-- Forge canvas: pure HTML5 Canvas, no wedge clipping -->
@@ -628,141 +646,270 @@ function resetReader() {
     document.getElementById('cast-btn').disabled = false;
 }
 
-// ── Forge ─────────────────────────────────────────────────────────────────────
-// Approach: draw runes as large Unicode text on a Canvas.
-// No pixel reading (avoids iOS Safari canvas taint errors).
-// Each rune is drawn upright or mirrored, centred on the same point.
-// Rethrow cycles through mirror combinations for variety.
-// XOR-style compositing done via globalCompositeOperation.
+// ── Bind Rune Engine v8 — Noto Sans Runic ────────────────────────────────────
+//
+// Uses Noto Sans Runic: a clean geometric sans-serif font with no serifs,
+// no enclosed counters, and uniform stroke weight. Runes are stroked outlines
+// only. All runes aligned to share their traced vertical staff centre.
+// Secondary runes scaled 40-70% and positioned to touch but not bury primary.
 
-let forgeMirrors  = [];
-let forgeTransforms = [];
+const FS = 300;
+const CX = FS/2, CY = FS/2;
+const BG = '#0d0d12';
+const GOLD = '#c9a96e';
+const RUNIC_FONT = "Noto Sans Runic";
+const FALLBACK   = '"Segoe UI Historic","Segoe UI Symbol"';
+const OW = 3.5;   // outline stroke width
 
-const FORGE_SIZE = 300;
-const FORGE_FS   = 220;
-const FORGE_FONT = `${FORGE_FS}px "Segoe UI Historic","Segoe UI Symbol","Noto Sans Runic",serif`;
+let forgeMirrors = [];
+let forgeScales  = [];
+let forgeOffsets = [];
 
-// Known visual centre offsets per rune (y offset as fraction of font size).
-// Runic glyphs sit differently relative to the font baseline.
-// We use a fixed upward nudge to visually centre them.
-const RUNE_Y_NUDGE = -0.08; // most runes sit slightly above centre
+const _mc = {};
 
-function drawRune(ctx, glyph, x, y, scale, mirror) {
+function getMetrics(glyph, mirror) {
+    const key = glyph + (mirror?'M':'');
+    if (_mc[key]) return _mc[key];
+    const SZ = 200, fs = Math.round(SZ * 0.78);
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = SZ;
+    const ctx = cv.getContext('2d');
     ctx.save();
-    ctx.translate(x, y);
-    ctx.scale(scale, mirror ? -1 : 1);
-    if (mirror) {
-        // horizontal mirror
-        ctx.scale(-1, 1);
-        ctx.scale(1, -1); // undo vertical flip
+    if (mirror) { ctx.translate(SZ,0); ctx.scale(-1,1); }
+    ctx.font = `${fs}px "${RUNIC_FONT}",${FALLBACK},serif`;
+    ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(glyph, SZ/2, SZ/2);
+    ctx.restore();
+    const d = ctx.getImageData(0,0,SZ,SZ).data;
+    let mnX=SZ,mxX=0,mnY=SZ,mxY=0;
+    const colD=new Float32Array(SZ);
+    let sX=0,sY=0,tot=0;
+    for(let y=0;y<SZ;y++) for(let x=0;x<SZ;x++){
+        const a=d[(y*SZ+x)*4+3];
+        if(a>30){
+            if(x<mnX)mnX=x;if(x>mxX)mxX=x;
+            if(y<mnY)mnY=y;if(y>mxY)mxY=y;
+            colD[x]+=a/255;sX+=x*a;sY+=y*a;tot+=a;
+        }
     }
-    ctx.scale(scale, scale);
-    ctx.font = `${FORGE_FS}px "Segoe UI Historic","Segoe UI Symbol","Noto Sans Runic",serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(glyph, 0, FORGE_FS * RUNE_Y_NUDGE);
+    if(mxX<mnX){mnX=40;mxX=160;mnY=30;mxY=170;}
+    let staffX=SZ/2,best=0;
+    for(let x=mnX;x<=mxX;x++){
+        let s=0;
+        for(let dx=-3;dx<=3;dx++) s+=colD[Math.max(0,Math.min(SZ-1,x+dx))];
+        if(s>best){best=s;staffX=x;}
+    }
+    const vCX=tot>0?sX/tot:SZ/2, vCY=tot>0?sY/tot:SZ/2;
+    return _mc[key]={w:mxX-mnX,h:mxY-mnY,vCX,vCY,staffX,fs,SZ,
+        sfc:staffX-SZ/2, vcyc:vCY-SZ/2};
+}
+
+function runeFont(fs) {
+    return `${fs}px "${RUNIC_FONT}",${FALLBACK},serif`;
+}
+
+// Draw one rune as stroked outline, staff-centred, with transforms
+function drawRune(ctx, glyph, mirror, m, scale, dx, dy, baseH, colour, lw) {
+    const W  = ctx.canvas.width;
+    const sc = (baseH*scale)/m.h;
+    const fs = Math.round(m.fs*sc);
+    const rx0= CX - m.sfc*sc + dx;
+    const ry0= CY - m.vcyc*sc + dy;
+    ctx.save();
+    if(mirror){ctx.translate(W,0);ctx.scale(-1,1);}
+    const rx = mirror ? W-rx0 : rx0;
+    ctx.font=runeFont(fs);
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.strokeStyle=colour; ctx.lineWidth=lw;
+    ctx.lineJoin='round'; ctx.lineCap='round';
+    ctx.strokeText(glyph,rx,ry0);
+    ctx.restore();
+}
+
+// Also draw filled (for interior erase pass)
+function fillRune(ctx, glyph, mirror, m, scale, dx, dy, baseH, colour) {
+    const W  = ctx.canvas.width;
+    const sc = (baseH*scale)/m.h;
+    const fs = Math.round(m.fs*sc);
+    const rx0= CX - m.sfc*sc + dx;
+    const ry0= CY - m.vcyc*sc + dy;
+    ctx.save();
+    if(mirror){ctx.translate(W,0);ctx.scale(-1,1);}
+    const rx = mirror ? W-rx0 : rx0;
+    ctx.font=runeFont(fs);
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle=colour;
+    ctx.fillText(glyph,rx,ry0);
     ctx.restore();
 }
 
 function compositeForge() {
-    const cv = document.getElementById('forge-canvas-el');
-    if (!cv) return;
-    const ctx = cv.getContext('2d');
-    const cx = FORGE_SIZE / 2, cy = FORGE_SIZE / 2;
-    const count = forgeSet.length;
-    const SCALE = 0.82;
-    const BASE_Y = -FORGE_SIZE * 0.03;
+    const display = document.getElementById('forge-canvas-el');
+    if(!display) return;
+    const ctx = display.getContext('2d');
 
-    ctx.clearRect(0, 0, FORGE_SIZE, FORGE_SIZE);
+    ctx.clearRect(0,0,FS,FS);
+    ctx.fillStyle=BG;
+    ctx.beginPath();ctx.arc(CX,CY,CX,0,Math.PI*2);ctx.fill();
+    const grd=ctx.createRadialGradient(CX,CY,0,CX,CY,CX*0.85);
+    grd.addColorStop(0,'rgba(201,169,110,0.09)');
+    grd.addColorStop(0.6,'rgba(201,169,110,0.02)');
+    grd.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=grd;
+    ctx.beginPath();ctx.arc(CX,CY,CX,0,Math.PI*2);ctx.fill();
 
-    // Background
-    ctx.fillStyle = '#0d0d12';
-    ctx.beginPath();
-    ctx.arc(cx, cy, cx, 0, Math.PI * 2);
-    ctx.fill();
+    if(forgeSet.length===0) return;
 
-    // Inner glow
-    const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, cx * 0.85);
-    grd.addColorStop(0,   'rgba(201,169,110,0.10)');
-    grd.addColorStop(0.5, 'rgba(201,169,110,0.04)');
-    grd.addColorStop(1,   'rgba(0,0,0,0)');
-    ctx.fillStyle = grd;
-    ctx.beginPath();
-    ctx.arc(cx, cy, cx, 0, Math.PI * 2);
-    ctx.fill();
+    const ms   = forgeSet.map((r,i)=>getMetrics(r.g,forgeMirrors[i]??false));
+    const baseH = FS * 0.65;
 
-    if (count === 0) return;
+    // Offscreen canvas for the outline
+    const outCv=document.createElement('canvas');
+    outCv.width=outCv.height=FS;
+    const oCtx=outCv.getContext('2d');
 
-    // Position offsets — runes nudged slightly apart so they
-    // sit beside each other rather than perfectly stacked
-    const nudge = FORGE_SIZE * 0.07;
-    const offsets = {
-        1: [[0, 0]],
-        2: [[-nudge * 0.5, 0], [nudge * 0.5, 0]],
-        3: [[0, -nudge * 0.4], [-nudge * 0.65, nudge * 0.45], [nudge * 0.65, nudge * 0.45]],
-        4: [[-nudge*0.5,-nudge*0.4],[nudge*0.5,-nudge*0.4],[-nudge*0.5,nudge*0.45],[nudge*0.5,nudge*0.45]],
-    };
-    const pos = offsets[Math.min(count, 4)] || offsets[4];
+    // Pass 1: thick gold stroke outline
+    forgeSet.forEach((r,i)=>{
+        drawRune(oCtx,r.g,forgeMirrors[i]??false,ms[i],
+            forgeScales[i]??1,forgeOffsets[i]?.[0]??0,forgeOffsets[i]?.[1]??0,
+            baseH,GOLD,OW*2+1);
+    });
 
-    function drawGlyph(r, i, colour, strokeW) {
-        const mirror = forgeMirrors[i] ?? false;
-        const [ox, oy] = pos[i] ?? [0, 0];
-        ctx.save();
-        ctx.translate(cx + ox, cy + BASE_Y + oy);
-        ctx.scale(SCALE, SCALE);
-        if (mirror) ctx.scale(-1, 1);
-        ctx.font = FORGE_FONT;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        if (strokeW) {
-            ctx.strokeStyle = colour;
-            ctx.lineWidth = strokeW;
-            ctx.lineJoin = 'round';
-            ctx.strokeText(r.g, 0, FORGE_FS * RUNE_Y_NUDGE);
-        } else {
-            ctx.fillStyle = colour;
-            ctx.fillText(r.g, 0, FORGE_FS * RUNE_Y_NUDGE);
-        }
-        ctx.restore();
-    }
+    // Pass 2: erase interior with destination-out solid fill
+    oCtx.globalCompositeOperation='destination-out';
+    forgeSet.forEach((r,i)=>{
+        fillRune(oCtx,r.g,forgeMirrors[i]??false,ms[i],
+            forgeScales[i]??1,forgeOffsets[i]?.[0]??0,forgeOffsets[i]?.[1]??0,
+            baseH,'rgba(0,0,0,1)');
+    });
+    oCtx.globalCompositeOperation='source-over';
 
+    // Blit to display, clipped to circle
     ctx.save();
-    ctx.beginPath();
-    ctx.arc(cx, cy, cx - 2, 0, Math.PI * 2);
-    ctx.clip();
-
-    // Pass 1: dark separator stroke under everything
-    // This creates a thin dark halo around each glyph so where
-    // two strokes cross there's a visible separation line —
-    // the eye reads it as one stroke passing in front of the other
-    forgeSet.forEach((r, i) => drawGlyph(r, i, '#0d0d12', 9));
-
-    // Pass 2: gold fill — all runes on top, fully visible
-    forgeSet.forEach((r, i) => drawGlyph(r, i, '#c9a96e', null));
-
+    ctx.beginPath();ctx.arc(CX,CY,CX-2,0,Math.PI*2);ctx.clip();
+    ctx.drawImage(outCv,0,0);
     ctx.restore();
 
     // Vignette
-    const vig = ctx.createRadialGradient(cx, cy, cx * 0.52, cx, cy, cx);
-    vig.addColorStop(0,    'rgba(0,0,0,0)');
-    vig.addColorStop(0.75, 'rgba(13,13,18,0.20)');
-    vig.addColorStop(1,    'rgba(13,13,18,1)');
-    ctx.fillStyle = vig;
-    ctx.beginPath();
-    ctx.arc(cx, cy, cx, 0, Math.PI * 2);
-    ctx.fill();
+    const vig=ctx.createRadialGradient(CX,CY,CX*0.4,CX,CY,CX);
+    vig.addColorStop(0,'rgba(0,0,0,0)');
+    vig.addColorStop(0.68,'rgba(13,13,18,0.18)');
+    vig.addColorStop(1,'rgba(13,13,18,1)');
+    ctx.fillStyle=vig;
+    ctx.beginPath();ctx.arc(CX,CY,CX,0,Math.PI*2);ctx.fill();
+}
+
+// Score: reward overlap in 15-60% range, penalise out-of-circle pixels hard
+function scoreTransforms(mirrors,scales,offsets) {
+    const SZ=70,bH=SZ*0.65;
+    const layers=forgeSet.map((r,i)=>{
+        const m=getMetrics(r.g,mirrors[i]);
+        const sc=(bH*(scales[i]??1))/m.h;
+        const fs=Math.round(m.fs*sc*(SZ/200));
+        const dx=SZ/2-m.sfc*sc*(SZ/200)+(offsets[i]?.[0]??0)*(SZ/FS);
+        const dy=SZ/2-m.vcyc*sc*(SZ/200)+(offsets[i]?.[1]??0)*(SZ/FS);
+        const cv=document.createElement('canvas');cv.width=cv.height=SZ;
+        const c=cv.getContext('2d');
+        c.save();
+        if(mirrors[i]){c.translate(SZ,0);c.scale(-1,1);}
+        c.font=`${fs}px "${RUNIC_FONT}",${FALLBACK},serif`;
+        c.fillStyle='#fff';c.textAlign='center';c.textBaseline='middle';
+        c.fillText(r.g,mirrors[i]?SZ-dx:dx,dy);
+        c.restore();
+        return c.getImageData(0,0,SZ,SZ).data;
+    });
+    let overlap=0,lit=0,out=0;
+    const r2=(SZ/2)*(SZ/2)*0.88;
+    for(let y=0;y<SZ;y++) for(let x=0;x<SZ;x++){
+        const p=(y*SZ+x)*4; let n=0;
+        layers.forEach(d=>{if(d[p+3]>30)n++;});
+        if(n>0){lit++;const dx2=(x-SZ/2)**2+(y-SZ/2)**2;if(dx2>r2)out++;}
+        if(n>=2)overlap++;
+    }
+    const or=lit>0?overlap/lit:0;
+    const overlapScore = or<0.05?-40 : or>0.80?-50 : overlap;
+    return overlapScore - out*6;
 }
 
 function smartAlignAngles() {
-    // No pixel analysis — just try all mirror combos and pick the one
-    // that will produce the most varied composition. Since all runes
-    // are centred on the same point, mirroring alternating runes creates
-    // the bind rune appearance (branches point in different directions).
-    const count = forgeSet.length;
+    const n=forgeSet.length;
+    if(n===0){compositeForge();return;}
+    if(n===1){forgeMirrors=[false];forgeScales=[1];forgeOffsets=[[0,0]];compositeForge();return;}
 
-    // Default: alternate mirrors for natural variety
-    forgeMirrors = forgeSet.map((_, i) => i % 2 === 1);
+    // For 2 runes: always try OPPOSITE mirrors first as the default
+    // This gives the most natural bind rune look (one faces each way)
+    const scaleOpts  = [0.45,0.58,0.72,0.86,1.0];
+    const offsetOpts = [
+        [0,0],
+        [0,-22],[0,22],[-18,0],[18,0],
+        [0,-40],[0,40],[-32,0],[32,0],
+        [-16,-16],[16,-16],[-16,16],[16,16],
+    ];
+
+    // Mirror combos — for 2 runes, prioritise opposite-facing (true/false, false/true)
+    // These look most like real bind runes. Same-direction combos also tried.
+    const mirrorCombos = n===2 ? [
+        [false, true],   // rune0 normal,  rune1 mirrored — PREFERRED
+        [true, false],   // rune0 mirrored, rune1 normal
+        [false, false],  // both normal
+        [true,  true],   // both mirrored
+    ] : [[false,false,false,false].slice(0,n), [false,true,false,true].slice(0,n),
+         [true,false,true,false].slice(0,n),  [true,true,true,true].slice(0,n)];
+
+    let bestScore=-Infinity;
+    let bestM=mirrorCombos[0];
+    let bestS=[1,...Array(n-1).fill(0.72)];
+    let bestO=[[0,0],...Array(n-1).fill([0,0])];
+
+    for(const mCombo of mirrorCombos){
+        const curM=[...mCombo];
+        const curS=[1,...Array(n-1).fill(0.72)];
+        const curO=[[0,0],...Array(n-1).fill([0,0])];
+
+        // Optimise scale and offset for each secondary rune
+        for(let i=1;i<n;i++){
+            let localBest=-Infinity,bs=0.72,bo=[0,0];
+            for(const s of scaleOpts)
+            for(const o of offsetOpts){
+                curS[i]=s;curO[i]=o;
+                const sc=scoreTransforms(curM,curS,curO);
+                if(sc>localBest){localBest=sc;bs=s;bo=o;}
+            }
+            curS[i]=bs;curO[i]=bo;
+        }
+        const sc=scoreTransforms(curM,curS,curO);
+        if(sc>bestScore){
+            bestScore=sc;
+            bestM=[...curM];bestS=[...curS];bestO=curO.map(o=>[...o]);
+        }
+    }
+    forgeMirrors=bestM;forgeScales=bestS;forgeOffsets=bestO;
     compositeForge();
+}
+
+function recastForge() {
+    if(forgeSet.length!==2)return;
+    const c=document.getElementById('forge-canvas');
+    c.style.transition='opacity 0.1s';c.style.opacity='0.15';
+    setTimeout(()=>{
+        // Cycle: flip mirrors AND swap which rune is visually dominant
+        // Each recast gives a genuinely different composition
+        const wasM0=forgeMirrors[0], wasM1=forgeMirrors[1];
+        // Next combo in sequence: normal/mirror → mirror/normal → both → opposite both
+        if(!wasM0 &&  wasM1){ forgeMirrors=[true,  false]; }
+        else if(wasM0 && !wasM1){ forgeMirrors=[false, false]; }
+        else if(!wasM0 && !wasM1){ forgeMirrors=[true, true];  }
+        else                     { forgeMirrors=[false, true];  }
+        // Also randomise scale and offset for variety
+        const scOpts=[0.45,0.58,0.72,0.86,1.0];
+        const oOpts=[[0,0],[0,-22],[0,22],[-18,0],[18,0],[0,-40],[0,40],[-32,0],[32,0]];
+        const s1=scOpts[Math.floor(Math.random()*scOpts.length)];
+        const o1=oOpts[Math.floor(Math.random()*oOpts.length)];
+        forgeScales=[1, s1];
+        forgeOffsets=[[0,0], o1];
+        compositeForge();
+        c.style.opacity='1';
+    },120);
 }
 
 
@@ -773,15 +920,15 @@ function initForge() {
         const b = document.createElement('div');
         b.className = 'forge-pick-btn';
         b.textContent = r.g;
-        b.dataset.rune = r.n;
+        b.title = r.n;
         b.onclick = () => {
             if (forgeSet.find(x => x.n === r.n)) {
                 forgeSet = forgeSet.filter(x => x.n !== r.n);
                 forgeMirrors = forgeMirrors.slice(0, forgeSet.length);
                 b.classList.remove('chosen');
-            } else if (forgeSet.length < 4) {
+            } else if (forgeSet.length < 2) {
                 forgeSet.push(r);
-                forgeMirrors.push(forgeSet.length % 2 === 0);
+                forgeMirrors.push(false);
                 b.classList.add('chosen');
             }
             updateForge();
@@ -793,100 +940,30 @@ function initForge() {
 
 function updateForge() {
     const placeholder = document.getElementById('forge-placeholder-text');
-    document.getElementById('bind-btn').disabled   = forgeSet.length < 2;
-    document.getElementById('recast-btn').disabled = forgeSet.length < 2;
-
+    document.getElementById('bind-btn').disabled   = forgeSet.length !== 2;
+    document.getElementById('recast-btn').disabled = forgeSet.length !== 2;
     if (forgeSet.length === 0) {
         placeholder.style.display = 'flex';
         compositeForge();
         return;
     }
     placeholder.style.display = 'none';
-    compositeForge();
-}
-
-
-function recastForge() {
-    if (forgeSet.length < 2) return;
-    const c = document.getElementById('forge-canvas');
-    c.style.transition = 'opacity 0.1s';
-    c.style.opacity = '0.15';
-    setTimeout(() => {
-        // Randomise mirrors and which rune is "primary" by shuffling order
-        forgeMirrors = forgeSet.map(() => Math.random() > 0.5);
-        // Rotate forgeSet order so a different rune gets drawn first (is primary)
-        const shift = 1 + Math.floor(Math.random() * (forgeSet.length - 1));
-        forgeSet = [...forgeSet.slice(shift), ...forgeSet.slice(0, shift)];
-        forgeMirrors = [...forgeMirrors.slice(shift), ...forgeMirrors.slice(0, shift)];
-        compositeForge();
-        c.style.opacity = '1';
-    }, 120);
+    if (forgeSet.length >= 2) smartAlignAngles();
+    else compositeForge();
 }
 
 function bindTalisman() {
-    if (forgeSet.length < 2) return;
-    const glyphs = forgeSet.map(r => r.g).join('');
+    if (forgeSet.length !== 2) return;
     const names  = forgeSet.map(r => r.n);
-    const meanings = forgeSet.map(r => r.m.toLowerCase());
-    // Build a talisman description from the power fields
     const powers = forgeSet.map(r => r.power || `The power of ${r.m.toLowerCase()}.`);
-    const incantation = powers.length === 1
-        ? powers[0]
-        : `A talisman of ${names.join(' and ')}: ${powers.map((p,i) => p.replace(/\.$/, '')).join('. ')}. Carry this seal as your protection and your intent.`;
+    const incantation = `A talisman of ${names.join(' and ')}: ${powers.map(p => p.replace(/\.$/, '')).join('. ')}. Carry this seal as your protection and your intent.`;
 
-    // Redraw onto a fresh canvas that has never had getImageData called on it
-    // — guarantees toDataURL works on iOS Safari
+    // Snapshot: use the live canvas (stroke-based, no getImageData — always clean)
     let snap = null;
     try {
-        const fresh = document.createElement('canvas');
-        fresh.width = fresh.height = 300;
-        const fCtx = fresh.getContext('2d');
-        const cx = 150, cy = 150, S = 300;
-        const SCALE = 0.82, BASE_Y = -S * 0.03;
-        const nudge = S * 0.07;
-        const count = forgeSet.length;
-        const offsets = {
-            1:[[0,0]], 2:[[-nudge*0.5,0],[nudge*0.5,0]],
-            3:[[0,-nudge*0.4],[-nudge*0.65,nudge*0.45],[nudge*0.65,nudge*0.45]],
-            4:[[-nudge*0.5,-nudge*0.4],[nudge*0.5,-nudge*0.4],[-nudge*0.5,nudge*0.45],[nudge*0.5,nudge*0.45]],
-        };
-        const pos = offsets[Math.min(count,4)] || offsets[4];
-
-        fCtx.fillStyle = '#0d0d12';
-        fCtx.beginPath(); fCtx.arc(cx,cy,cx,0,Math.PI*2); fCtx.fill();
-
-        function fDraw(r, i, colour, strokeW) {
-            const mirror = forgeMirrors[i] ?? false;
-            const [ox,oy] = pos[i] ?? [0,0];
-            fCtx.save();
-            fCtx.translate(cx+ox, cy+BASE_Y+oy);
-            fCtx.scale(SCALE, SCALE);
-            if (mirror) fCtx.scale(-1,1);
-            fCtx.font = FORGE_FONT; fCtx.textAlign='center'; fCtx.textBaseline='middle';
-            if (strokeW) {
-                fCtx.strokeStyle=colour; fCtx.lineWidth=strokeW; fCtx.lineJoin='round';
-                fCtx.strokeText(r.g, 0, FORGE_FS*RUNE_Y_NUDGE);
-            } else {
-                fCtx.fillStyle=colour; fCtx.fillText(r.g, 0, FORGE_FS*RUNE_Y_NUDGE);
-            }
-            fCtx.restore();
-        }
-
-        fCtx.save();
-        fCtx.beginPath(); fCtx.arc(cx,cy,cx-2,0,Math.PI*2); fCtx.clip();
-        forgeSet.forEach((r,i) => fDraw(r,i,'#0d0d12',9));
-        forgeSet.forEach((r,i) => fDraw(r,i,'#c9a96e',null));
-        fCtx.restore();
-
-        const vig = fCtx.createRadialGradient(cx,cy,cx*0.52,cx,cy,cx);
-        vig.addColorStop(0,'rgba(0,0,0,0)'); vig.addColorStop(0.75,'rgba(13,13,18,0.2)');
-        vig.addColorStop(1,'rgba(13,13,18,1)');
-        fCtx.fillStyle=vig; fCtx.beginPath(); fCtx.arc(cx,cy,cx,0,Math.PI*2); fCtx.fill();
-
-        snap = fresh.toDataURL('image/png');
+        snap = document.getElementById('forge-canvas-el').toDataURL('image/png');
     } catch(e) {
-        console.warn('Canvas snapshot failed:', e);
-        snap = null;
+        console.warn('Snapshot failed:', e);
     }
 
     talismans.unshift({ glyphs, incantation, snap, mirrors: [...forgeMirrors] });
@@ -899,6 +976,8 @@ function bindTalisman() {
     updateForge();
     renderTalismans();
 }
+
+
 
 // ── Stats & History ───────────────────────────────────────────────────────────
 function renderStats() {
